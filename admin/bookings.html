@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Bookings - Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt Admin</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Manage Courts</a>
+      <a href="bookings.html">Manage Bookings</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Manage Bookings</h2>
+      <p>View and manage all court bookings</p>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+        <button onclick="filterBookings('all')" id="btnAll" class="success">All</button>
+        <button onclick="filterBookings('booked')" id="btnBooked" class="secondary">Booked</button>
+        <button onclick="filterBookings('confirmed')" id="btnConfirmed" class="secondary">Confirmed</button>
+        
+        <button onclick="filterBookings('cancelled')" id="btnCancelled" class="secondary">Cancelled</button>
+        <button onclick="filterBookings('no_show')" id="btnNo_show" class="secondary">No Show</button>
+      </div>
+
+      <input type="text" id="searchBooking" placeholder="Search by court, user, or date..." onkeyup="filterBookings(currentFilter)">
+    </div>
+
+    <div class="card">
+      <div id="bookingsList"></div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    checkAdminAuth();
+    let allBookings = [];
+    let currentFilter = 'all';
+
+    // Utility functions for formatting
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return 'N/A';
+      // Handle both full datetime and time-only strings
+      const timePart = timeStr.includes('T') ? timeStr.split('T')[1] : timeStr;
+      const [hours, minutes] = timePart.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    }
+
+    function isToday(dateStr) {
+      if (!dateStr) return false;
+      const bookingDate = new Date(dateStr);
+      const today = new Date();
+      bookingDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      return bookingDate.getTime() === today.getTime();
+    }
+
+    async function loadBookings() {
+      try {
+        allBookings = await apiFetch("/admin/bookings", {
+          headers: authHeader()
+        });
+        filterBookings('all');
+      } catch(err) {
+        console.error("Error loading bookings:", err);
+      }
+    }
+
+    function filterBookings(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('[id^="btn"]').forEach(b => b.className = 'secondary');
+      document.getElementById(`btn${filter.charAt(0).toUpperCase() + filter.slice(1)}`).className = 'success';
+
+      const search = document.getElementById("searchBooking").value.toLowerCase();
+      let filtered = allBookings;
+
+      if (filter !== 'all') {
+        filtered = filtered.filter(b => b.status === filter);
+      }
+
+      if (search) {
+        filtered = filtered.filter(b => 
+          (b.court_name && b.court_name.toLowerCase().includes(search)) ||
+          (b.email && b.email.toLowerCase().includes(search)) ||
+          (b.date && b.date.includes(search))
+        );
+      }
+
+      displayBookings(filtered);
+    }
+
+    function displayBookings(bookings) {
+      const container = document.getElementById("bookingsList");
+
+      if (bookings.length === 0) {
+        container.innerHTML = '<p>No bookings found.</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Court</th>
+              <th>User</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Cost</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${bookings.map(b => `
+              <tr>
+                <td>#${b.id}</td>
+                <td>${b.court_name || 'N/A'}</td>
+                <td>${b.email || 'N/A'}</td>
+                <td>${formatDate(b.date)}</td>
+                <td>${formatTime(b.start_time)} - ${formatTime(b.end_time)}</td>
+                <td><span style="color: ${getStatusColor(b.status)}; font-weight: bold;">${b.status.replace('_', ' ').toUpperCase()}</span></td>
+                <td>${b.total_price || 0} coins</td>
+                <td>
+                  ${getActionButtons(b)}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function getActionButtons(booking) {
+      const buttons = [];
+      
+      // Only BOOKED status gets action buttons
+      if (booking.status === 'booked') {
+        // Show CONFIRM button only on today's date
+        if (isToday(booking.date)) {
+          buttons.push(`<button onclick="confirmBooking(${booking.id})" class="success" style="padding: 5px 10px; width: auto; margin: 2px;">✓ Confirm</button>`);
+        }
+        // Always show CANCEL for booked (can cancel before/on appointment day)
+        buttons.push(`<button onclick="cancelBooking(${booking.id})" class="danger" style="padding: 5px 10px; width: auto; margin: 2px;">✗ Cancel</button>`);
+      }
+      
+      // CONFIRMED, COMPLETED, CANCELLED, NO_SHOW = No actions (view only)
+      return buttons.length > 0 ? buttons.join('') : '-';
+    }
+
+    function getStatusColor(status) {
+      const colors = {
+        booked: '#f59e0b',      // orange
+        confirmed: '#16a34a',   // green
+        completed: '#2563eb',   // blue
+        cancelled: '#dc2626',   // red
+        no_show: '#9333ea'      // purple
+      };
+      return colors[status] || '#64748b';
+    }
+
+    async function confirmBooking(id) {
+      if (!confirm('Confirm this booking? This means the user has checked in.')) return;
+
+      try {
+        const response = await apiFetch(`/admin/bookings/${id}/confirm`, {
+          method: "POST",
+          headers: authHeader()
+        });
+        showAlert('Booking confirmed! User checked in.', 'success');
+        loadBookings();
+      } catch(err) {
+        showAlert(err.message || 'Confirmation failed', 'error');
+      }
+    }
+
+    async function cancelBooking(id) {
+      if (!confirm('Cancel this booking? User will receive full refund and notification.')) return;
+
+      try {
+        await apiFetch(`/admin/bookings/${id}`, {
+          method: "DELETE",
+          headers: authHeader()
+        });
+        showAlert('Booking cancelled. User notified and refunded.', 'success');
+        loadBookings();
+      } catch(err) {
+        showAlert('Cancellation failed', 'error');
+      }
+    }
+
+    loadBookings();
+  </script>
+</body>
+</html>

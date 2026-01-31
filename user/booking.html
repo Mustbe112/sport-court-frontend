@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Court - Sport Court Booking</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Book Courts</a>
+      <a href="bookings.html">My Bookings</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="profile.html">Profile</a>
+      <div class="notification-badge">
+        <a href="#" onclick="toggleNotifications(); return false;">🔔 <span id="notifBadge" class="badge" style="display:none;">0</span></a>
+      </div>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Notification Panel -->
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notification-header">
+      <h3>Notifications</h3>
+      <span class="close" onclick="toggleNotifications()">&times;</span>
+    </div>
+    <div id="notificationList"></div>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="booking-form" style="max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px;">
+      <h2>Book Court: <span id="courtName"></span></h2>
+      <p id="courtDetails"></p>
+
+      <!-- Step 1: Select Date and Time -->
+      <div id="step1">
+        <h3>Step 1: Select Date & Time</h3>
+        
+        <div class="form-group">
+          <label>Select Date</label>
+          <input type="date" id="bookingDate" onchange="checkAvailability()">
+        </div>
+
+        <div class="form-group">
+          <label>Start Time</label>
+          <input type="time" id="startTime" onchange="calculateDuration()">
+        </div>
+
+        <div class="form-group">
+          <label>End Time</label>
+          <input type="time" id="endTime" onchange="calculateDuration()">
+        </div>
+
+        <div id="availabilityResult"></div>
+        
+        <button onclick="proceedToPayment()" id="continueBtn" style="display:none;">Continue to Payment</button>
+      </div>
+
+      <!-- Step 2: Payment Summary -->
+      <div id="step2" style="display:none;">
+        <h3>Step 2: Payment Summary</h3>
+        
+        <div class="receipt-details" style="background: #f9fafb; padding: 20px; border-radius: 8px;">
+          <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+            <span>Court Rental</span>
+            <span id="courtCost">0 coins</span>
+          </div>
+          <div class="receipt-row" id="penaltyRow" style="display:none; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+            <span>Late Checkout Penalty</span>
+            <span id="penaltyCost">0 coins</span>
+          </div>
+          <div class="receipt-row receipt-total" style="display: flex; justify-content: space-between; background: #eff6ff; padding: 15px; margin-top: 10px; border-radius: 8px;">
+            <span style="font-weight: bold; font-size: 1.1em;">Total</span>
+            <span id="totalCost" style="font-weight: bold; color: #6366f1; font-size: 1.1em;">0 coins</span>
+          </div>
+          <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 10px 0;">
+            <span>Your Balance</span>
+            <span id="userBalance">0 coins</span>
+          </div>
+          <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 10px 0;">
+            <span>Balance After Payment</span>
+            <span id="balanceAfter" style="font-weight: 600;">0 coins</span>
+          </div>
+        </div>
+
+        <div id="insufficientFunds" style="display:none; background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-top: 15px;">
+          Insufficient funds! Please <a href="#" onclick="showTopUpModal()" style="color: #6366f1; text-decoration: underline;">top up your account</a>.
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button onclick="backToDateTime()" class="secondary">Back</button>
+          <button onclick="confirmBooking()" id="payBtn" style="background: #22c55e; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Confirm & Pay</button>
+        </div>
+      </div>
+
+      <!-- Processing -->
+      <div id="processing" style="display:none; text-align:center; padding: 40px;">
+        <div class="spinner" style="border: 4px solid #f3f4f6; border-top: 4px solid #6366f1; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto;"></div>
+        <p style="color: #666;">Processing your booking...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Up Modal -->
+  <div id="topUpModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeTopUpModal()">&times;</span>
+      <h2>Top Up Coins</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+        <button onclick="topUp(100)">+100 coins<br><small>$10</small></button>
+        <button onclick="topUp(500)">+500 coins<br><small>$45</small></button>
+        <button onclick="topUp(1000)">+1000 coins<br><small>$80</small></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script>
+    checkAuth();
+
+    let selectedCourt = null;
+    let userBalance = 0;
+    let duration = 0;
+    let baseCost = 0;
+    let userPenalty = 0;
+
+    async function loadCourtDetails() {
+      const courtId = localStorage.getItem('selectedCourtId');
+      if (!courtId) {
+        showAlert('No court selected', 'error');
+        location.href = 'courts.html';
+        return;
+      }
+
+      try {
+        const courts = await apiFetch("/courts");
+        selectedCourt = courts.find(c => c.id == courtId);
+        
+        if (!selectedCourt) {
+          showAlert('Court not found', 'error');
+          location.href = 'courts.html';
+          return;
+        }
+
+        document.getElementById("courtName").textContent = selectedCourt.name;
+        document.getElementById("courtDetails").textContent = 
+          `${selectedCourt.type.toUpperCase()} - ${selectedCourt.price_per_hour} coins per hour`;
+
+        // Load user balance and penalty
+        const user = await apiFetch("/users/me", {
+          headers: authHeader()
+        });
+        userBalance = user.coin_balance || 0;
+        userPenalty = user.penalty || 0;
+
+        console.log("User balance:", userBalance, "Penalty:", userPenalty);
+
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById("bookingDate").setAttribute('min', today);
+
+      } catch(err) {
+        console.error("Error loading court:", err);
+        showAlert('Error loading court details', 'error');
+      }
+    }
+
+    function calculateDuration() {
+      const startTime = document.getElementById("startTime").value;
+      const endTime = document.getElementById("endTime").value;
+
+      if (startTime && endTime) {
+        const start = new Date(`2000-01-01 ${startTime}`);
+        const end = new Date(`2000-01-01 ${endTime}`);
+        duration = (end - start) / (1000 * 60 * 60); // hours
+
+        if (duration <= 0) {
+          showAlert('End time must be after start time', 'warning');
+          return;
+        }
+
+        baseCost = selectedCourt.price_per_hour * duration;
+        checkAvailability();
+      }
+    }
+
+    async function checkAvailability() {
+      const date = document.getElementById("bookingDate").value;
+      const startTime = document.getElementById("startTime").value + ':00'; // Add seconds
+      const endTime = document.getElementById("endTime").value + ':00'; // Add seconds
+
+      if (!date || !startTime || !endTime || duration <= 0) {
+        return;
+      }
+
+      try {
+        console.log("Checking availability:", {
+          court_id: selectedCourt.id,
+          date: date,
+          start_time: startTime,
+          end_time: endTime
+        });
+
+        const result = await apiFetch("/bookings/availability", {
+          method: "POST",
+          headers: authHeader(),
+          body: JSON.stringify({
+            court_id: selectedCourt.id,
+            date: date,
+            start_time: startTime,
+            end_time: endTime
+          })
+        });
+
+        console.log("Availability result:", result);
+
+        const resultDiv = document.getElementById("availabilityResult");
+        
+        if (result.available) {
+          resultDiv.innerHTML = `
+            <div style="background: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              ✅ Court is available for the selected time slot!<br>
+              <strong>Duration:</strong> ${duration} hour(s)<br>
+              <strong>Cost:</strong> ${baseCost} coins
+            </div>
+          `;
+          document.getElementById("continueBtn").style.display = 'block';
+        } else {
+          resultDiv.innerHTML = `
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              ❌ Court is not available for the selected time slot.<br>
+              Please choose a different time.
+            </div>
+          `;
+          document.getElementById("continueBtn").style.display = 'none';
+        }
+      } catch(err) {
+        console.error("Availability check error:", err);
+        showAlert('Error checking availability', 'error');
+      }
+    }
+
+    function backToDateTime() {
+      document.getElementById("step2").style.display = 'none';
+      document.getElementById("step1").style.display = 'block';
+    }
+
+    function proceedToPayment() {
+      document.getElementById("step1").style.display = 'none';
+      document.getElementById("step2").style.display = 'block';
+      updateTotal();
+    }
+
+    function updateTotal() {
+      let total = baseCost + userPenalty;
+
+      document.getElementById("courtCost").textContent = baseCost + ' coins';
+      document.getElementById("totalCost").textContent = total + ' coins';
+      document.getElementById("userBalance").textContent = userBalance + ' coins';
+      document.getElementById("balanceAfter").textContent = (userBalance - total) + ' coins';
+
+      // Show penalty if exists
+      if (userPenalty > 0) {
+        document.getElementById("penaltyRow").style.display = 'flex';
+        document.getElementById("penaltyCost").textContent = userPenalty + ' coins';
+      }
+
+      // Check if user has enough balance
+      if (userBalance < total) {
+        document.getElementById("insufficientFunds").style.display = 'block';
+        document.getElementById("payBtn").disabled = true;
+        document.getElementById("payBtn").style.opacity = '0.5';
+        document.getElementById("payBtn").style.cursor = 'not-allowed';
+      } else {
+        document.getElementById("insufficientFunds").style.display = 'none';
+        document.getElementById("payBtn").disabled = false;
+        document.getElementById("payBtn").style.opacity = '1';
+        document.getElementById("payBtn").style.cursor = 'pointer';
+      }
+    }
+
+    async function confirmBooking() {
+      document.getElementById("step2").style.display = 'none';
+      document.getElementById("processing").style.display = 'block';
+
+      try {
+        const date = document.getElementById("bookingDate").value;
+        const startTime = document.getElementById("startTime").value + ':00';
+        const endTime = document.getElementById("endTime").value + ':00';
+
+        console.log("Creating booking:", {
+          court_id: selectedCourt.id,
+          date: date,
+          start_time: startTime,
+          end_time: endTime
+        });
+
+        const booking = await apiFetch("/bookings/book", {
+          method: "POST",
+          headers: authHeader(),
+          body: JSON.stringify({
+            court_id: selectedCourt.id,
+            date: date,
+            start_time: startTime,
+            end_time: endTime
+          })
+        });
+
+        console.log("Booking response:", booking);
+
+        showAlert('Booking confirmed! Redirecting...', 'success');
+        
+        // Wait 2 seconds, then fetch bookings and redirect
+        setTimeout(async () => {
+          try {
+            const bookings = await apiFetch("/bookings/my-bookings", {
+              headers: authHeader()
+            });
+            
+            console.log("Fetched bookings after creation:", bookings);
+            
+            if (bookings && bookings.length > 0) {
+              // Get the most recent booking
+              const latestBooking = bookings[0];
+              localStorage.setItem('bookingId', latestBooking.id);
+              location.href = 'receipt.html';
+            } else {
+              location.href = 'bookings.html';
+            }
+          } catch (e) {
+            console.error("Error fetching bookings:", e);
+            location.href = 'bookings.html';
+          }
+        }, 2000);
+
+      } catch(err) {
+        console.error("Booking error:", err);
+        showAlert('Booking failed: ' + (err.message || 'Please try again'), 'error');
+        document.getElementById("processing").style.display = 'none';
+        document.getElementById("step2").style.display = 'block';
+      }
+    }
+
+    function showTopUpModal() {
+      document.getElementById("topUpModal").style.display = "block";
+    }
+
+    function closeTopUpModal() {
+      document.getElementById("topUpModal").style.display = "none";
+    }
+
+    async function topUp(amount) {
+      try {
+        const data = await apiFetch("/users/topup", {
+          method: "POST",
+          headers: authHeader(),
+          body: JSON.stringify({ amount })
+        });
+
+        userBalance = data.coin_balance;
+        showAlert(`Successfully added ${amount} coins!`, 'success');
+        updateTotal();
+        closeTopUpModal();
+      } catch(err) {
+        console.error("Top up error:", err);
+        showAlert('Top up failed', 'error');
+      }
+    }
+
+    // Add CSS for spinner animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    loadCourtDetails();
+    loadNotifications();
+  </script>
+</body>
+</html>

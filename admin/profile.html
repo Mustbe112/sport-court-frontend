@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Profile</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt Admin</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Manage Courts</a>
+      <a href="bookings.html">Manage Bookings</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Admin Profile</h2>
+      <p>Manage your admin account</p>
+    </div>
+
+    <div class="card">
+      <h3>Account Information</h3>
+      <p><strong>Email:</strong> <span id="adminEmail"></span></p>
+      <p><strong>Role:</strong> Administrator</p>
+      <button onclick="changePassword()" class="secondary">Change Password</button>
+    </div>
+
+    <div class="card">
+      <h3>System Settings</h3>
+      <label><input type="checkbox" checked> Email notifications</label><br>
+      <label><input type="checkbox" checked> Booking alerts</label><br>
+      <label><input type="checkbox"> Maintenance mode</label>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    checkAdminAuth();
+    document.getElementById("adminEmail").textContent = localStorage.getItem("userEmail") || "admin@sportcourt.com";
+
+    function changePassword() {
+      const newPassword = prompt("Enter new password:");
+      if (newPassword && newPassword.length >= 6) {
+        showAlert('Password updated!', 'success');
+      }
+    }
+  </script>
+</body>
+</html>

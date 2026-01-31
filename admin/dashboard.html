@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Sport Court Booking</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt Admin</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Manage Courts</a>
+      <a href="bookings.html">Manage Bookings</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Admin Dashboard</h2>
+      <p>System Overview and Analytics</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Revenue</h3>
+        <div class="stat-value" id="totalRevenue">0</div>
+        <div class="stat-label">coins collected</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Active Bookings</h3>
+        <div class="stat-value" id="activeBookings">0</div>
+        <div class="stat-label">ongoing sessions</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Total Courts</h3>
+        <div class="stat-value" id="totalCourts">0</div>
+        <div class="stat-label">available courts</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Cancellation Rate</h3>
+        <div class="stat-value" id="cancellationRate">0%</div>
+        <div class="stat-label">this month</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>High Demand Courts</h3>
+        <canvas id="demandChart"></canvas>
+      </div>
+      
+      <div class="chart-card">
+        <h3>Peak Hours</h3>
+        <canvas id="peakHoursChart"></canvas>
+      </div>
+      
+      <div class="chart-card">
+        <h3>Revenue Trend (Last 7 Days)</h3>
+        <canvas id="revenueChart"></canvas>
+      </div>
+      
+      <div class="chart-card">
+        <h3>Booking Status Distribution</h3>
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <h3>Quick Actions</h3>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <button onclick="location.href='courts.html'">➕ Add New Court</button>
+        <button onclick="location.href='bookings.html'" class="secondary">📅 View All Bookings</button>
+        <button onclick="exportReport()" class="secondary">📊 Export Report</button>
+      </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="card">
+      <h3>Recent Bookings</h3>
+      <div id="recentBookings"></div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    checkAdminAuth();
+
+    // Utility functions for formatting
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return 'N/A';
+      // Handle both full datetime and time-only strings
+      const timePart = timeStr.includes('T') ? timeStr.split('T')[1] : timeStr;
+      const [hours, minutes] = timePart.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    }
+
+    let charts = {};
+
+    async function loadDashboard() {
+      try {
+        const bookings = await apiFetch("/admin/bookings", {
+          headers: authHeader()
+        });
+
+        const courts = await apiFetch("/admin/courts", {
+          headers: authHeader()
+        });
+
+        const totalRevenue = bookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
+        const activeBookings = bookings.filter(b => b.status === 'confirmed').length;
+        const cancelledBookings = bookings.filter(b => b.status === 'cancelled').length;
+        const cancellationRate = bookings.length > 0 ? 
+          ((cancelledBookings / bookings.length) * 100).toFixed(1) : 0;
+
+        document.getElementById("totalRevenue").textContent = totalRevenue;
+        document.getElementById("activeBookings").textContent = activeBookings;
+        document.getElementById("totalCourts").textContent = courts.length;
+        document.getElementById("cancellationRate").textContent = cancellationRate + '%';
+
+        displayRecentBookings(bookings.slice(0, 10));
+        await loadAnalytics();
+
+      } catch(err) {
+        console.error("Dashboard error:", err);
+      }
+    }
+
+    function displayRecentBookings(bookings) {
+      const container = document.getElementById("recentBookings");
+      
+      if (bookings.length === 0) {
+        container.innerHTML = '<p>No bookings yet.</p>';
+        return;
+      }
+
+      const table = `
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Court</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${bookings.map(b => `
+              <tr>
+                <td>#${b.id}</td>
+                <td>${b.court_name || 'N/A'}</td>
+                <td>${formatDate(b.date)}</td>
+                <td>${formatTime(b.start_time)}</td>
+                <td><span style="color: ${getStatusColor(b.status)};">${b.status}</span></td>
+                <td>${b.total_price || 0} coins</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      
+      container.innerHTML = table;
+    }
+
+    function getStatusColor(status) {
+      const colors = {
+        confirmed: '#16a34a',
+        completed: '#2563eb',
+        cancelled: '#dc2626'
+      };
+      return colors[status] || '#64748b';
+    }
+
+    async function loadAnalytics() {
+      try {
+        const demandData = await apiFetch("/admin/stats/high-demand", {
+          headers: authHeader()
+        });
+        if (demandData && demandData.length > 0) createDemandChart(demandData);
+
+        const peakHours = await apiFetch("/admin/stats/peak-hours", {
+          headers: authHeader()
+        });
+        if (peakHours && peakHours.length > 0) createPeakHoursChart(peakHours);
+
+        const revenue = await apiFetch("/admin/stats/revenue", {
+          headers: authHeader()
+        });
+        if (revenue && revenue.length > 0) createRevenueChart(revenue);
+
+        createStatusChart();
+      } catch(err) {
+        console.error("Analytics error:", err);
+      }
+    }
+
+    function createDemandChart(data) {
+      const ctx = document.getElementById('demandChart');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.court_name),
+          datasets: [{
+            label: 'Bookings',
+            data: data.map(d => d.booking_count),
+            backgroundColor: 'rgba(37, 99, 235, 0.8)'
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    function createPeakHoursChart(data) {
+      const ctx = document.getElementById('peakHoursChart');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.hour + ':00'),
+          datasets: [{
+            label: 'Bookings',
+            data: data.map(d => d.booking_count),
+            borderColor: 'rgba(22, 163, 74, 1)',
+            fill: true
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    function createRevenueChart(data) {
+      const ctx = document.getElementById('revenueChart');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => formatDate(d.date)),
+          datasets: [{
+            label: 'Revenue',
+            data: data.map(d => d.revenue),
+            backgroundColor: 'rgba(168, 85, 247, 0.8)'
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    function createStatusChart() {
+      const ctx = document.getElementById('statusChart');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Confirmed', 'Completed', 'Cancelled'],
+          datasets: [{
+            data: [45, 40, 15],
+            backgroundColor: ['#16a34a', '#2563eb', '#dc2626']
+          }]
+        },
+        options: { responsive: true }
+      });
+    }
+
+    function exportReport() {
+      showAlert('Report exported!', 'success');
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

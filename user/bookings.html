@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings - SportCourt</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .booking-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    
+    .booking-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .booking-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .booking-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .booking-status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .status-confirmed, .status-booked {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-completed {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .status-cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .booking-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .detail-label {
+      font-size: 0.85em;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    
+    .detail-value {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .booking-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #6366f1;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #4f46e5;
+    }
+    
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      background: #e5e7eb;
+      color: #374151;
+      transition: all 0.2s;
+    }
+    
+    .filter-btn.active {
+      background: #22c55e;
+      color: white;
+    }
+    
+    .filter-btn:hover {
+      transform: translateY(-1px);
+    }
+    
+    .no-bookings {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 1.1em;
+      background: white;
+      border-radius: 8px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.1em;
+      color: #666;
+    }
+    
+    .error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .success-message {
+      background: #d1fae5;
+      color: #065f46;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Book Courts</a>
+      <a href="bookings.html" class="active">My Bookings</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div style="background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+        <h1>My Bookings</h1>
+        <p style="color: #666;">View and manage your court reservations</p>
+      </div>
+
+      <div class="filter-buttons">
+        <button class="filter-btn active" onclick="filterBookings('all', this)">All Bookings</button>
+        <button class="filter-btn" onclick="filterBookings('upcoming', this)">Upcoming</button>
+        <button class="filter-btn" onclick="filterBookings('completed', this)">Completed</button>
+        <button class="filter-btn" onclick="filterBookings('cancelled', this)">Cancelled</button>
+      </div>
+
+      <div id="errorContainer"></div>
+      <div id="loadingContainer" class="loading">Loading your bookings...</div>
+      <div id="bookingsContainer"></div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    checkAuth();
+
+    let allBookings = [];
+    let currentFilter = 'all';
+
+    // Format date helper
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+
+    // Format time helper
+    function formatTime(timeString) {
+      if (!timeString) return '';
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    }
+
+    // Show alert helper
+    function showAlert(message, type) {
+      const errorContainer = document.getElementById('errorContainer');
+      const className = type === 'success' ? 'success-message' : 'error-message';
+      errorContainer.innerHTML = `<div class="${className}">${message}</div>`;
+      setTimeout(() => {
+        errorContainer.innerHTML = '';
+      }, 5000);
+    }
+
+    // Load bookings
+    async function loadBookings() {
+      const loadingContainer = document.getElementById('loadingContainer');
+      const bookingsContainer = document.getElementById('bookingsContainer');
+      
+      try {
+        loadingContainer.style.display = 'block';
+        bookingsContainer.innerHTML = '';
+
+        console.log('Fetching bookings from API...');
+        
+        // Fetch bookings - the correct endpoint based on your API_BASE
+        const bookings = await apiFetch("/bookings/my-bookings", {
+          headers: authHeader()
+        });
+
+        console.log('Bookings received:', bookings);
+
+        loadingContainer.style.display = 'none';
+
+        if (!bookings || bookings.length === 0) {
+          bookingsContainer.innerHTML = `
+            <div class="no-bookings">
+              No bookings found. <a href="courts.html" style="color: #6366f1; text-decoration: underline;">Book your first court!</a>
+            </div>
+          `;
+          return;
+        }
+
+        allBookings = bookings;
+        displayBookings(bookings);
+
+      } catch (err) {
+        console.error("Error loading bookings:", err);
+        loadingContainer.style.display = 'none';
+        showAlert('Error loading bookings: ' + (err.message || 'Unknown error'), 'error');
+        bookingsContainer.innerHTML = `
+          <div class="no-bookings">
+            <p>Unable to load bookings. Please try again later.</p>
+            <button onclick="loadBookings()" class="btn btn-primary" style="margin-top: 15px;">Retry</button>
+          </div>
+        `;
+      }
+    }
+
+    // Display bookings
+    function displayBookings(bookings) {
+      const bookingsContainer = document.getElementById('bookingsContainer');
+      
+      if (!bookings || bookings.length === 0) {
+        bookingsContainer.innerHTML = '<div class="no-bookings">No bookings found for this filter.</div>';
+        return;
+      }
+
+      bookingsContainer.innerHTML = bookings.map(booking => {
+        // Determine status class
+        const status = booking.status.toLowerCase();
+        const statusClass = `status-${status}`;
+        
+        // Determine if booking can be cancelled (only upcoming confirmed/booked bookings)
+        const bookingDate = new Date(booking.date); // Using 'date' field from DB
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const canCancel = (status === 'confirmed' || status === 'booked') && bookingDate >= today;
+        
+        return `
+          <div class="booking-card">
+            <div class="booking-header">
+              <div class="booking-title">${booking.court_name || `Court ${booking.court_id}`}</div>
+              <span class="booking-status ${statusClass}">${booking.status}</span>
+            </div>
+            
+            <div class="booking-details">
+              <div class="detail-item">
+                <span class="detail-label">📅 Date</span>
+                <span class="detail-value">${formatDate(booking.date)}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">⏰ Time</span>
+                <span class="detail-value">${formatTime(booking.start_time)} - ${formatTime(booking.end_time)}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">💰 Total Cost</span>
+                <span class="detail-value">${booking.total_price} coins</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">🆔 Booking ID</span>
+                <span class="detail-value">#${booking.id}</span>
+              </div>
+            </div>
+            
+            <div class="booking-actions">
+              ${status === 'confirmed' || status === 'booked' ? `
+                <button class="btn btn-primary" onclick="viewReceipt(${booking.id})">View Receipt</button>
+              ` : ''}
+              ${canCancel ? `
+                <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">Cancel Booking</button>
+              ` : ''}
+              ${status === 'confirmed' && !booking.checked_in ? `
+                <button class="btn btn-secondary" onclick="checkIn(${booking.id})">Check In</button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Filter bookings
+    function filterBookings(filter, button) {
+      currentFilter = filter;
+      
+      // Update active button
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      button.classList.add('active');
+      
+      let filtered = allBookings;
+      
+      if (filter === 'upcoming') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        filtered = allBookings.filter(b => {
+          const bookingDate = new Date(b.date);
+          return (b.status === 'confirmed' || b.status === 'booked') && bookingDate >= today;
+        });
+      } else if (filter === 'completed') {
+        filtered = allBookings.filter(b => b.status === 'completed');
+      } else if (filter === 'cancelled') {
+        filtered = allBookings.filter(b => b.status === 'cancelled');
+      }
+      
+      displayBookings(filtered);
+    }
+
+    // View receipt
+    function viewReceipt(bookingId) {
+      localStorage.setItem('bookingId', bookingId);
+      location.href = 'receipt.html';
+    }
+
+    // Cancel booking
+    async function cancelBooking(bookingId) {
+      if (!confirm('Are you sure you want to cancel this booking? You will receive a full refund.')) {
+        return;
+      }
+      
+      try {
+        const result = await apiFetch(`/bookings/cancel/${bookingId}`, {
+          method: 'POST',
+          headers: authHeader()
+        });
+        
+        showAlert('Booking cancelled successfully. Coins have been refunded.', 'success');
+        setTimeout(() => loadBookings(), 1500);
+      } catch (err) {
+        console.error('Cancel error:', err);
+        showAlert('Error cancelling booking: ' + (err.message || 'Unknown error'), 'error');
+      }
+    }
+
+    // Check in
+    async function checkIn(bookingId) {
+      try {
+        const result = await apiFetch(`/bookings/checkin/${bookingId}`, {
+          method: 'POST',
+          headers: authHeader()
+        });
+        
+        showAlert('Check-in successful!', 'success');
+        setTimeout(() => loadBookings(), 1500);
+      } catch (err) {
+        console.error('Check-in error:', err);
+        showAlert('Error checking in: ' + (err.message || 'Unknown error'), 'error');
+      }
+    }
+
+    // Load bookings on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadBookings();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Sport Court Booking</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .register-container {
+      max-width: 400px;
+      margin: 80px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .logo {
+      text-align: center;
+      font-size: 2em;
+      color: #2563eb;
+      margin-bottom: 30px;
+      font-weight: bold;
+    }
+    .error-msg {
+      background: #fee;
+      color: #c00;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <div class="logo">🏟️ SportCourt</div>
+    <h2>Create Account</h2>
+    <div id="error" class="error-msg"></div>
+
+    <form onsubmit="event.preventDefault(); register();">
+      <input id="name" type="text" placeholder="Full Name" required>
+      <input id="email" type="email" placeholder="Email" required>
+      <input id="password" type="password" placeholder="Password (min 6 chars)" required minlength="6">
+      <input id="confirmPassword" type="password" placeholder="Confirm Password" required>
+      <button type="submit">Create Account</button>
+    </form>
+
+    <p style="text-align: center;">
+      Already have an account? <a href="index.html">Login here</a>
+    </p>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    async function register() {
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const errorDiv = document.getElementById("error");
+
+      if (password !== confirmPassword) {
+        errorDiv.textContent = "Passwords do not match!";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      try {
+        const data = await apiFetch("/auth/register", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ name, email, password })
+        });
+
+        if (data.error) {
+          errorDiv.textContent = data.error;
+          errorDiv.style.display = "block";
+          return;
+        }
+
+        alert("Account created successfully! Please login.");
+        location.href = "index.html";
+      } catch(err) {
+        errorDiv.textContent = "Registration failed. Please try again.";
+        errorDiv.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>

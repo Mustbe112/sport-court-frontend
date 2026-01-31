@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Dashboard - Sport Court Booking</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Book Courts</a>
+      <a href="bookings.html">My Bookings</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="profile.html">Profile</a>
+      <div class="notification-badge">
+        <a href="#" onclick="toggleNotifications(); return false;">🔔 <span id="notifBadge" class="badge" style="display:none;">0</span></a>
+      </div>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Notification Panel -->
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notification-header">
+      <h3>Notifications</h3>
+      <span class="close" onclick="toggleNotifications()">&times;</span>
+    </div>
+    <div id="notificationList"></div>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Welcome back, <span id="userName"></span>!</h2>
+      <p>Manage your court bookings and view your account</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Coin Balance</h3>
+        <div class="stat-value" id="coinBalance">0</div>
+        <div class="stat-label">Available coins</div>
+        <button onclick="showTopUpModal()" style="margin-top: 15px; background: rgba(255,255,255,0.2);">Top Up</button>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Active Bookings</h3>
+        <div class="stat-value" id="activeBookings">0</div>
+        <div class="stat-label">Upcoming sessions</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Favorite Courts</h3>
+        <div class="stat-value" id="favoriteCourts">0</div>
+        <div class="stat-label">Quick access courts</div>
+      </div>
+      
+      <div class="stat-card">
+        <h3>Total Bookings</h3>
+        <div class="stat-value" id="totalBookings">0</div>
+        <div class="stat-label">All time</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <h3>Quick Actions</h3>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <button onclick="location.href='courts.html'">🏀 Book a Court</button>
+        <button onclick="location.href='bookings.html'" class="secondary">📅 View My Bookings</button>
+        <button onclick="location.href='favorites.html'" class="secondary">⭐ Favorite Courts</button>
+      </div>
+    </div>
+
+    <!-- Upcoming Bookings -->
+    <div class="card">
+      <h3>Upcoming Bookings</h3>
+      <div id="upcomingBookings">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Top Up Modal -->
+  <div id="topUpModal" class="modal">
+    <div class="modal-content">
+      <h2>Top Up Coins</h2>
+      <p>Add coins to your account for booking courts</p>
+
+      <!-- Preset buttons -->
+      <div class="preset-buttons" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+        <button class="topup-btn" onclick="topUpPreset(100, 10)">
+          +100 coins<br>$10
+        </button>
+
+        <button class="topup-btn" onclick="topUpPreset(500, 45)">
+          +500 coins<br>$45
+        </button>
+
+        <button class="topup-btn" onclick="topUpPreset(1000, 80)">
+          +1000 coins<br>$80
+        </button>
+
+        <button class="topup-btn" onclick="topUpPreset(5000, 350)">
+          +5000 coins<br>$350
+        </button>
+      </div>
+
+      <!-- Custom amount -->
+      <div class="form-group">
+        <input type="number" id="customAmountInput" placeholder="Enter amount" min="10">
+        <button onclick="topUpCustom()">Top Up Custom Amount</button>
+      </div>
+
+      <!-- Close button -->
+      <div style="text-align: right; margin-top: 10px;">
+        <button onclick="closeTopUpModal()">×</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/topup.js"></script> <!-- ADD THIS LINE -->
+  <script>
+    checkAuth();
+
+    async function loadDashboard() {
+      try {
+        // Load user info
+        const user = await apiFetch("/users/me", {
+          headers: authHeader()
+        });
+        
+        document.getElementById("userName").textContent = user.email.split('@')[0];
+        document.getElementById("coinBalance").textContent = user.coin_balance || 0;
+
+        // Load bookings
+        const bookings = await apiFetch("/bookings/my-bookings", {
+          headers: authHeader()
+        });
+
+        const now = new Date();
+        const activeBookings = bookings.filter(b => 
+          b.status === 'confirmed' && new Date(b.booking_date) >= now
+        );
+        
+        document.getElementById("activeBookings").textContent = activeBookings.length;
+        document.getElementById("totalBookings").textContent = bookings.length;
+
+        // Display upcoming bookings
+        displayUpcomingBookings(activeBookings.slice(0, 5));
+
+        // Load favorites count
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        document.getElementById("favoriteCourts").textContent = favorites.length;
+
+      } catch(err) {
+        console.error("Dashboard load error:", err);
+      }
+    }
+
+    function displayUpcomingBookings(bookings) {
+      const container = document.getElementById("upcomingBookings");
+      
+      if (bookings.length === 0) {
+        container.innerHTML = '<p>No upcoming bookings. <a href="courts.html">Book a court now!</a></p>';
+        return;
+      }
+
+      container.innerHTML = bookings.map(b => `
+        <div class="card" style="border-left: 4px solid #2563eb;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>${b.court_name}</h4>
+              <p><strong>Date:</strong> ${formatDate(b.booking_date)}</p>
+              <p><strong>Time:</strong> ${formatTime(b.start_time)} - ${formatTime(b.end_time)}</p>
+              <p><strong>Status:</strong> <span style="color: #16a34a; font-weight: bold;">${b.status}</span></p>
+            </div>
+            <div>
+              <button onclick="location.href='bookings.html'" class="secondary">View Details</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showTopUpModal() {
+      document.getElementById("topUpModal").style.display = "block";
+    }
+
+    function closeTopUpModal() {
+      document.getElementById("topUpModal").style.display = "none";
+    }
+
+    async function topUp(amount) {
+      try {
+        const data = await apiFetch("/users/topup", {
+          method: "POST",
+          headers: authHeader(),
+          body: JSON.stringify({ amount })
+        });
+
+        showAlert(`Successfully added ${amount} coins to your account!`, 'success');
+        document.getElementById("coinBalance").textContent = data.coin_balance;
+        closeTopUpModal();
+      } catch(err) {
+        showAlert('Top up failed. Please try again.', 'error');
+      }
+    }
+
+    function topUpPreset(amount, price) {
+      if (!confirm(`Top up ${amount} coins for $${price}?`)) return;
+      topUp(amount);
+    }
+
+    async function topUpCustom() {
+      const amount = parseInt(document.getElementById("customAmountInput").value);
+      if (isNaN(amount) || amount < 10) {
+        showAlert('Minimum top up amount is 10 coins', 'warning');
+        return;
+      }
+      await topUp(amount);
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById("topUpModal");
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    loadDashboard();
+    loadNotifications();
+  </script>
+</body>
+</html>

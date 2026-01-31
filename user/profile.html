@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Sport Court Booking</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Book Courts</a>
+      <a href="bookings.html">My Bookings</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="profile.html">Profile</a>
+      <div class="notification-badge">
+        <a href="#" onclick="toggleNotifications(); return false;">🔔 <span id="notifBadge" class="badge" style="display:none;">0</span></a>
+      </div>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notification-header">
+      <h3>Notifications</h3>
+      <span class="close" onclick="toggleNotifications()">&times;</span>
+    </div>
+    <div id="notificationList"></div>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>My Profile</h2>
+      <p>Manage your account information</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
+      <!-- Account Info -->
+      <div class="card">
+        <h3>Account Information</h3>
+        <div style="margin: 20px 0;">
+          <p><strong>Email:</strong> <span id="userEmail"></span></p>
+          <p><strong>Account Type:</strong> <span id="accountType">User</span></p>
+          <p><strong>Member Since:</strong> <span id="memberSince">2024</span></p>
+        </div>
+        <button onclick="changePassword()" class="secondary">Change Password</button>
+      </div>
+
+      <!-- Wallet -->
+      <div class="card">
+        <h3>Wallet</h3>
+        <div style="margin: 20px 0;">
+          <div style="font-size: 36px; color: #2563eb; font-weight: bold;">
+            <span id="coinBalance">0</span> coins
+          </div>
+          <p style="color: #64748b;">Available balance</p>
+        </div>
+        <button onclick="location.href='dashboard.html'; showTopUpModal()">Top Up Coins</button>
+      </div>
+
+      <!-- Statistics -->
+      <div class="card">
+        <h3>Your Statistics</h3>
+        <div style="margin: 20px 0;">
+          <p><strong>Total Bookings:</strong> <span id="totalBookings">0</span></p>
+          <p><strong>Completed Sessions:</strong> <span id="completedSessions">0</span></p>
+          <p><strong>Cancelled Bookings:</strong> <span id="cancelledBookings">0</span></p>
+          <p><strong>Favorite Courts:</strong> <span id="favCount">0</span></p>
+        </div>
+      </div>
+
+      <!-- Booking History -->
+      <div class="card">
+        <h3>Recent Activity</h3>
+        <div id="recentActivity"></div>
+      </div>
+    </div>
+
+    <!-- Delete Account Section -->
+    <div class="card" style="border-left: 4px solid #dc2626; margin-top: 30px;">
+      <h3 style="color: #dc2626;">Danger Zone</h3>
+      <p>Once you delete your account, there is no going back. Please be certain.</p>
+      <button onclick="deleteAccount()" class="danger">Delete Account</button>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/topup.js"></script>
+  <script>
+    checkAuth();
+    
+    async function loadProfile() {
+      try {
+        // Load user info
+        const user = await apiFetch("/users/me", {
+          headers: authHeader()
+        });
+        
+        // Update profile information
+        document.getElementById("userEmail").textContent = user.email;
+        document.getElementById("coinBalance").textContent = user.coin_balance || 0;
+        
+        // Load bookings for statistics
+        const bookings = await apiFetch("/bookings/my-bookings", {
+          headers: authHeader()
+        });
+        
+        document.getElementById("totalBookings").textContent = bookings.length;
+        
+        const completed = bookings.filter(b => b.status === 'completed').length;
+        const cancelled = bookings.filter(b => b.status === 'cancelled').length;
+        
+        document.getElementById("completedSessions").textContent = completed;
+        document.getElementById("cancelledBookings").textContent = cancelled;
+        
+        // Load favorites count
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        document.getElementById("favCount").textContent = favorites.length;
+        
+        // Display recent activity (last 5 bookings)
+        displayRecentActivity(bookings.slice(0, 5));
+        
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        showAlert("Error loading profile data", "error");
+      }
+    }
+    
+    function displayRecentActivity(bookings) {
+      const container = document.getElementById("recentActivity");
+      
+      if (bookings.length === 0) {
+        container.innerHTML = '<p>No recent activity</p>';
+        return;
+      }
+      
+      container.innerHTML = bookings.map(b => `
+        <div style="padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
+          <strong>${b.court_name}</strong><br>
+          <small>${formatDate(b.booking_date)} - ${b.status}</small>
+        </div>
+      `).join('');
+    }
+    
+    function changePassword() {
+      showAlert("Password change functionality coming soon!", "info");
+    }
+    
+    function deleteAccount() {
+      if (confirm("Are you sure you want to delete your account? This action cannot be undone!")) {
+        showAlert("Account deletion functionality coming soon!", "info");
+      }
+    }
+    
+    loadProfile();
+    loadNotifications();
+  </script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt - Sport Court Booking</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .receipt-container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .receipt-header {
+      text-align: center;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .receipt-header h1 {
+      margin: 0 0 10px 0;
+      color: #6366f1;
+    }
+    
+    .receipt-header h2 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    
+    .receipt-details {
+      margin-bottom: 30px;
+    }
+    
+    .receipt-details h3 {
+      color: #6366f1;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .receipt-row span:first-child {
+      color: #666;
+    }
+    
+    .receipt-row span:last-child {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .receipt-total {
+      background: #f9fafb;
+      padding: 15px !important;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 2px solid #6366f1 !important;
+    }
+    
+    .receipt-total span {
+      font-size: 1.2em;
+      color: #6366f1 !important;
+      font-weight: bold !important;
+    }
+    
+    .receipt-qr {
+      text-align: center;
+      padding: 30px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    
+    .receipt-qr h3 {
+      color: #6366f1;
+      margin-bottom: 20px;
+    }
+    
+    #qrCode {
+      display: inline-block;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+    }
+    
+    .button-group {
+      text-align: center;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 1em;
+      transition: all 0.2s;
+    }
+    
+    .btn-success {
+      background: #22c55e;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: #16a34a;
+    }
+    
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    @media print {
+      .btn, nav {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="bookings.html">My Bookings</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="receipt-container">
+      <div class="receipt-header">
+        <h1>🏟️ SportCourt</h1>
+        <h2>Booking Confirmation Receipt</h2>
+        <p>Receipt #<span id="receiptId"></span></p>
+      </div>
+
+      <div id="errorContainer"></div>
+      <div id="receiptContent" style="display: none;">
+        <div class="receipt-details">
+          <h3>Booking Details</h3>
+          <div class="receipt-row">
+            <span>Court:</span>
+            <span id="courtName"></span>
+          </div>
+          <div class="receipt-row">
+            <span>Date:</span>
+            <span id="bookingDate"></span>
+          </div>
+          <div class="receipt-row">
+            <span>Time:</span>
+            <span id="bookingTime"></span>
+          </div>
+          <div class="receipt-row">
+            <span>Status:</span>
+            <span id="status" style="font-weight: bold; color: #16a34a;"></span>
+          </div>
+        </div>
+
+        <div class="receipt-details">
+          <h3>Payment Summary</h3>
+          <div class="receipt-row">
+            <span>Court Rental:</span>
+            <span id="courtCost"></span>
+          </div>
+          <div id="servicesSection"></div>
+          <div class="receipt-row receipt-total">
+            <span>Total Paid:</span>
+            <span id="totalCost"></span>
+          </div>
+        </div>
+
+        <div class="receipt-qr">
+          <h3>Check-in QR Code</h3>
+          <div id="qrCode"></div>
+          <p>Show this QR code at the court for check-in</p>
+        </div>
+
+        <div class="button-group">
+          <button onclick="downloadPDF()" class="btn btn-success">Download PDF</button>
+          <button onclick="window.print()" class="btn btn-secondary">Print Receipt</button>
+          <button onclick="location.href='bookings.html'" class="btn btn-secondary">Back to Bookings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    checkAuth();
+
+    // Format date helper
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+
+    // Format time helper
+    function formatTime(timeString) {
+      if (!timeString) return '';
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    }
+
+    // Show error
+    function showError(message) {
+      document.getElementById('errorContainer').innerHTML = `
+        <div class="error-message">${message}</div>
+      `;
+      document.getElementById('receiptContent').style.display = 'none';
+    }
+
+    async function loadReceipt() {
+      const bookingId = localStorage.getItem('bookingId');
+      
+      if (!bookingId) {
+        showError('No booking ID found. Please select a booking from your bookings page.');
+        setTimeout(() => location.href = 'bookings.html', 3000);
+        return;
+      }
+
+      try {
+        console.log('Loading receipt for booking ID:', bookingId);
+        
+        // Fetch all bookings
+        const bookings = await apiFetch("/bookings/my-bookings", {
+          headers: authHeader()
+        });
+        
+        console.log('All bookings:', bookings);
+        
+        // Find the specific booking
+        const booking = bookings.find(b => b.id == bookingId);
+        
+        if (!booking) {
+          showError('Booking not found. This booking may have been cancelled or does not exist.');
+          setTimeout(() => location.href = 'bookings.html', 3000);
+          return;
+        }
+
+        console.log('Found booking:', booking);
+
+        // Populate receipt - using correct field names from database
+        document.getElementById("receiptId").textContent = booking.id;
+        document.getElementById("courtName").textContent = booking.court_name || `Court ${booking.court_id}`;
+        document.getElementById("bookingDate").textContent = formatDate(booking.date); // Using 'date' field
+        document.getElementById("bookingTime").textContent = 
+          `${formatTime(booking.start_time)} - ${formatTime(booking.end_time)}`;
+        document.getElementById("status").textContent = booking.status.toUpperCase();
+        
+        // Using 'total_price' field from database
+        const totalAmount = booking.total_price || 0;
+        document.getElementById("courtCost").textContent = totalAmount + ' coins';
+        document.getElementById("totalCost").textContent = totalAmount + ' coins';
+
+        // Services
+        if (booking.services) {
+          try {
+            const services = typeof booking.services === 'string' ? 
+              JSON.parse(booking.services) : booking.services;
+            let servicesHTML = '';
+            if (services.water) servicesHTML += '<div class="receipt-row"><span>Water Bottles:</span><span>20 coins</span></div>';
+            if (services.referee) servicesHTML += '<div class="receipt-row"><span>Referee Service:</span><span>100 coins</span></div>';
+            if (services.accommodation) servicesHTML += '<div class="receipt-row"><span>Fan Accommodation:</span><span>150 coins</span></div>';
+            document.getElementById("servicesSection").innerHTML = servicesHTML;
+          } catch (e) {
+            console.error('Error parsing services:', e);
+          }
+        }
+
+        // Generate QR Code
+        const qrData = booking.qr_code || `BOOKING:${booking.id}:${booking.court_name || booking.court_id}:${booking.date}`;
+        new QRCode(document.getElementById("qrCode"), {
+          text: qrData,
+          width: 200,
+          height: 200
+        });
+
+        // Show the receipt
+        document.getElementById('receiptContent').style.display = 'block';
+
+      } catch(err) {
+        console.error("Error loading receipt:", err);
+        showError('Error loading receipt: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      doc.setFontSize(20);
+      doc.text('SportCourt Booking Receipt', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Receipt #${document.getElementById("receiptId").textContent}`, 20, 35);
+      doc.text(`Court: ${document.getElementById("courtName").textContent}`, 20, 45);
+      doc.text(`Date: ${document.getElementById("bookingDate").textContent}`, 20, 55);
+      doc.text(`Time: ${document.getElementById("bookingTime").textContent}`, 20, 65);
+      doc.text(`Total: ${document.getElementById("totalCost").textContent}`, 20, 75);
+      doc.text(`Status: ${document.getElementById("status").textContent}`, 20, 85);
+      
+      doc.save(`receipt-${document.getElementById("receiptId").textContent}.pdf`);
+      
+      // Show success message
+      const temp = document.createElement('div');
+      temp.style.cssText = 'position:fixed;top:20px;right:20px;background:#22c55e;color:white;padding:15px 20px;border-radius:8px;z-index:9999;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+      temp.textContent = '✓ PDF downloaded successfully!';
+      document.body.appendChild(temp);
+      setTimeout(() => temp.remove(), 3000);
+    }
+
+    // Load receipt on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadReceipt();
+    });
+  </script>
+</body>
+</html>

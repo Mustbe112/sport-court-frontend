@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Favorite Courts - Sport Court Booking</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Book Courts</a>
+      <a href="bookings.html">My Bookings</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="profile.html">Profile</a>
+      <div class="notification-badge">
+        <a href="#" onclick="toggleNotifications(); return false;">🔔 <span id="notifBadge" class="badge" style="display:none;">0</span></a>
+      </div>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notification-header">
+      <h3>Notifications</h3>
+      <span class="close" onclick="toggleNotifications()">&times;</span>
+    </div>
+    <div id="notificationList"></div>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>⭐ Favorite Courts</h2>
+      <p>Quick access to your favorite courts</p>
+    </div>
+
+    <div id="favoritesGrid" class="courts-grid">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script>
+    checkAuth();
+
+    const courtIcons = {
+      tennis: '🎾',
+      basketball: '🏀',
+      football: '⚽',
+      futsal: '⚽'
+    };
+
+    async function loadFavorites() {
+      try {
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        
+        if (favorites.length === 0) {
+          document.getElementById("favoritesGrid").innerHTML = 
+            '<div class="card"><p>No favorite courts yet. <a href="courts.html">Browse courts</a> to add favorites!</p></div>';
+          return;
+        }
+
+        const courts = await apiFetch("/courts");
+        const favoriteCourts = courts.filter(c => favorites.includes(c.id));
+
+        displayFavorites(favoriteCourts);
+      } catch(err) {
+        console.error("Error loading favorites:", err);
+        document.getElementById("favoritesGrid").innerHTML = '<p>Error loading favorites.</p>';
+      }
+    }
+
+    function displayFavorites(courts) {
+      const grid = document.getElementById("favoritesGrid");
+
+      grid.innerHTML = courts.map(court => `
+        <div class="court-card">
+          <button class="favorite-btn" onclick="removeFavorite(${court.id})">⭐</button>
+          <div class="court-icon">${courtIcons[court.type] || '🏟️'}</div>
+          <div class="court-name">${court.name}</div>
+          <div class="court-type">${court.type.charAt(0).toUpperCase() + court.type.slice(1)}</div>
+          <div class="court-price">${court.price_per_hour} coins/hr</div>
+          <button onclick="quickBook(${court.id})" class="success">Quick Book</button>
+        </div>
+      `).join('');
+    }
+
+    function removeFavorite(courtId) {
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      favorites = favorites.filter(id => id !== courtId);
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      showAlert('Removed from favorites', 'info');
+      loadFavorites();
+    }
+
+    function quickBook(courtId) {
+      localStorage.setItem('selectedCourtId', courtId);
+      location.href = 'booking.html';
+    }
+
+    loadFavorites();
+    loadNotifications();
+  </script>
+</body>
+</html>

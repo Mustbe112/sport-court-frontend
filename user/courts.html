@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Courts - Sport Court Booking</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Book Courts</a>
+      <a href="bookings.html">My Bookings</a>
+      <a href="favorites.html">Favorites</a>
+      <a href="profile.html">Profile</a>
+      <div class="notification-badge">
+        <a href="#" onclick="toggleNotifications(); return false;">🔔 <span id="notifBadge" class="badge" style="display:none;">0</span></a>
+      </div>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Notification Panel -->
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notification-header">
+      <h3>Notifications</h3>
+      <span class="close" onclick="toggleNotifications()">&times;</span>
+    </div>
+    <div id="notificationList"></div>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Browse Courts</h2>
+      <p>Select a court to book your session</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card">
+      <h3>Filter Courts</h3>
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <select id="courtTypeFilter" onchange="filterCourts()">
+          <option value="all">All Courts</option>
+          <option value="tennis">🎾 Tennis</option>
+          <option value="basketball">🏀 Basketball</option>
+          <option value="football">⚽ Football</option>
+          <option value="futsal">⚽ Futsal</option>
+        </select>
+        
+        <input type="text" id="searchCourt" placeholder="Search courts..." onkeyup="filterCourts()" style="flex: 1;">
+        
+        <select id="sortBy" onchange="filterCourts()">
+          <option value="name">Sort by Name</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Courts Grid -->
+    <div id="courtsGrid" class="courts-grid">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script>
+    checkAuth();
+
+    let allCourts = [];
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+    const courtIcons = {
+      tennis: '🎾',
+      basketball: '🏀',
+      football: '⚽',
+      futsal: '⚽'
+    };
+
+    async function loadCourts() {
+      try {
+        allCourts = await apiFetch("/courts");
+        filterCourts();
+      } catch(err) {
+        console.error("Error loading courts:", err);
+        document.getElementById("courtsGrid").innerHTML = '<p>Error loading courts. Please refresh.</p>';
+      }
+    }
+
+    function filterCourts() {
+      const typeFilter = document.getElementById("courtTypeFilter").value;
+      const searchTerm = document.getElementById("searchCourt").value.toLowerCase();
+      const sortBy = document.getElementById("sortBy").value;
+
+      let filtered = allCourts.filter(court => {
+        const matchesType = typeFilter === 'all' || court.type === typeFilter;
+        const matchesSearch = court.name.toLowerCase().includes(searchTerm);
+        return matchesType && matchesSearch;
+      });
+
+      // Sort
+      if (sortBy === 'name') {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (sortBy === 'price_asc') {
+        filtered.sort((a, b) => a.price_per_hour - b.price_per_hour);
+      } else if (sortBy === 'price_desc') {
+        filtered.sort((a, b) => b.price_per_hour - a.price_per_hour);
+      }
+
+      displayCourts(filtered);
+    }
+
+    function displayCourts(courts) {
+      const grid = document.getElementById("courtsGrid");
+
+      if (courts.length === 0) {
+        grid.innerHTML = '<p>No courts found matching your criteria.</p>';
+        return;
+      }
+
+      grid.innerHTML = courts.map(court => {
+        const isFavorite = favorites.includes(court.id);
+        return `
+          <div class="court-card">
+            <button class="favorite-btn" onclick="toggleFavorite(${court.id})">
+              ${isFavorite ? '⭐' : '☆'}
+            </button>
+            <div class="court-icon">${courtIcons[court.type] || '🏟️'}</div>
+            <div class="court-name">${court.name}</div>
+            <div class="court-type">${court.type.charAt(0).toUpperCase() + court.type.slice(1)}</div>
+            <div class="court-price">${court.price_per_hour} coins/hr</div>
+            <button onclick="bookCourt(${court.id})">Book Now</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleFavorite(courtId) {
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      
+      if (favorites.includes(courtId)) {
+        favorites = favorites.filter(id => id !== courtId);
+        showAlert('Removed from favorites', 'info');
+      } else {
+        favorites.push(courtId);
+        showAlert('Added to favorites', 'success');
+      }
+      
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      filterCourts(); // Refresh display
+    }
+
+    function bookCourt(courtId) {
+      localStorage.setItem('selectedCourtId', courtId);
+      location.href = 'booking.html';
+    }
+
+    loadCourts();
+    loadNotifications();
+  </script>
+</body>
+</html>

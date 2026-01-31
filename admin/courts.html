@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Courts - Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt Admin</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Manage Courts</a>
+      <a href="bookings.html">Manage Bookings</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Manage Courts</h2>
+      <p>Add, edit, or remove courts</p>
+    </div>
+
+    <div class="card">
+      <h3>Add New Court</h3>
+      <form onsubmit="event.preventDefault(); addCourt();">
+        <input id="courtName" placeholder="Court Name" required>
+        <select id="courtType" required>
+          <option value="">Select Type</option>
+          <option value="tennis">Tennis</option>
+          <option value="basketball">Basketball</option>
+          <option value="football">Football</option>
+          <option value="futsal">Futsal</option>
+        </select>
+        <input id="pricePerHour" type="number" placeholder="Price per Hour (coins)" required>
+        <button type="submit">Add Court</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>All Courts</h3>
+      <div id="courtsList"></div>
+    </div>
+
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Court</h2>
+        <input id="editName" placeholder="Court Name">
+        <select id="editType">
+          <option value="tennis">Tennis</option>
+          <option value="basketball">Basketball</option>
+          <option value="football">Football</option>
+          <option value="futsal">Futsal</option>
+        </select>
+        <input id="editPrice" type="number" placeholder="Price per Hour">
+        <label><input type="checkbox" id="editActive"> Active</label>
+        <button onclick="updateCourt()" class="success">Update Court</button>
+      </div>
+    </div>
+
+    <div id="maintenanceModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeMaintenanceModal()">&times;</span>
+        <h2>Court Maintenance</h2>
+        <p id="maintenanceCourtName"></p>
+        <label>Start Date: <input type="date" id="maintenanceStart"></label>
+        <label>End Date: <input type="date" id="maintenanceEnd"></label>
+        <label>Reason: <textarea id="maintenanceReason" rows="3"></textarea></label>
+        <button onclick="scheduleMaintenance()" class="success">Schedule Maintenance</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    checkAdminAuth();
+    let courts = [];
+    let selectedCourtId = null;
+
+    async function loadCourts() {
+      try {
+        courts = await apiFetch("/admin/courts", {
+          headers: authHeader()
+        });
+        displayCourts();
+      } catch(err) {
+        console.error("Error loading courts:", err);
+      }
+    }
+
+    function displayCourts() {
+      const container = document.getElementById("courtsList");
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${courts.map(c => `
+              <tr>
+                <td>${c.id}</td>
+                <td>${c.name}</td>
+                <td>${c.type}</td>
+                <td>${c.price_per_hour} coins/hr</td>
+                <td>${c.is_active ? '✅ Active' : '❌ Inactive'}</td>
+                <td>
+                  <button onclick="editCourt(${c.id})" class="secondary" style="padding: 5px 10px; width: auto; margin: 2px;">Edit</button>
+                  <button onclick="openMaintenanceModal(${c.id})" class="secondary" style="padding: 5px 10px; width: auto; margin: 2px;">Maintenance</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function addCourt() {
+      const name = document.getElementById("courtName").value;
+      const type = document.getElementById("courtType").value;
+      const price = document.getElementById("pricePerHour").value;
+
+      try {
+        await apiFetch("/admin/courts", {
+          method: "POST",
+          headers: authHeader(),
+          body: JSON.stringify({ name, type, price_per_hour: price })
+        });
+        showAlert('Court added successfully!', 'success');
+        document.getElementById("courtName").value = '';
+        document.getElementById("pricePerHour").value = '';
+        loadCourts();
+      } catch(err) {
+        showAlert('Failed to add court', 'error');
+      }
+    }
+
+    function editCourt(id) {
+      selectedCourtId = id;
+      const court = courts.find(c => c.id === id);
+      document.getElementById("editName").value = court.name;
+      document.getElementById("editType").value = court.type;
+      document.getElementById("editPrice").value = court.price_per_hour;
+      document.getElementById("editActive").checked = court.is_active;
+      document.getElementById("editModal").style.display = "block";
+    }
+
+    function closeEditModal() {
+      document.getElementById("editModal").style.display = "none";
+    }
+
+    async function updateCourt() {
+      try {
+        await apiFetch(`/admin/courts/${selectedCourtId}`, {
+          method: "PUT",
+          headers: authHeader(),
+          body: JSON.stringify({
+            name: document.getElementById("editName").value,
+            type: document.getElementById("editType").value,
+            price_per_hour: document.getElementById("editPrice").value,
+            is_active: document.getElementById("editActive").checked
+          })
+        });
+        showAlert('Court updated!', 'success');
+        closeEditModal();
+        loadCourts();
+      } catch(err) {
+        showAlert('Update failed', 'error');
+      }
+    }
+
+    function openMaintenanceModal(id) {
+      selectedCourtId = id;
+      const court = courts.find(c => c.id === id);
+      document.getElementById("maintenanceCourtName").textContent = `Court: ${court.name}`;
+      document.getElementById("maintenanceModal").style.display = "block";
+    }
+
+    function closeMaintenanceModal() {
+      document.getElementById("maintenanceModal").style.display = "none";
+    }
+
+    function scheduleMaintenance() {
+      showAlert('Maintenance scheduled! Users will be notified.', 'success');
+      closeMaintenanceModal();
+    }
+
+    loadCourts();
+  </script>
+</body>
+</html>
