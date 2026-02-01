@@ -14,6 +14,7 @@
       <a href="courts.html">Manage Courts</a>
       <a href="bookings.html">Manage Bookings</a>
       <a href="profile.html">Profile</a>
+      
       <a href="#" onclick="logout()">Logout</a>
     </div>
   </nav>
@@ -31,13 +32,25 @@
         <button onclick="filterBookings('confirmed')" id="btnConfirmed" class="secondary">Confirmed</button>
         
         <button onclick="filterBookings('cancelled')" id="btnCancelled" class="secondary">Cancelled</button>
-        <button onclick="filterBookings('no_show')" id="btnNo_show" class="secondary">No Show</button>
+        
       </div>
 
-      <input type="text" id="searchBooking" placeholder="Search by court, user, or date..." onkeyup="filterBookings(currentFilter)">
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
+        <div style="flex: 1; min-width: 250px;">
+          <input type="text" id="searchBooking" placeholder="Search by ID, court, user, or email..." onkeyup="filterBookings(currentFilter)" style="width: 100%;">
+        </div>
+        <div style="min-width: 200px;">
+          <input type="date" id="dateFilter" onchange="filterBookings(currentFilter)" style="width: 100%;">
+        </div>
+        <button onclick="clearFilters()" class="secondary" style="white-space: nowrap;">Clear Filters</button>
+      </div>
     </div>
 
     <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0;">Bookings</h3>
+        <span id="bookingCount" style="color: #64748b; font-size: 14px;"></span>
+      </div>
       <div id="bookingsList"></div>
     </div>
   </div>
@@ -74,11 +87,13 @@
 
     function isToday(dateStr) {
       if (!dateStr) return false;
-      const bookingDate = new Date(dateStr);
+      // Strip any time portion, keep only YYYY-MM-DD
+      const datePart = dateStr.split('T')[0];
       const today = new Date();
-      bookingDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      return bookingDate.getTime() === today.getTime();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      return datePart === `${yyyy}-${mm}-${dd}`;
     }
 
     async function loadBookings() {
@@ -98,25 +113,52 @@
       document.getElementById(`btn${filter.charAt(0).toUpperCase() + filter.slice(1)}`).className = 'success';
 
       const search = document.getElementById("searchBooking").value.toLowerCase();
+      const dateFilter = document.getElementById("dateFilter").value;
       let filtered = allBookings;
 
+      // Filter by status
       if (filter !== 'all') {
         filtered = filtered.filter(b => b.status === filter);
       }
 
+      // Filter by date (exact match)
+      if (dateFilter) {
+        filtered = filtered.filter(b => {
+          // Normalize both dates to YYYY-MM-DD format for comparison
+          const bookingDate = b.date ? b.date.split('T')[0] : '';
+          return bookingDate === dateFilter;
+        });
+      }
+
+      // Filter by search text (ID, court name, email, or partial date)
       if (search) {
-        filtered = filtered.filter(b => 
-          (b.court_name && b.court_name.toLowerCase().includes(search)) ||
-          (b.email && b.email.toLowerCase().includes(search)) ||
-          (b.date && b.date.includes(search))
-        );
+        filtered = filtered.filter(b => {
+          const idMatch = b.id && b.id.toString().includes(search);
+          const courtMatch = b.court_name && b.court_name.toLowerCase().includes(search);
+          const emailMatch = b.email && b.email.toLowerCase().includes(search);
+          // Normalize date for search (handle both YYYY-MM-DD and datetime formats)
+          const normalizedDate = b.date ? b.date.split('T')[0] : '';
+          const dateMatch = normalizedDate.includes(search);
+          
+          return idMatch || courtMatch || emailMatch || dateMatch;
+        });
       }
 
       displayBookings(filtered);
     }
 
+    function clearFilters() {
+      document.getElementById("searchBooking").value = '';
+      document.getElementById("dateFilter").value = '';
+      filterBookings('all');
+    }
+
     function displayBookings(bookings) {
       const container = document.getElementById("bookingsList");
+      const countElement = document.getElementById("bookingCount");
+
+      // Update count
+      countElement.textContent = `Showing ${bookings.length} booking${bookings.length !== 1 ? 's' : ''}`;
 
       if (bookings.length === 0) {
         container.innerHTML = '<p>No bookings found.</p>';
@@ -160,17 +202,13 @@
     function getActionButtons(booking) {
       const buttons = [];
       
-      // Only BOOKED status gets action buttons
+      // For BOOKED status → Confirm + Cancel
       if (booking.status === 'booked') {
-        // Show CONFIRM button only on today's date
-        if (isToday(booking.date)) {
-          buttons.push(`<button onclick="confirmBooking(${booking.id})" class="success" style="padding: 5px 10px; width: auto; margin: 2px;">✓ Confirm</button>`);
-        }
-        // Always show CANCEL for booked (can cancel before/on appointment day)
+        buttons.push(`<button onclick="confirmBooking(${booking.id})" class="success" style="padding: 5px 10px; width: auto; margin: 2px;">✓ Confirm</button>`);
         buttons.push(`<button onclick="cancelBooking(${booking.id})" class="danger" style="padding: 5px 10px; width: auto; margin: 2px;">✗ Cancel</button>`);
       }
-      
-      // CONFIRMED, COMPLETED, CANCELLED, NO_SHOW = No actions (view only)
+
+      // CONFIRMED, COMPLETED, CANCELLED, NO_SHOW = No actions
       return buttons.length > 0 ? buttons.join('') : '-';
     }
 
@@ -204,14 +242,19 @@
       if (!confirm('Cancel this booking? User will receive full refund and notification.')) return;
 
       try {
-        await apiFetch(`/admin/bookings/${id}`, {
+        const response = await apiFetch(`/admin/bookings/${id}`, {
           method: "DELETE",
           headers: authHeader()
         });
-        showAlert('Booking cancelled. User notified and refunded.', 'success');
+        
+        const refundMsg = response.refunded_amount 
+          ? ` ${response.refunded_amount} coins have been refunded.`
+          : '';
+        
+        showAlert(`Booking cancelled. User notified and refunded.${refundMsg}`, 'success');
         loadBookings();
       } catch(err) {
-        showAlert('Cancellation failed', 'error');
+        showAlert(err.message || 'Cancellation failed', 'error');
       }
     }
 

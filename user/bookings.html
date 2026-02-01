@@ -41,7 +41,12 @@
       text-transform: uppercase;
     }
     
-    .status-confirmed, .status-booked {
+    .status-booked {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-confirmed {
       background: #d1fae5;
       color: #065f46;
     }
@@ -54,6 +59,11 @@
     .status-cancelled {
       background: #fee2e2;
       color: #991b1b;
+    }
+    
+    .status-no_show {
+      background: #f3e8ff;
+      color: #6b21a8;
     }
     
     .booking-details {
@@ -312,11 +322,11 @@
         const status = booking.status.toLowerCase();
         const statusClass = `status-${status}`;
         
-        // Determine if booking can be cancelled (only upcoming confirmed/booked bookings)
+        // Determine if booking can be cancelled (only BOOKED status, not confirmed)
         const bookingDate = new Date(booking.date); // Using 'date' field from DB
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const canCancel = (status === 'confirmed' || status === 'booked') && bookingDate >= today;
+        const canCancel = status === 'booked' && bookingDate >= today;
         
         return `
           <div class="booking-card">
