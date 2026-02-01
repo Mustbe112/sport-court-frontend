@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Bookings - Admin</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    @keyframes highlight-fade {
+      0% { background-color: #fef3c7; }
+      100% { background-color: transparent; }
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -28,11 +34,10 @@
     <div class="card">
       <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
         <button onclick="filterBookings('all')" id="btnAll" class="success">All</button>
-        <button onclick="filterBookings('booked')" id="btnBooked" class="secondary">Booked</button>
-        <button onclick="filterBookings('confirmed')" id="btnConfirmed" class="secondary">Confirmed</button>
-        
+        <button onclick="filterBookings('booked')" id="btnBooked" class="secondary">Booked (Waiting)</button>
+        <button onclick="filterBookings('confirmed')" id="btnConfirmed" class="secondary">Confirmed (Playing)</button>
+        <button onclick="filterBookings('completed')" id="btnCompleted" class="secondary">Completed</button>
         <button onclick="filterBookings('cancelled')" id="btnCancelled" class="secondary">Cancelled</button>
-        
       </div>
 
       <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
@@ -98,10 +103,12 @@
 
     async function loadBookings() {
       try {
-        allBookings = await apiFetch("/admin/bookings", {
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        allBookings = await apiFetch(`/admin/bookings?_t=${timestamp}`, {
           headers: authHeader()
         });
-        filterBookings('all');
+        console.log('Loaded bookings:', allBookings.length);
       } catch(err) {
         console.error("Error loading bookings:", err);
       }
@@ -110,7 +117,11 @@
     function filterBookings(filter) {
       currentFilter = filter;
       document.querySelectorAll('[id^="btn"]').forEach(b => b.className = 'secondary');
-      document.getElementById(`btn${filter.charAt(0).toUpperCase() + filter.slice(1)}`).className = 'success';
+      
+      // Handle the button highlighting
+      const btnId = `btn${filter.charAt(0).toUpperCase() + filter.slice(1)}`;
+      const btn = document.getElementById(btnId);
+      if (btn) btn.className = 'success';
 
       const search = document.getElementById("searchBooking").value.toLowerCase();
       const dateFilter = document.getElementById("dateFilter").value;
@@ -181,7 +192,7 @@
           </thead>
           <tbody>
             ${bookings.map(b => `
-              <tr>
+              <tr ${b.id === lastUpdatedId ? 'style="background-color: #fef3c7; animation: highlight-fade 2s ease-out;"' : ''}>
                 <td>#${b.id}</td>
                 <td>${b.court_name || 'N/A'}</td>
                 <td>${b.email || 'N/A'}</td>
@@ -197,43 +208,79 @@
           </tbody>
         </table>
       `;
+      
+      // Clear the lastUpdatedId after a delay
+      if (lastUpdatedId) {
+        setTimeout(() => { lastUpdatedId = null; }, 3000);
+      }
     }
 
     function getActionButtons(booking) {
       const buttons = [];
       
-      // For BOOKED status → Confirm + Cancel
+      // For BOOKED status → Check in + Cancel
       if (booking.status === 'booked') {
-        buttons.push(`<button onclick="confirmBooking(${booking.id})" class="success" style="padding: 5px 10px; width: auto; margin: 2px;">✓ Confirm</button>`);
+        buttons.push(`<button onclick="confirmBooking(${booking.id})" class="success" style="padding: 5px 10px; width: auto; margin: 2px;">✓ Check in</button>`);
         buttons.push(`<button onclick="cancelBooking(${booking.id})" class="danger" style="padding: 5px 10px; width: auto; margin: 2px;">✗ Cancel</button>`);
       }
+      
+      // For CONFIRMED status → Check out (user is currently playing)
+      if (booking.status === 'confirmed') {
+        // Check if potentially late
+        const now = new Date();
+        const bookingEnd = new Date(`${booking.date} ${booking.end_time}`);
+        const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000); // +15 minutes
+        const isLate = now > gracePeriodEnd;
+        
+        const checkoutBtnClass = isLate ? 'danger' : 'primary';
+        const checkoutText = isLate ? '⚠️ Check out (LATE)' : '✓ Check out';
+        
+        buttons.push(`<button onclick="checkOutBooking(${booking.id}, ${isLate})" class="${checkoutBtnClass}" style="padding: 5px 10px; width: auto; margin: 2px;">${checkoutText}</button>`);
+      }
 
-      // CONFIRMED, COMPLETED, CANCELLED, NO_SHOW = No actions
+      // COMPLETED, CANCELLED = No actions
       return buttons.length > 0 ? buttons.join('') : '-';
     }
 
     function getStatusColor(status) {
       const colors = {
-        booked: '#f59e0b',      // orange
-        confirmed: '#16a34a',   // green
-        completed: '#2563eb',   // blue
-        cancelled: '#dc2626',   // red
-        no_show: '#9333ea'      // purple
+        booked: '#f59e0b',      // orange - waiting for check-in
+        confirmed: '#16a34a',   // green - currently playing
+        completed: '#2563eb',   // blue - finished
+        cancelled: '#dc2626'    // red - cancelled
       };
       return colors[status] || '#64748b';
     }
+
+    let lastUpdatedId = null;
 
     async function confirmBooking(id) {
       if (!confirm('Confirm this booking? This means the user has checked in.')) return;
 
       try {
+        console.log('Confirming booking ID:', id);
         const response = await apiFetch(`/admin/bookings/${id}/confirm`, {
           method: "POST",
           headers: authHeader()
         });
-        showAlert('Booking confirmed! User checked in.', 'success');
-        loadBookings();
+        console.log('Confirm response:', response);
+        
+        lastUpdatedId = id;
+        showAlert('✅ Booking confirmed! Status changed to CONFIRMED. User has been notified.', 'success');
+        
+        // Small delay to ensure database commit
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Reload bookings data
+        console.log('Loading fresh bookings...');
+        await loadBookings();
+        console.log('Bookings loaded, count:', allBookings.length);
+        console.log('Looking for booking', id, 'in fresh data:', allBookings.find(b => b.id === id));
+        
+        // Switch to 'all' view so user can see the confirmed booking
+        filterBookings('all');
       } catch(err) {
+        console.error('Confirm error:', err);
         showAlert(err.message || 'Confirmation failed', 'error');
       }
     }
@@ -251,14 +298,80 @@
           ? ` ${response.refunded_amount} coins have been refunded.`
           : '';
         
-        showAlert(`Booking cancelled. User notified and refunded.${refundMsg}`, 'success');
-        loadBookings();
+        lastUpdatedId = id;
+        showAlert(`✅ Booking cancelled. User notified and refunded.${refundMsg}`, 'success');
+        
+        // Small delay to ensure database commit
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Reload bookings data
+        await loadBookings();
+        
+        // Switch to 'all' view so user can see the cancelled booking
+        filterBookings('all');
       } catch(err) {
         showAlert(err.message || 'Cancellation failed', 'error');
       }
     }
 
-    loadBookings();
+    // Check out function
+    async function checkOutBooking(id, isLate) {
+      const booking = allBookings.find(b => b.id === id);
+      if (!booking) return;
+      
+      let confirmMessage = 'Check out this booking?';
+      
+      if (isLate) {
+        const now = new Date();
+        const bookingEnd = new Date(`${booking.date} ${booking.end_time}`);
+        const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000);
+        const minutesLate = Math.floor((now - gracePeriodEnd) / 60000);
+        
+        confirmMessage = `⚠️ WARNING: User is ${minutesLate} minutes late!\n\n`;
+        confirmMessage += 'A 50 coin penalty will be applied.\n\n';
+        confirmMessage += 'Proceed with checkout?';
+      }
+      
+      if (!confirm(confirmMessage)) return;
+
+      try {
+        console.log('Checking out booking ID:', id);
+        const response = await apiFetch(`/bookings/checkout/${id}`, {
+          method: "POST",
+          headers: authHeader()
+        });
+        console.log('Checkout response:', response);
+        
+        lastUpdatedId = id;
+        
+        if (isLate) {
+          showAlert('✅ Booking checked out. 50 coin late penalty applied to user.', 'warning');
+        } else {
+          showAlert('✅ Booking checked out successfully!', 'success');
+        }
+        
+        // Small delay to ensure database commit
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Reload bookings data
+        console.log('Loading fresh bookings...');
+        await loadBookings();
+        console.log('Bookings loaded, count:', allBookings.length);
+        
+        // Refresh current view
+        filterBookings(currentFilter);
+      } catch(err) {
+        console.error('Checkout error:', err);
+        showAlert(err.message || 'Checkout failed', 'error');
+      }
+    }
+
+    async function init() {
+      await loadBookings();
+      filterBookings('all');
+    }
+    
+    init();
   </script>
 </body>
 </html>
