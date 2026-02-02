@@ -144,9 +144,14 @@
         });
 
         const now = new Date();
-        const activeBookings = bookings.filter(b => 
-          b.status === 'confirmed' && new Date(b.booking_date) >= now
-        );
+        now.setHours(0, 0, 0, 0); // Reset to start of day for proper comparison
+        
+        // Filter upcoming bookings - use 'date' field (not 'booking_date') and include both 'booked' and 'confirmed' statuses
+        const activeBookings = bookings.filter(b => {
+          const bookingDate = new Date(b.date); // Changed from b.booking_date to b.date
+          bookingDate.setHours(0, 0, 0, 0);
+          return (b.status === 'confirmed' || b.status === 'booked') && bookingDate >= now;
+        });
         
         document.getElementById("activeBookings").textContent = activeBookings.length;
         document.getElementById("totalBookings").textContent = bookings.length;
@@ -176,9 +181,9 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <h4>${b.court_name}</h4>
-              <p><strong>Date:</strong> ${formatDate(b.booking_date)}</p>
+              <p><strong>Date:</strong> ${formatDate(b.date)}</p>
               <p><strong>Time:</strong> ${formatTime(b.start_time)} - ${formatTime(b.end_time)}</p>
-              <p><strong>Status:</strong> <span style="color: #16a34a; font-weight: bold;">${b.status}</span></p>
+              <p><strong>Status:</strong> <span style="color: ${b.status === 'booked' ? '#f59e0b' : '#16a34a'}; font-weight: bold;">${b.status.toUpperCase()}</span></p>
             </div>
             <div>
               <button onclick="location.href='bookings.html'" class="secondary">View Details</button>

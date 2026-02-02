@@ -139,8 +139,47 @@
     }
     
     @media print {
-      .btn, nav {
+      .btn, nav, .button-group {
         display: none !important;
+      }
+      
+      body {
+        background: white;
+      }
+      
+      .receipt-container {
+        box-shadow: none;
+        max-width: 100%;
+        margin: 0;
+        padding: 20px;
+      }
+      
+      .receipt-header {
+        background: #6366f1;
+        color: white;
+        padding: 30px;
+        margin: -20px -20px 20px -20px;
+        border-radius: 0;
+      }
+      
+      .receipt-header h1, .receipt-header h2, .receipt-header p {
+        color: white;
+      }
+      
+      .receipt-qr {
+        page-break-inside: avoid;
+        border: 2px solid #6366f1;
+        padding: 20px;
+      }
+      
+      .receipt-details {
+        page-break-inside: avoid;
+      }
+      
+      /* Ensure QR code prints clearly */
+      #qrCode canvas {
+        max-width: 200px !important;
+        height: auto !important;
       }
     }
   </style>
@@ -236,6 +275,7 @@
   <script src="../js/auth.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     checkAuth();
 
@@ -343,29 +383,229 @@
       }
     }
 
-    function downloadPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      doc.setFontSize(20);
-      doc.text('SportCourt Booking Receipt', 20, 20);
-      
-      doc.setFontSize(12);
-      doc.text(`Receipt #${document.getElementById("receiptId").textContent}`, 20, 35);
-      doc.text(`Court: ${document.getElementById("courtName").textContent}`, 20, 45);
-      doc.text(`Date: ${document.getElementById("bookingDate").textContent}`, 20, 55);
-      doc.text(`Time: ${document.getElementById("bookingTime").textContent}`, 20, 65);
-      doc.text(`Total: ${document.getElementById("totalCost").textContent}`, 20, 75);
-      doc.text(`Status: ${document.getElementById("status").textContent}`, 20, 85);
-      
-      doc.save(`receipt-${document.getElementById("receiptId").textContent}.pdf`);
-      
-      // Show success message
-      const temp = document.createElement('div');
-      temp.style.cssText = 'position:fixed;top:20px;right:20px;background:#22c55e;color:white;padding:15px 20px;border-radius:8px;z-index:9999;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
-      temp.textContent = '✓ PDF downloaded successfully!';
-      document.body.appendChild(temp);
-      setTimeout(() => temp.remove(), 3000);
+    async function downloadPDF() {
+      // Show loading message
+      const loadingMsg = document.createElement('div');
+      loadingMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#6366f1;color:white;padding:15px 20px;border-radius:8px;z-index:9999;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+      loadingMsg.textContent = '⏳ Generating PDF...';
+      document.body.appendChild(loadingMsg);
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        // Colors
+        const primaryColor = [99, 102, 241]; // #6366f1
+        const darkColor = [31, 41, 55]; // #1f2937
+        const lightGray = [243, 244, 246]; // #f3f4f6
+        const textGray = [107, 114, 128]; // #6b7280
+        
+        // Get booking data
+        const receiptId = document.getElementById("receiptId").textContent;
+        const courtName = document.getElementById("courtName").textContent;
+        const bookingDate = document.getElementById("bookingDate").textContent;
+        const bookingTime = document.getElementById("bookingTime").textContent;
+        const status = document.getElementById("status").textContent;
+        const courtCost = document.getElementById("courtCost").textContent;
+        const totalCost = document.getElementById("totalCost").textContent;
+        
+        // Header with colored background
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, 210, 45, 'F');
+        
+        // Logo emoji and title
+        doc.setFontSize(28);
+        doc.setTextColor(255, 255, 255);
+        doc.text('🏟️ SportCourt', 105, 20, { align: 'center' });
+        
+        doc.setFontSize(16);
+        doc.text('Booking Confirmation Receipt', 105, 30, { align: 'center' });
+        
+        doc.setFontSize(11);
+        doc.text(`Receipt #${receiptId}`, 105, 38, { align: 'center' });
+        
+        // Date stamp
+        doc.setFontSize(9);
+        doc.setTextColor(...textGray);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 50, { align: 'center' });
+        
+        // Booking Details Section
+        let yPos = 65;
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(15, yPos - 5, 180, 10, 2, 2, 'F');
+        doc.setFontSize(14);
+        doc.setTextColor(...primaryColor);
+        doc.setFont(undefined, 'bold');
+        doc.text('Booking Details', 20, yPos);
+        
+        yPos += 12;
+        doc.setFontSize(11);
+        doc.setTextColor(...darkColor);
+        doc.setFont(undefined, 'normal');
+        
+        // Court
+        doc.setFont(undefined, 'bold');
+        doc.text('Court:', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(courtName, 80, yPos);
+        
+        yPos += 8;
+        doc.setFont(undefined, 'bold');
+        doc.text('Date:', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(bookingDate, 80, yPos);
+        
+        yPos += 8;
+        doc.setFont(undefined, 'bold');
+        doc.text('Time:', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(bookingTime, 80, yPos);
+        
+        yPos += 8;
+        doc.setFont(undefined, 'bold');
+        doc.text('Status:', 20, yPos);
+        doc.setTextColor(34, 197, 94); // Green for status
+        doc.setFont(undefined, 'bold');
+        doc.text(status, 80, yPos);
+        
+        // Payment Summary Section
+        yPos += 18;
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(15, yPos - 5, 180, 10, 2, 2, 'F');
+        doc.setFontSize(14);
+        doc.setTextColor(...primaryColor);
+        doc.setFont(undefined, 'bold');
+        doc.text('Payment Summary', 20, yPos);
+        
+        yPos += 12;
+        doc.setFontSize(11);
+        doc.setTextColor(...darkColor);
+        doc.setFont(undefined, 'normal');
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Court Rental:', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(courtCost, 170, yPos, { align: 'right' });
+        
+        // Total box
+        yPos += 10;
+        doc.setFillColor(239, 246, 255); // Light blue
+        doc.setDrawColor(...primaryColor);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(15, yPos - 5, 180, 12, 2, 2, 'FD');
+        
+        doc.setFontSize(13);
+        doc.setTextColor(...primaryColor);
+        doc.setFont(undefined, 'bold');
+        doc.text('Total Paid:', 20, yPos + 3);
+        doc.text(totalCost, 175, yPos + 3, { align: 'right' });
+        
+        // QR Code Section
+        yPos += 20;
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(15, yPos - 5, 180, 10, 2, 2, 'F');
+        doc.setFontSize(14);
+        doc.setTextColor(...primaryColor);
+        doc.text('Check-in QR Code', 20, yPos);
+        
+        // Capture QR code
+        const qrElement = document.getElementById('qrCode');
+        const canvas = await html2canvas(qrElement, {
+          backgroundColor: '#ffffff',
+          scale: 2
+        });
+        
+        const qrImgData = canvas.toDataURL('image/png');
+        
+        // Add QR code to PDF (centered)
+        yPos += 5;
+        const qrSize = 50;
+        doc.addImage(qrImgData, 'PNG', (210 - qrSize) / 2, yPos, qrSize, qrSize);
+        
+        yPos += qrSize + 5;
+        doc.setFontSize(9);
+        doc.setTextColor(...textGray);
+        doc.text('Show this QR code at the court for check-in', 105, yPos, { align: 'center' });
+        
+        // Rules Section
+        yPos += 10;
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(15, yPos - 5, 180, 10, 2, 2, 'F');
+        doc.setFontSize(14);
+        doc.setTextColor(...primaryColor);
+        doc.setFont(undefined, 'bold');
+        doc.text('Important: Penalties & Rules', 20, yPos);
+        
+        yPos += 10;
+        doc.setFillColor(254, 243, 199); // Yellow background
+        doc.setDrawColor(245, 158, 11); // Orange border
+        doc.setLineWidth(1);
+        doc.roundedRect(15, yPos - 5, 180, 50, 2, 2, 'FD');
+        
+        yPos += 2;
+        doc.setFontSize(10);
+        doc.setTextColor(...darkColor);
+        
+        // Rule 1
+        doc.setFont(undefined, 'bold');
+        doc.text('1. Misconduct or Fighting', 20, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        const rule1Text = 'Any form of fighting, violence, or serious misconduct will result in a six-months suspension.';
+        const rule1Lines = doc.splitTextToSize(rule1Text, 170);
+        doc.text(rule1Lines, 20, yPos);
+        yPos += (rule1Lines.length * 4) + 3;
+        
+        // Rule 2
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('2. Overstaying Beyond the Booked Time', 20, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        const rule2Text = 'Continuing to use the court after your booked time results in one month suspension and full payment for the following month.';
+        const rule2Lines = doc.splitTextToSize(rule2Text, 170);
+        doc.text(rule2Lines, 20, yPos);
+        yPos += (rule2Lines.length * 4) + 3;
+        
+        // Rule 3
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text('3. Damage to Court Property', 20, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        const rule3Text = 'Any damage must be compensated at ten (10) times the actual cost of the damage.';
+        const rule3Lines = doc.splitTextToSize(rule3Text, 170);
+        doc.text(rule3Lines, 20, yPos);
+        
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(...textGray);
+        doc.text('Thank you for choosing SportCourt! Enjoy your game!', 105, 285, { align: 'center' });
+        doc.text('For support, contact: support@sportcourt.com', 105, 290, { align: 'center' });
+        
+        // Save the PDF
+        doc.save(`receipt-${receiptId}.pdf`);
+        
+        // Remove loading and show success
+        loadingMsg.remove();
+        const successMsg = document.createElement('div');
+        successMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#22c55e;color:white;padding:15px 20px;border-radius:8px;z-index:9999;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+        successMsg.textContent = '✓ PDF downloaded successfully!';
+        document.body.appendChild(successMsg);
+        setTimeout(() => successMsg.remove(), 3000);
+        
+      } catch (error) {
+        console.error('PDF generation error:', error);
+        loadingMsg.remove();
+        const errorMsg = document.createElement('div');
+        errorMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#ef4444;color:white;padding:15px 20px;border-radius:8px;z-index:9999;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+        errorMsg.textContent = '✗ PDF generation failed!';
+        document.body.appendChild(errorMsg);
+        setTimeout(() => errorMsg.remove(), 3000);
+      }
     }
 
     // Load receipt on page load
