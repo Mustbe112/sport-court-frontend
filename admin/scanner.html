@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Scanner - Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .scanner-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .camera-section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      padding: 12px 24px;
+      border: 2px solid #e5e7eb;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: #6366f1;
+      color: white;
+      border-color: #6366f1;
+    }
+
+    .mode-btn:hover {
+      border-color: #6366f1;
+    }
+
+    #video-container {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    #video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    #canvas {
+      display: none;
+    }
+
+    .scanner-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 250px;
+      height: 250px;
+      border: 3px solid #22c55e;
+      border-radius: 12px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+
+    .scanner-overlay::before,
+    .scanner-overlay::after {
+      content: '';
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border: 4px solid #22c55e;
+    }
+
+    .scanner-overlay::before {
+      top: -4px;
+      left: -4px;
+      border-right: none;
+      border-bottom: none;
+    }
+
+    .scanner-overlay::after {
+      bottom: -4px;
+      right: -4px;
+      border-left: none;
+      border-top: none;
+    }
+
+    .scanner-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #22c55e;
+      animation: scan 2s linear infinite;
+    }
+
+    @keyframes scan {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(250px); }
+    }
+
+    .status-message {
+      text-align: center;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .status-ready {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-scanning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1em;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #6366f1;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #4f46e5;
+    }
+
+    .btn-success {
+      background: #22c55e;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #16a34a;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+
+    .booking-details {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .booking-details.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .detail-value {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .instruction-box {
+      background: #f9fafb;
+      border-left: 4px solid #6366f1;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+
+    .instruction-box h4 {
+      margin: 0 0 10px 0;
+      color: #6366f1;
+    }
+
+    .instruction-box ol {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .instruction-box li {
+      margin: 8px 0;
+      color: #4b5563;
+    }
+
+    .late-warning {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      display: none;
+    }
+
+    .late-warning.show {
+      display: block;
+    }
+
+    .late-warning h4 {
+      color: #92400e;
+      margin: 0 0 10px 0;
+    }
+
+    .late-warning p {
+      color: #78350f;
+      margin: 5px 0;
+    }
+
+    @media (max-width: 768px) {
+      .scanner-container {
+        padding: 10px;
+      }
+
+      .camera-section {
+        padding: 15px;
+      }
+
+      .scanner-overlay {
+        width: 200px;
+        height: 200px;
+      }
+
+      .mode-btn {
+        padding: 10px 16px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">🏟️ SportCourt Admin</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Manage Courts</a>
+      <a href="bookings.html">Manage Bookings</a>
+      <a href="scanner.html" class="active">QR Scanner</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="scanner-container">
+    <div class="camera-section">
+      <h2 style="text-align: center; margin-bottom: 10px;">📷 QR Code Scanner</h2>
+      <p style="text-align: center; color: #666; margin-bottom: 20px;">
+        Scan user's booking QR code for check-in or check-out
+      </p>
+
+      <div class="mode-selector">
+        <button class="mode-btn active" onclick="setMode('auto')" id="modeAuto">
+          🔄 Auto-Detect
+        </button>
+        <button class="mode-btn" onclick="setMode('checkin')" id="modeCheckin">
+          📥 Check-In
+        </button>
+        <button class="mode-btn" onclick="setMode('checkout')" id="modeCheckout">
+          📤 Check-Out
+        </button>
+      </div>
+
+      <div class="instruction-box">
+        <h4>📋 How to Use:</h4>
+        <ol>
+          <li><strong>Auto-Detect</strong>: Automatically check-in or check-out based on booking status</li>
+          <li><strong>Check-In</strong>: Only process "booked" bookings (user arriving)</li>
+          <li><strong>Check-Out</strong>: Only process "confirmed" bookings (user leaving)</li>
+          <li>Click "Start Camera" → Allow camera access → Point at QR code</li>
+        </ol>
+      </div>
+
+      <div id="status" class="status-message status-ready">
+        🔄 Auto-Detect Mode: Will determine check-in or check-out automatically
+      </div>
+
+      <div id="video-container" style="display: none;">
+        <video id="video" autoplay playsinline></video>
+        <div class="scanner-overlay">
+          <div class="scanner-line"></div>
+        </div>
+      </div>
+      <canvas id="canvas"></canvas>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-primary" onclick="startCamera()">
+          📷 Start Camera
+        </button>
+        <button id="stopBtn" class="btn btn-danger" onclick="stopCamera()" style="display: none;">
+          ⏹️ Stop Camera
+        </button>
+        <button class="btn btn-secondary" onclick="location.href='bookings.html'">
+          📋 Back to Bookings
+        </button>
+      </div>
+    </div>
+
+    <div id="bookingDetails" class="booking-details">
+      <h3 id="detailsTitle" style="color: #6366f1; margin-bottom: 20px;">✅ Booking Found!</h3>
+      
+      <div class="detail-row">
+        <span class="detail-label">Booking ID:</span>
+        <span class="detail-value" id="detailId">#</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Court:</span>
+        <span class="detail-value" id="detailCourt">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">User Email:</span>
+        <span class="detail-value" id="detailEmail">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Date:</span>
+        <span class="detail-value" id="detailDate">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Time:</span>
+        <span class="detail-value" id="detailTime">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Current Status:</span>
+        <span class="detail-value" id="detailStatus">-</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Action:</span>
+        <span class="detail-value" id="detailAction" style="color: #6366f1;">-</span>
+      </div>
+
+      <div id="lateWarning" class="late-warning">
+        <h4>⚠️ LATE CHECK-OUT WARNING</h4>
+        <p id="lateMinutes">User is XX minutes late!</p>
+        <p style="font-weight: bold;">A 50 coin penalty will be applied.</p>
+      </div>
+
+      <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+        <button id="actionBtn" class="btn btn-success" onclick="executeAction()">
+          ✅ Confirm
+        </button>
+        <button class="btn btn-secondary" onclick="resetScanner()">
+          🔄 Scan Another
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script>
+    checkAdminAuth();
+
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('canvas');
+    let context = canvas.getContext('2d');
+    let scanning = false;
+    let stream = null;
+    let scannedBooking = null;
+    let scanMode = 'auto';
+    let actionType = null;
+
+    function setMode(mode) {
+      scanMode = mode;
+      
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+      
+      if (mode === 'auto') {
+        updateStatus('🔄 Auto-Detect: Will determine check-in or check-out automatically', 'ready');
+      } else if (mode === 'checkin') {
+        updateStatus('📥 Check-In Mode: Only "booked" bookings will be processed', 'ready');
+      } else {
+        updateStatus('📤 Check-Out Mode: Only "confirmed" bookings will be processed', 'ready');
+      }
+    }
+
+    function updateStatus(message, type) {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status-message status-${type}`;
+    }
+
+    async function startCamera() {
+      try {
+        updateStatus('🔄 Starting camera...', 'scanning');
+
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment' }
+        });
+
+        video.srcObject = stream;
+        video.setAttribute('playsinline', true);
+        video.play();
+
+        document.getElementById('video-container').style.display = 'block';
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'inline-block';
+
+        updateStatus('📸 Camera active. Point at QR code...', 'scanning');
+
+        scanning = true;
+        requestAnimationFrame(scanQRCode);
+
+      } catch (err) {
+        console.error('Camera error:', err);
+        if (err.name === 'NotAllowedError') {
+          updateStatus('❌ Camera access denied. Please allow camera permission.', 'error');
+        } else if (err.name === 'NotFoundError') {
+          updateStatus('❌ No camera found. Please connect a camera.', 'error');
+        } else {
+          updateStatus('❌ Error: ' + err.message, 'error');
+        }
+      }
+    }
+
+    function stopCamera() {
+      scanning = false;
+      
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+
+      video.srcObject = null;
+      document.getElementById('video-container').style.display = 'none';
+      document.getElementById('startBtn').style.display = 'inline-block';
+      document.getElementById('stopBtn').style.display = 'none';
+
+      updateStatus('📸 Camera stopped. Click "Start Camera" to scan again.', 'ready');
+    }
+
+    function scanQRCode() {
+      if (!scanning) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code) {
+          console.log('QR detected:', code.data);
+          handleQRCode(code.data);
+          return;
+        }
+      }
+
+      requestAnimationFrame(scanQRCode);
+    }
+
+    async function handleQRCode(qrData) {
+      scanning = false;
+      updateStatus('🔍 QR detected! Loading...', 'scanning');
+
+      try {
+        let bookingId;
+        
+        if (qrData.startsWith('BOOKING-')) {
+          bookingId = qrData.split('-')[1];
+        } else if (qrData.startsWith('BOOKING:')) {
+          bookingId = qrData.split(':')[1];
+        } else {
+          throw new Error('Invalid QR code format');
+        }
+
+        console.log('Booking ID:', bookingId);
+
+        const bookings = await apiFetch('/admin/bookings', {
+          headers: authHeader()
+        });
+
+        const booking = bookings.find(b => b.id == bookingId);
+
+        if (!booking) {
+          throw new Error('Booking not found');
+        }
+
+        // Determine action
+        if (scanMode === 'auto') {
+          if (booking.status === 'booked') {
+            actionType = 'checkin';
+          } else if (booking.status === 'confirmed') {
+            actionType = 'checkout';
+          } else {
+            throw new Error(`Booking is "${booking.status}". Only "booked" or "confirmed" can be processed.`);
+          }
+        } else if (scanMode === 'checkin') {
+          if (booking.status !== 'booked') {
+            throw new Error(`Cannot check-in. Status is "${booking.status}". Only "booked" bookings allowed.`);
+          }
+          actionType = 'checkin';
+        } else if (scanMode === 'checkout') {
+          if (booking.status !== 'confirmed') {
+            throw new Error(`Cannot check-out. Status is "${booking.status}". Only "confirmed" bookings allowed.`);
+          }
+          actionType = 'checkout';
+        }
+
+        scannedBooking = booking;
+        displayBookingDetails(booking);
+
+      } catch (err) {
+        console.error('Error:', err);
+        updateStatus('❌ ' + err.message, 'error');
+        
+        setTimeout(() => {
+          if (!scanning && stream) {
+            updateStatus('📸 Ready. Point at QR code...', 'scanning');
+            scanning = true;
+            requestAnimationFrame(scanQRCode);
+          }
+        }, 3000);
+      }
+    }
+
+    function displayBookingDetails(booking) {
+      stopCamera();
+
+      const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+      };
+
+      const formatTime = (timeStr) => {
+        const [hours, minutes] = timeStr.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${ampm}`;
+      };
+
+      document.getElementById('detailId').textContent = '#' + booking.id;
+      document.getElementById('detailCourt').textContent = booking.court_name || 'Court ' + booking.court_id;
+      document.getElementById('detailEmail').textContent = booking.email || 'N/A';
+      document.getElementById('detailDate').textContent = formatDate(booking.date);
+      document.getElementById('detailTime').textContent = 
+        formatTime(booking.start_time) + ' - ' + formatTime(booking.end_time);
+      document.getElementById('detailStatus').textContent = booking.status.toUpperCase();
+
+      const actionBtn = document.getElementById('actionBtn');
+      const lateWarning = document.getElementById('lateWarning');
+      
+      if (actionType === 'checkin') {
+        document.getElementById('detailsTitle').textContent = '📥 Ready for Check-In';
+        document.getElementById('detailAction').textContent = 'CHECK-IN (Booked → Confirmed)';
+        document.getElementById('detailStatus').style.color = '#f59e0b';
+        actionBtn.textContent = '✅ Confirm Check-In';
+        actionBtn.className = 'btn btn-success';
+        lateWarning.classList.remove('show');
+        updateStatus('✅ Ready for check-in!', 'success');
+      } else if (actionType === 'checkout') {
+        document.getElementById('detailsTitle').textContent = '📤 Ready for Check-Out';
+        document.getElementById('detailAction').textContent = 'CHECK-OUT (Confirmed → Completed)';
+        document.getElementById('detailStatus').style.color = '#16a34a';
+        
+        const now = new Date();
+        const bookingEnd = new Date(`${booking.date} ${booking.end_time}`);
+        const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000);
+        const isLate = now > gracePeriodEnd;
+        
+        if (isLate) {
+          const minutesLate = Math.floor((now - gracePeriodEnd) / 60000);
+          document.getElementById('lateMinutes').textContent = `User is ${minutesLate} minutes late!`;
+          lateWarning.classList.add('show');
+          actionBtn.textContent = '⚠️ Check-Out (LATE - 50 coin penalty)';
+          actionBtn.className = 'btn btn-warning';
+          updateStatus('⚠️ Late check-out! 50 coin penalty will apply.', 'warning');
+        } else {
+          actionBtn.textContent = '✅ Confirm Check-Out';
+          actionBtn.className = 'btn btn-success';
+          lateWarning.classList.remove('show');
+          updateStatus('✅ Ready for check-out!', 'success');
+        }
+      }
+
+      document.getElementById('bookingDetails').classList.add('show');
+    }
+
+    async function executeAction() {
+      if (!scannedBooking || !actionType) return;
+
+      const actionBtn = document.getElementById('actionBtn');
+      actionBtn.disabled = true;
+      actionBtn.textContent = '⏳ Processing...';
+
+      try {
+        if (actionType === 'checkin') {
+          await apiFetch(`/admin/bookings/${scannedBooking.id}/confirm`, {
+            method: 'POST',
+            headers: authHeader()
+          });
+
+          updateStatus('🎉 Check-in successful!', 'success');
+          document.getElementById('detailStatus').textContent = 'CONFIRMED';
+          document.getElementById('detailStatus').style.color = '#16a34a';
+          
+        } else if (actionType === 'checkout') {
+          await apiFetch(`/bookings/checkout/${scannedBooking.id}`, {
+            method: 'POST',
+            headers: authHeader()
+          });
+
+          updateStatus('🎉 Check-out successful!', 'success');
+          document.getElementById('detailStatus').textContent = 'COMPLETED';
+          document.getElementById('detailStatus').style.color = '#2563eb';
+        }
+
+        actionBtn.style.display = 'none';
+        setTimeout(resetScanner, 5000);
+
+      } catch (err) {
+        console.error('Error:', err);
+        updateStatus('❌ Failed: ' + err.message, 'error');
+        actionBtn.disabled = false;
+        actionBtn.textContent = actionType === 'checkin' ? '✅ Confirm Check-In' : '✅ Confirm Check-Out';
+      }
+    }
+
+    function resetScanner() {
+      scannedBooking = null;
+      actionType = null;
+      document.getElementById('bookingDetails').classList.remove('show');
+      document.getElementById('actionBtn').style.display = 'inline-block';
+      document.getElementById('actionBtn').disabled = false;
+      document.getElementById('lateWarning').classList.remove('show');
+      
+      if (scanMode === 'auto') {
+        updateStatus('🔄 Auto-Detect: Ready to scan', 'ready');
+      } else if (scanMode === 'checkin') {
+        updateStatus('📥 Check-In Mode: Ready to scan', 'ready');
+      } else {
+        updateStatus('📤 Check-Out Mode: Ready to scan', 'ready');
+      }
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      updateStatus('❌ Camera not supported. Use Chrome, Firefox, or Edge.', 'error');
+      document.getElementById('startBtn').disabled = true;
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    });
+  </script>
+</body>
+</html>
