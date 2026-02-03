@@ -3,88 +3,206 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register - Sport Court Booking</title>
+  <title>Register – SportCourt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    .register-container {
-      max-width: 400px;
-      margin: 80px auto;
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .logo {
-      text-align: center;
-      font-size: 2em;
-      color: #2563eb;
-      margin-bottom: 30px;
-      font-weight: bold;
-    }
-    .error-msg {
-      background: #fee;
-      color: #c00;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      display: none;
-    }
-  </style>
 </head>
 <body>
-  <div class="register-container">
-    <div class="logo">🏟️ SportCourt</div>
-    <h2>Create Account</h2>
-    <div id="error" class="error-msg"></div>
 
-    <form onsubmit="event.preventDefault(); register();">
-      <input id="name" type="text" placeholder="Full Name" required>
-      <input id="email" type="email" placeholder="Email" required>
-      <input id="password" type="password" placeholder="Password (min 6 chars)" required minlength="6">
-      <input id="confirmPassword" type="password" placeholder="Confirm Password" required>
-      <button type="submit">Create Account</button>
-    </form>
+<div class="auth-wrapper">
 
-    <p style="text-align: center;">
-      Already have an account? <a href="index.html">Login here</a>
-    </p>
-  </div>
+  <!-- ── LEFT HERO ── -->
+  <section class="auth-hero">
+    <div class="diagonal-cut"></div>
+    <div class="auth-hero-content">
 
-  <script src="js/api.js"></script>
-  <script>
-    async function register() {
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const confirmPassword = document.getElementById("confirmPassword").value;
-      const errorDiv = document.getElementById("error");
+      <div class="auth-badge">
+        <span class="dot-live"></span>
+        Free to join
+      </div>
 
-      if (password !== confirmPassword) {
-        errorDiv.textContent = "Passwords do not match!";
-        errorDiv.style.display = "block";
-        return;
-      }
+      <h1>Join the<br><span class="highlight">game</span> today.</h1>
+      <p>Thousands of players already book courts, track stats &amp; stay in the loop — it takes less than a minute.</p>
 
-      try {
-        const data = await apiFetch("/auth/register", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ name, email, password })
-        });
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-value">Free</div>
+          <div class="hero-stat-label">Forever</div>
+        </div>
+        <div>
+          <div class="hero-stat-value">5 min</div>
+          <div class="hero-stat-label">First Booking</div>
+        </div>
+        <div>
+          <div class="hero-stat-value">24 / 7</div>
+          <div class="hero-stat-label">Support</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        if (data.error) {
-          errorDiv.textContent = data.error;
-          errorDiv.style.display = "block";
-          return;
-        }
+  <!-- ── RIGHT FORM ── -->
+  <main class="auth-form-side">
+    <div class="auth-card">
 
-        alert("Account created successfully! Please login.");
-        location.href = "index.html";
-      } catch(err) {
-        errorDiv.textContent = "Registration failed. Please try again.";
-        errorDiv.style.display = "block";
-      }
-    }
-  </script>
+      <!-- logo -->
+      <div class="auth-logo">
+        <div class="auth-logo-mark">🏟️</div>
+        <span class="auth-logo-text">SportCourt</span>
+      </div>
+
+      <!-- heading -->
+      <div class="auth-heading">
+        <h2>Create account</h2>
+        <p>Fill in the details below to get started</p>
+      </div>
+
+      <!-- error / success banner (original #error id kept) -->
+      <div id="error" class="error-msg"></div>
+
+      <!-- form -->
+      <form onsubmit="event.preventDefault(); register();">
+
+        <div class="field">
+          <label for="name">Full Name</label>
+          <input id="name" type="text" placeholder="Alex Johnson" required>
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@email.com" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" required minlength="6">
+          <button type="button" class="toggle-pw" aria-label="Show password">👁️</button>
+        </div>
+        <!-- strength bar -->
+        <div class="strength-bar" id="strengthBar"><span></span><span></span><span></span><span></span></div>
+        <p class="strength-label" id="strengthLabel">Min 6 characters</p>
+
+        <div class="field" style="margin-top:16px;">
+          <label for="confirmPassword">Confirm Password</label>
+          <input id="confirmPassword" type="password" placeholder="••••••••" required>
+          <button type="button" class="toggle-pw" aria-label="Show password">👁️</button>
+        </div>
+        <p class="strength-label" id="matchLabel">&nbsp;</p>
+
+        <button type="submit" class="btn-cta" style="margin-top:20px;">Create Account</button>
+      </form>
+
+      <!-- login link -->
+      <p class="auth-footer">
+        Already have an account? <a href="index.html">Sign in</a>
+      </p>
+    </div>
+  </main>
+</div>
+
+<!-- ── Scripts ── -->
+<script src="js/api.js"></script>
+<script>
+/* ── password toggles ── */
+document.querySelectorAll('.toggle-pw').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const inp = btn.closest('.field').querySelector('input');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'password' ? '👁️' : '🙈';
+  });
+});
+
+/* ── ripple ── */
+document.querySelectorAll('.btn-cta').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const r = document.createElement('span');
+    r.classList.add('ripple');
+    const rect = this.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;`;
+    this.appendChild(r);
+    r.addEventListener('animationend', () => r.remove());
+  });
+});
+
+/* ── password strength ── */
+const pwInput     = document.getElementById('password');
+const strengthBar = document.getElementById('strengthBar');
+const strengthLbl = document.getElementById('strengthLabel');
+
+const LABELS  = ['','Weak','Fair','Good','Strong'];
+const CLASSES = ['','weak','ok','good','great'];
+const COLORS  = ['var(--c-muted)','var(--c-red)','var(--c-amber)','var(--c-accent)','var(--c-accent)'];
+
+function calcStrength(pw) {
+  let s = 0;
+  if (pw.length >= 6)                          s++;
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw))   s++;
+  if (/\d/.test(pw))                           s++;
+  if (/[^a-zA-Z0-9]/.test(pw))                s++;
+  return s;
+}
+
+pwInput.addEventListener('input', () => {
+  const s = calcStrength(pwInput.value);
+  strengthBar.className = 'strength-bar ' + (CLASSES[s] || '');
+  strengthLbl.textContent = pwInput.value.length === 0 ? 'Min 6 characters' : LABELS[s];
+  strengthLbl.style.color = COLORS[s];
+  checkMatch();
+});
+
+/* ── confirm match ── */
+const confirmInput = document.getElementById('confirmPassword');
+const matchLabel   = document.getElementById('matchLabel');
+
+function checkMatch() {
+  if (!confirmInput.value.length) { matchLabel.innerHTML = '&nbsp;'; matchLabel.style.color = ''; return; }
+  if (pwInput.value === confirmInput.value) {
+    matchLabel.textContent = '✓ Passwords match';
+    matchLabel.style.color = 'var(--c-accent)';
+  } else {
+    matchLabel.textContent = '✗ Passwords do not match';
+    matchLabel.style.color = 'var(--c-red)';
+  }
+}
+confirmInput.addEventListener('input', checkMatch);
+
+/* ── register (original logic, updated banner) ── */
+async function register() {
+  const name            = document.getElementById('name').value;
+  const email           = document.getElementById('email').value;
+  const password        = pwInput.value;
+  const confirmPassword = confirmInput.value;
+  const errorDiv        = document.getElementById('error');
+
+  function show(msg, isError = true) {
+    errorDiv.textContent = msg;
+    errorDiv.style.background = isError ? 'var(--c-red-dim)'    : 'var(--c-accent-dim)';
+    errorDiv.style.borderColor= isError ? 'rgba(229,57,53,.25)' : 'rgba(0,200,83,.3)';
+    errorDiv.style.color      = isError ? 'var(--c-red)'        : '#007a33';
+    errorDiv.classList.add('show');
+  }
+  errorDiv.classList.remove('show');
+
+  if (password !== confirmPassword) { show('Passwords do not match!'); return; }
+
+  try {
+    const data = await apiFetch('/auth/register', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, password })
+    });
+    if (data.error) { show(data.error); return; }
+
+    show('Account created! Redirecting…', false);
+    setTimeout(() => { location.href = 'index.html'; }, 1400);
+
+  } catch (err) {
+    show('Registration failed. Please try again.');
+  }
+}
+</script>
 </body>
 </html>
