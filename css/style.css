@@ -481,3 +481,62 @@ tr:hover td { background:#fafafa; }
   .notification-panel  { width:100%; right:-100%; }
   .charts-grid         { grid-template-columns:1fr; }
 }
+/* Add this to your main CSS file or create notifications.css */
+
+.notification-item {
+  padding: 15px;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.notification-item:hover {
+  background-color: #f8fafc;
+}
+
+.notification-item.unread {
+  background-color: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+
+.notification-item.read {
+  background-color: #ffffff;
+  border-left: 3px solid transparent;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+#notificationPanel {
+  position: fixed;
+  right: -400px;
+  top: 0;
+  width: 400px;
+  height: 100vh;
+  background: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+#notificationPanel.open {
+  right: 0;
+}
+
+#notifBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+}

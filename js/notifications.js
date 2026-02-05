@@ -30,14 +30,30 @@ function displayNotifications(notifications) {
     return;
   }
 
-  container.innerHTML = notifications.map(notif => `
-    <div class="notification-item ${notif.read ? '' : 'unread'}" onclick="markAsRead(${notif.id})">
-      <div style="font-weight: ${notif.read ? 'normal' : 'bold'};">
+  // Add "Mark all as read" button at the top if there are unread notifications
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+  let headerHTML = '';
+  
+  if (unreadCount > 0) {
+    headerHTML = `
+      <div style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 14px; color: #64748b;">${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}</span>
+        <button onclick="markAllAsRead()" style="background: #3b82f6; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+          Mark all as read
+        </button>
+      </div>
+    `;
+  }
+
+  container.innerHTML = headerHTML + notifications.map(notif => `
+    <div class="notification-item ${notif.is_read ? 'read' : 'unread'}" onclick="markAsRead(${notif.id})" style="cursor: pointer;">
+      <div style="font-weight: ${notif.is_read ? 'normal' : 'bold'}; color: ${notif.is_read ? '#64748b' : '#1e293b'};">
         ${getNotificationIcon(notif.type)} ${notif.message}
       </div>
       <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
         ${formatDate(notif.created_at)}
       </div>
+      ${!notif.is_read ? '<div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></div>' : ''}
     </div>
   `).join('');
 }
@@ -46,7 +62,7 @@ function updateNotificationBadge(notifications) {
   const badge = document.getElementById("notifBadge");
   if (!badge) return;
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
   
   if (unreadCount > 0) {
     badge.textContent = unreadCount;
@@ -84,9 +100,24 @@ async function markAsRead(notifId) {
       method: "PUT",
       headers: authHeader()
     });
-    loadNotifications();
+    // Reload notifications to update the UI
+    await loadNotifications();
   } catch(err) {
     console.error("Error marking notification as read:", err);
+  }
+}
+
+async function markAllAsRead() {
+  try {
+    await apiFetch('/notifications/read-all', {
+      method: "PUT",
+      headers: authHeader()
+    });
+    // Reload notifications to update the UI
+    await loadNotifications();
+  } catch(err) {
+    console.error("Error marking all notifications as read:", err);
+    showAlert("Failed to mark notifications as read. Please try again.", "error");
   }
 }
 
@@ -96,7 +127,7 @@ function simulateNotification(message, type = 'info') {
     id: Date.now(),
     message: message,
     type: type,
-    read: false,
+    is_read: false,
     created_at: new Date().toISOString()
   };
   

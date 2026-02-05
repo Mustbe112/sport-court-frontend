@@ -11,15 +11,37 @@ function authHeader() {
 async function apiFetch(url, options = {}) {
   try {
     const res = await fetch(API_BASE + url, options);
-    const data = await res.json();
     
     // Handle unauthorized
     if (res.status === 401) {
       localStorage.clear();
       location.href = "../index.html";
+      return;
     }
     
+    // Check if response is OK before parsing
+    if (!res.ok) {
+      // Try to get error message from response
+      let errorMessage = `Request failed with status ${res.status}`;
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        // If JSON parsing fails, try to get text
+        try {
+          const errorText = await res.text();
+          if (errorText) errorMessage = errorText;
+        } catch (e2) {
+          // Use default error message
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    // Parse successful response
+    const data = await res.json();
     return data;
+    
   } catch(err) {
     console.error("API Error:", err);
     throw err;
