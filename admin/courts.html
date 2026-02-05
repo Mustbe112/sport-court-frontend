@@ -47,6 +47,12 @@
       <div id="courtsList"></div>
     </div>
 
+    <!-- ⭐ NEW: Scheduled Maintenance Section -->
+    <div class="card">
+      <h3>Scheduled Maintenance</h3>
+      <div id="maintenanceList"></div>
+    </div>
+
     <div id="editModal" class="modal">
       <div class="modal-content">
         <span class="close" onclick="closeEditModal()">&times;</span>
@@ -82,6 +88,7 @@
   <script>
     checkAdminAuth();
     let courts = [];
+    let maintenanceSchedules = [];
     let selectedCourtId = null;
 
     async function loadCourts() {
@@ -92,6 +99,18 @@
         displayCourts();
       } catch(err) {
         console.error("Error loading courts:", err);
+      }
+    }
+
+    // ⭐ NEW: Load maintenance schedules
+    async function loadMaintenance() {
+      try {
+        maintenanceSchedules = await apiFetch("/admin/maintenance", {
+          headers: authHeader()
+        });
+        displayMaintenance();
+      } catch(err) {
+        console.error("Error loading maintenance:", err);
       }
     }
 
@@ -111,6 +130,48 @@
                 <td>
                   <button onclick="editCourt(${c.id})" class="secondary" style="padding: 5px 10px; width: auto; margin: 2px;">Edit</button>
                   <button onclick="openMaintenanceModal(${c.id})" class="secondary" style="padding: 5px 10px; width: auto; margin: 2px;">Maintenance</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // ⭐ NEW: Display maintenance schedules
+    function displayMaintenance() {
+      const container = document.getElementById("maintenanceList");
+      
+      if (maintenanceSchedules.length === 0) {
+        container.innerHTML = '<p style="color: #666;">No scheduled maintenance</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Court</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Reason</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${maintenanceSchedules.map(m => `
+              <tr>
+                <td>${m.court_name}</td>
+                <td>${new Date(m.start_date).toLocaleDateString()}</td>
+                <td>${new Date(m.end_date).toLocaleDateString()}</td>
+                <td>${m.reason || 'Scheduled maintenance'}</td>
+                <td>
+                  <button 
+                    onclick="cancelMaintenance(${m.id})" 
+                    class="danger" 
+                    style="padding: 5px 10px; width: auto;">
+                    Cancel
+                  </button>
                 </td>
               </tr>
             `).join('')}
@@ -182,14 +243,73 @@
 
     function closeMaintenanceModal() {
       document.getElementById("maintenanceModal").style.display = "none";
+      // Clear form
+      document.getElementById("maintenanceStart").value = '';
+      document.getElementById("maintenanceEnd").value = '';
+      document.getElementById("maintenanceReason").value = '';
     }
 
-    function scheduleMaintenance() {
-      showAlert('Maintenance scheduled! Users will be notified.', 'success');
-      closeMaintenanceModal();
+    // ⭐ UPDATED: Actually schedule maintenance
+    async function scheduleMaintenance() {
+      const startDate = document.getElementById("maintenanceStart").value;
+      const endDate = document.getElementById("maintenanceEnd").value;
+      const reason = document.getElementById("maintenanceReason").value;
+
+      if (!startDate || !endDate) {
+        showAlert('Please select start and end dates', 'error');
+        return;
+      }
+
+      if (new Date(startDate) > new Date(endDate)) {
+        showAlert('End date must be after start date', 'error');
+        return;
+      }
+
+      try {
+        const response = await apiFetch(`/admin/courts/${selectedCourtId}/maintenance`, {
+          method: "POST",
+          headers: authHeader(),
+          body: JSON.stringify({
+            start_date: startDate,
+            end_date: endDate,
+            reason: reason || 'Scheduled maintenance'
+          })
+        });
+
+        showAlert(
+          `Maintenance scheduled! ${response.affected_bookings || 0} booking(s) were cancelled and refunded.`, 
+          'success'
+        );
+        
+        closeMaintenanceModal();
+        loadMaintenance(); // Reload maintenance list
+      } catch(err) {
+        showAlert(err.message || 'Failed to schedule maintenance', 'error');
+      }
     }
 
+    // ⭐ NEW: Cancel maintenance
+    async function cancelMaintenance(id) {
+      if (!confirm('Are you sure you want to cancel this maintenance schedule?')) {
+        return;
+      }
+
+      try {
+        await apiFetch(`/admin/maintenance/${id}`, {
+          method: "DELETE",
+          headers: authHeader()
+        });
+
+        showAlert('Maintenance cancelled successfully!', 'success');
+        loadMaintenance(); // Reload maintenance list
+      } catch(err) {
+        showAlert('Failed to cancel maintenance', 'error');
+      }
+    }
+
+    // Load both courts and maintenance on page load
     loadCourts();
+    loadMaintenance();
   </script>
 </body>
 </html>
