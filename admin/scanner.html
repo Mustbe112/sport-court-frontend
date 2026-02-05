@@ -329,7 +329,7 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="navbar-brand">🏟️ SportCourt Admin</div>
+    <div class="navbar-brand">SportCourt Admin</div>
     <div class="navbar-links">
       <a href="dashboard.html">Dashboard</a>
       <a href="courts.html">Manage Courts</a>
@@ -342,14 +342,14 @@
 
   <div class="scanner-container">
     <div class="camera-section">
-      <h2 style="text-align: center; margin-bottom: 10px;">📷 QR Code Scanner</h2>
+      <h2 style="text-align: center; margin-bottom: 10px;">QR Code Scanner</h2>
       <p style="text-align: center; color: #666; margin-bottom: 20px;">
         Scan user's booking QR code for check-in or check-out
       </p>
 
       <div class="mode-selector">
         <button class="mode-btn active" onclick="setMode('auto')" id="modeAuto">
-          🔄 Auto-Detect
+           Auto-Detect
         </button>
         <!--<button class="mode-btn" onclick="setMode('checkin')" id="modeCheckin">
           📥 Check-In
@@ -360,7 +360,7 @@
       </div>
 
       <div class="instruction-box">
-        <h4>📋 How to Use:</h4>
+        <h4>How to Use:</h4>
         <ol>
           <li><strong>Auto-Detect</strong>: Automatically check-in or check-out based on booking status</li>
           <li><strong>Check-In</strong>: Only process "booked" bookings (user arriving)</li>
@@ -370,7 +370,7 @@
       </div>
 
       <div id="status" class="status-message status-ready">
-        🔄 Auto-Detect Mode: Will determine check-in or check-out automatically
+         Auto-Detect Mode: Will determine check-in or check-out automatically
       </div>
 
       <div id="video-container" style="display: none;">
@@ -383,13 +383,13 @@
 
       <div class="controls">
         <button id="startBtn" class="btn btn-primary" onclick="startCamera()">
-          📷 Start Camera
+           Start Camera
         </button>
         <button id="stopBtn" class="btn btn-danger" onclick="stopCamera()" style="display: none;">
-          ⏹️ Stop Camera
+           Stop Camera
         </button>
         <button class="btn btn-secondary" onclick="location.href='bookings.html'">
-          📋 Back to Bookings
+           Back to Bookings
         </button>
       </div>
     </div>
@@ -434,10 +434,10 @@
 
       <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
         <button id="actionBtn" class="btn btn-success" onclick="executeAction()">
-          ✅ Confirm
+           Confirm
         </button>
         <button class="btn btn-secondary" onclick="resetScanner()">
-          🔄 Scan Another
+           Scan Another
         </button>
       </div>
     </div>
@@ -481,7 +481,7 @@
 
     async function startCamera() {
       try {
-        updateStatus('🔄 Starting camera...', 'scanning');
+        updateStatus(' Starting camera...', 'scanning');
 
         stream = await navigator.mediaDevices.getUserMedia({ 
           video: { facingMode: 'environment' }
@@ -495,7 +495,7 @@
         document.getElementById('startBtn').style.display = 'none';
         document.getElementById('stopBtn').style.display = 'inline-block';
 
-        updateStatus('📸 Camera active. Point at QR code...', 'scanning');
+        updateStatus(' Camera active. Point at QR code...', 'scanning');
 
         scanning = true;
         requestAnimationFrame(scanQRCode);
@@ -525,7 +525,7 @@
       document.getElementById('startBtn').style.display = 'inline-block';
       document.getElementById('stopBtn').style.display = 'none';
 
-      updateStatus('📸 Camera stopped. Click "Start Camera" to scan again.', 'ready');
+      updateStatus(' Camera stopped. Click "Start Camera" to scan again.', 'ready');
     }
 
     function scanQRCode() {
@@ -606,7 +606,7 @@
         
         setTimeout(() => {
           if (!scanning && stream) {
-            updateStatus('📸 Ready. Point at QR code...', 'scanning');
+            updateStatus(' Ready. Point at QR code...', 'scanning');
             scanning = true;
             requestAnimationFrame(scanQRCode);
           }
@@ -686,7 +686,7 @@
 
       const actionBtn = document.getElementById('actionBtn');
       actionBtn.disabled = true;
-      actionBtn.textContent = '⏳ Processing...';
+      actionBtn.textContent = ' Processing...';
 
       try {
         if (actionType === 'checkin') {
@@ -695,7 +695,7 @@
             headers: authHeader()
           });
 
-          updateStatus('🎉 Check-in successful!', 'success');
+          updateStatus(' Check-in successful!', 'success');
           document.getElementById('detailStatus').textContent = 'CONFIRMED';
           document.getElementById('detailStatus').style.color = '#16a34a';
           
@@ -705,7 +705,7 @@
             headers: authHeader()
           });
 
-          updateStatus('🎉 Check-out successful!', 'success');
+          updateStatus(' Check-out successful!', 'success');
           document.getElementById('detailStatus').textContent = 'COMPLETED';
           document.getElementById('detailStatus').style.color = '#2563eb';
         }
@@ -730,11 +730,11 @@
       document.getElementById('lateWarning').classList.remove('show');
       
       if (scanMode === 'auto') {
-        updateStatus('🔄 Auto-Detect: Ready to scan', 'ready');
+        updateStatus(' Auto-Detect: Ready to scan', 'ready');
       } else if (scanMode === 'checkin') {
-        updateStatus('📥 Check-In Mode: Ready to scan', 'ready');
+        updateStatus(' Check-In Mode: Ready to scan', 'ready');
       } else {
-        updateStatus('📤 Check-Out Mode: Ready to scan', 'ready');
+        updateStatus(' Check-Out Mode: Ready to scan', 'ready');
       }
     }
 
