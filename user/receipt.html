@@ -204,6 +204,18 @@
       <div id="errorContainer"></div>
       <div id="receiptContent" style="display: none;">
         <div class="receipt-details">
+          <h3>Customer Information</h3>
+          <div class="receipt-row">
+            <span>Username:</span>
+            <span id="userName"></span>
+          </div>
+          <div class="receipt-row">
+            <span>Email:</span>
+            <span id="userEmail"></span>
+          </div>
+        </div>
+
+        <div class="receipt-details">
           <h3>Booking Details</h3>
           <div class="receipt-row">
             <span>Court:</span>
@@ -340,6 +352,12 @@
 
         // Populate receipt - using correct field names from database
         document.getElementById("receiptId").textContent = booking.id;
+        
+        // Get user info from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        document.getElementById("userName").textContent = user.name || 'N/A';
+        document.getElementById("userEmail").textContent = user.email || 'N/A';
+        
         document.getElementById("courtName").textContent = booking.court_name || `Court ${booking.court_id}`;
         document.getElementById("bookingDate").textContent = formatDate(booking.date); // Using 'date' field
         document.getElementById("bookingTime").textContent = 
@@ -402,6 +420,8 @@
         
         // Get booking data
         const receiptId = document.getElementById("receiptId").textContent;
+        const userName = document.getElementById("userName").textContent;
+        const userEmail = document.getElementById("userEmail").textContent;
         const courtName = document.getElementById("courtName").textContent;
         const bookingDate = document.getElementById("bookingDate").textContent;
         const bookingTime = document.getElementById("bookingTime").textContent;
@@ -429,8 +449,34 @@
         doc.setTextColor(...textGray);
         doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 50, { align: 'center' });
         
-        // Booking Details Section
+        // Customer Information Section
         let yPos = 65;
+        doc.setFillColor(...lightGray);
+        doc.roundedRect(15, yPos - 5, 180, 10, 2, 2, 'F');
+        doc.setFontSize(14);
+        doc.setTextColor(...primaryColor);
+        doc.setFont(undefined, 'bold');
+        doc.text('Customer Information', 20, yPos);
+        
+        yPos += 12;
+        doc.setFontSize(11);
+        doc.setTextColor(...darkColor);
+        doc.setFont(undefined, 'normal');
+        
+        // Username
+        doc.setFont(undefined, 'bold');
+        doc.text('Username:', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(userName, 80, yPos);
+        
+        yPos += 8;
+        doc.setFont(undefined, 'bold');
+        doc.text('Email:', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(userEmail, 80, yPos);
+        
+        // Booking Details Section
+        yPos += 18;
         doc.setFillColor(...lightGray);
         doc.roundedRect(15, yPos - 5, 180, 10, 2, 2, 'F');
         doc.setFontSize(14);
