@@ -112,6 +112,232 @@
     @keyframes checkmarkCheck {
       to { stroke-dashoffset: 0; }
     }
+
+    /* ===== SPORTY PAGE ANIMATIONS ===== */
+    
+    /* Initial hidden state */
+    .auth-hero-content > * {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .auth-card {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+
+    /* Animated state */
+    .animate-in .auth-badge {
+      animation: slideUpFade 0.6s ease forwards;
+      animation-delay: 0.1s;
+    }
+
+    .animate-in .auth-hero h1 {
+      animation: slideUpFade 0.7s ease forwards;
+      animation-delay: 0.3s;
+    }
+
+    .animate-in .auth-hero p {
+      animation: slideUpFade 0.7s ease forwards;
+      animation-delay: 0.5s;
+    }
+
+    .animate-in .hero-stats {
+      animation: slideUpFade 0.8s ease forwards;
+      animation-delay: 0.7s;
+    }
+
+    .animate-in .auth-card {
+      animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: 0.2s;
+    }
+
+    /* Floating badge animation */
+    .auth-badge {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* Pulsing dot */
+    .dot-live {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+
+    /* Stats counter animation */
+    .hero-stat-value {
+      display: inline-block;
+    }
+
+    .animate-in .hero-stats > div {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+
+    .animate-in .hero-stats > div:nth-child(1) {
+      animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: 0.9s;
+    }
+
+    .animate-in .hero-stats > div:nth-child(2) {
+      animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: 1.05s;
+    }
+
+    .animate-in .hero-stats > div:nth-child(3) {
+      animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: 1.2s;
+    }
+
+    /* Form fields stagger */
+    .auth-card .field {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .animate-in .auth-card .field:nth-of-type(1) {
+      animation: slideUpFade 0.5s ease forwards;
+      animation-delay: 0.6s;
+    }
+
+    .animate-in .auth-card .field:nth-of-type(2) {
+      animation: slideUpFade 0.5s ease forwards;
+      animation-delay: 0.75s;
+    }
+
+    .animate-in .auth-card .btn-cta {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUpFade 0.5s ease forwards;
+      animation-delay: 0.9s;
+    }
+
+    .animate-in .auth-card .auth-footer {
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+      animation-delay: 1.05s;
+    }
+
+    /* Input focus animation */
+    .field input:focus {
+      transform: translateY(-2px);
+      transition: transform 0.2s ease;
+    }
+
+    /* Button hover animation */
+    .btn-cta {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 200, 83, 0.3);
+    }
+
+    .btn-cta:active {
+      transform: translateY(0);
+    }
+
+    /* Highlight animation */
+    .highlight {
+      display: inline-block;
+      animation: highlightPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes highlightPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    /* Diagonal cut animation */
+    .diagonal-cut {
+      animation: diagonalShift 20s linear infinite;
+    }
+
+    @keyframes diagonalShift {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-100px); }
+    }
+
+    /* Core keyframes */
+    @keyframes slideUpFade {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* Logo pulse on load */
+    .auth-logo-mark {
+      animation: logoPulse 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      animation-delay: 0.3s;
+    }
+
+    @keyframes logoPulse {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Error message slide in */
+    .error-msg.show {
+      animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Auth heading animations */
+    .auth-heading h2, .auth-heading p {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+
+    .animate-in .auth-heading h2 {
+      animation: slideUpFade 0.5s ease forwards;
+      animation-delay: 0.4s;
+    }
+
+    .animate-in .auth-heading p {
+      animation: slideUpFade 0.5s ease forwards;
+      animation-delay: 0.5s;
+    }
   </style>
 </head>
 <body>
@@ -217,6 +443,13 @@
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
 <script>
+// Trigger animations on page load
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.querySelector('.auth-wrapper').classList.add('animate-in');
+  }, 100);
+});
+
 /* password toggle — swaps .icon-eye / .icon-eye-off */
 document.querySelectorAll('.toggle-pw').forEach(btn => {
   btn.addEventListener('click', () => {
