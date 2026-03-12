@@ -14,25 +14,21 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       transition: transform 0.2s;
     }
-    
     .booking-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
-    
     .booking-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 15px;
     }
-    
     .booking-title {
       font-size: 1.3em;
       font-weight: bold;
       color: #333;
     }
-    
     .booking-status {
       padding: 6px 12px;
       border-radius: 20px;
@@ -40,61 +36,24 @@
       font-weight: bold;
       text-transform: uppercase;
     }
-    
-    .status-booked {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    
-    .status-confirmed {
-      background: #d1fae5;
-      color: #065f46;
-    }
-    
-    .status-completed {
-      background: #dbeafe;
-      color: #1e40af;
-    }
-    
-    .status-cancelled {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-    
-    .status-no_show {
-      background: #f3e8ff;
-      color: #6b21a8;
-    }
-    
+    .status-booked    { background: #fef3c7; color: #92400e; }
+    .status-confirmed { background: #d1fae5; color: #065f46; }
+    .status-completed { background: #dbeafe; color: #1e40af; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+    .status-no_show   { background: #f3e8ff; color: #6b21a8; }
+
     .booking-details {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 15px;
       margin-bottom: 15px;
     }
-    
-    .detail-item {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .detail-label {
-      font-size: 0.85em;
-      color: #666;
-      margin-bottom: 4px;
-    }
-    
-    .detail-value {
-      font-weight: 600;
-      color: #333;
-    }
-    
-    .booking-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    
+    .detail-item { display: flex; flex-direction: column; }
+    .detail-label { font-size: 0.85em; color: #666; margin-bottom: 4px; }
+    .detail-value { font-weight: 600; color: #333; }
+
+    .booking-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
     .btn {
       padding: 8px 16px;
       border: none;
@@ -103,41 +62,14 @@
       font-weight: 500;
       transition: all 0.2s;
     }
-    
-    .btn-primary {
-      background: #6366f1;
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background: #4f46e5;
-    }
-    
-    .btn-danger {
-      background: #ef4444;
-      color: white;
-    }
-    
-    .btn-danger:hover {
-      background: #dc2626;
-    }
-    
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #374151;
-    }
-    
-    .btn-secondary:hover {
-      background: #d1d5db;
-    }
-    
-    .filter-buttons {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    
+    .btn-primary           { background: #6366f1; color: white; }
+    .btn-primary:hover     { background: #4f46e5; }
+    .btn-danger            { background: #ef4444; color: white; }
+    .btn-danger:hover      { background: #dc2626; }
+    .btn-secondary         { background: #e5e7eb; color: #374151; }
+    .btn-secondary:hover   { background: #d1d5db; }
+
+    .filter-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
     .filter-btn {
       padding: 10px 20px;
       border: none;
@@ -148,46 +80,124 @@
       color: #374151;
       transition: all 0.2s;
     }
-    
-    .filter-btn.active {
-      background: #22c55e;
-      color: white;
-    }
-    
-    .filter-btn:hover {
-      transform: translateY(-1px);
-    }
-    
+    .filter-btn.active { background: #22c55e; color: white; }
+    .filter-btn:hover  { transform: translateY(-1px); }
+
     .no-bookings {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-      font-size: 1.1em;
-      background: white;
-      border-radius: 8px;
+      text-align: center; padding: 40px; color: #666;
+      font-size: 1.1em; background: white; border-radius: 8px;
     }
-    
-    .loading {
-      text-align: center;
-      padding: 40px;
-      font-size: 1.1em;
-      color: #666;
+    .loading { text-align: center; padding: 40px; font-size: 1.1em; color: #666; }
+    .error-message   { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .success-message { background: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+
+    /* ── Custom Confirm Modal ── */
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
     }
-    
-    .error-message {
+    .confirm-overlay.show { opacity: 1; pointer-events: all; }
+
+    .confirm-modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 28px 24px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+      transform: scale(0.88) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      text-align: center;
+    }
+    .confirm-overlay.show .confirm-modal { transform: scale(1) translateY(0); }
+
+    .confirm-icon {
+      width: 64px; height: 64px;
       background: #fee2e2;
-      color: #991b1b;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 16px;
     }
-    
-    .success-message {
-      background: #d1fae5;
-      color: #065f46;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    .confirm-modal h3 { font-size: 1.25rem; font-weight: 700; color: #111; margin-bottom: 8px; }
+    .confirm-modal p  { color: #6b7280; font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px; }
+
+    .confirm-refund-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #d1fae5; color: #065f46;
+      font-size: 0.82rem; font-weight: 600;
+      padding: 5px 12px; border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    .confirm-actions { display: flex; gap: 12px; }
+    .confirm-actions button {
+      flex: 1; padding: 12px;
+      border-radius: 10px; border: none;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .confirm-btn-cancel           { background: #f3f4f6; color: #374151; }
+    .confirm-btn-cancel:hover     { background: #e5e7eb; }
+    .confirm-btn-confirm {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      box-shadow: 0 4px 12px rgba(239,68,68,0.35);
+    }
+    .confirm-btn-confirm:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(239,68,68,0.45);
+    }
+
+    /* ── Booking card cancel animation ── */
+    @keyframes cancelSlideOut {
+      0%   { opacity:1; transform: translateX(0) scale(1); max-height: 300px; margin-bottom: 15px; }
+      40%  { opacity:0.6; transform: translateX(30px) scale(0.98); }
+      100% { opacity:0; transform: translateX(-60px) scale(0.94); max-height: 0; margin-bottom: 0; padding:0; }
+    }
+    .booking-card.cancelling {
+      animation: cancelSlideOut 0.55s cubic-bezier(0.4,0,0.2,1) forwards;
+      overflow: hidden;
+    }
+
+    /* ── Toast notifications ── */
+    #toastContainer {
+      position: fixed; bottom: 28px; right: 28px;
+      display: flex; flex-direction: column; gap: 10px;
+      z-index: 10000;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 500; font-size: 0.9rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+      min-width: 280px; max-width: 360px;
+      animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+      pointer-events: all;
+    }
+    .toast.hide { animation: toastOut 0.3s ease forwards; }
+    .toast-icon  { font-size: 1.2rem; flex-shrink: 0; }
+    .toast-text  { flex: 1; }
+    .toast-close {
+      background: none; border: none; cursor: pointer;
+      opacity: 0.6; font-size: 1rem; padding: 0; line-height: 1;
+    }
+    .toast-close:hover { opacity: 1; }
+    .toast-success { background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; }
+    .toast-error   { background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; }
+    .toast-info    { background: #eff6ff; color: #1e40af; border-left: 4px solid #3b82f6; }
+
+    @keyframes toastIn {
+      from { opacity:0; transform: translateX(60px) scale(0.9); }
+      to   { opacity:1; transform: translateX(0) scale(1); }
+    }
+    @keyframes toastOut {
+      from { opacity:1; transform: translateX(0) scale(1); max-height: 80px; margin-bottom:10px; }
+      to   { opacity:0; transform: translateX(60px) scale(0.9); max-height:0; margin-bottom:0; }
     }
   </style>
 </head>
@@ -224,10 +234,26 @@
     </div>
   </div>
 
-    <!-- Footer -->
+  <!-- Custom Confirm Modal -->
+  <div id="confirmOverlay" class="confirm-overlay">
+    <div class="confirm-modal">
+      <div class="confirm-icon">🚫</div>
+      <h3>Cancel Booking?</h3>
+      <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
+      <div class="confirm-refund-badge">✅ Full refund will be credited to your wallet</div>
+      <div class="confirm-actions">
+        <button class="confirm-btn-cancel" onclick="closeConfirm()">Keep Booking</button>
+        <button class="confirm-btn-confirm" id="confirmYesBtn">Yes, Cancel It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-content">
-      <!-- Brand Section -->
       <div class="footer-section footer-brand">
         <div class="footer-logo">
           <div class="footer-logo-mark"></div>
@@ -242,7 +268,6 @@
         </span>
       </div>
 
-      <!-- Quick Links -->
       <div class="footer-section">
         <h3>Quick Links</h3>
         <div class="footer-links">
@@ -254,7 +279,6 @@
         </div>
       </div>
 
-      <!-- Resources -->
       <div class="footer-section">
         <h3>Resources</h3>
         <div class="footer-links">
@@ -266,7 +290,6 @@
         </div>
       </div>
 
-      <!-- Contact Information -->
       <div class="footer-section">
         <h3>Contact Us</h3>
         <div class="footer-contact-info">
@@ -274,22 +297,16 @@
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Email</span>
-              <span class="contact-value">
-                <a href="mailto:john@test.com">john@test.com</a>
-              </span>
+              <span class="contact-value"><a href="mailto:john@test.com">john@test.com</a></span>
             </div>
           </div>
-          
           <div class="contact-item">
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Phone</span>
-              <span class="contact-value">
-                <a href="tel:+91234565">+91234565</a>
-              </span>
+              <span class="contact-value"><a href="tel:+91234565">+91234565</a></span>
             </div>
           </div>
-          
           <div class="contact-item">
             <div class="contact-icon"></div>
             <div class="contact-details">
@@ -298,8 +315,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Social Media Links -->
         <div class="footer-social">
           <a href="#" class="social-link" title="Facebook"></a>
           <a href="#" class="social-link" title="Twitter"></a>
@@ -309,7 +324,6 @@
       </div>
     </div>
 
-    <!-- Footer Bottom -->
     <div class="footer-bottom">
       <div class="footer-copyright">
         © 2026 SportCourt. All rights reserved. Made with <span class="heart"></span>
@@ -331,18 +345,12 @@
     let allBookings = [];
     let currentFilter = 'all';
 
-    // Format date helper
     function formatDate(dateString) {
       if (!dateString) return 'N/A';
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    // Format time helper
     function formatTime(timeString) {
       if (!timeString) return '';
       const [hours, minutes] = timeString.split(':');
@@ -352,48 +360,30 @@
       return `${displayHour}:${minutes} ${ampm}`;
     }
 
-    // Show alert helper
     function showAlert(message, type) {
       const errorContainer = document.getElementById('errorContainer');
       const className = type === 'success' ? 'success-message' : 'error-message';
       errorContainer.innerHTML = `<div class="${className}">${message}</div>`;
-      setTimeout(() => {
-        errorContainer.innerHTML = '';
-      }, 5000);
+      setTimeout(() => { errorContainer.innerHTML = ''; }, 5000);
     }
 
-    // Load bookings
     async function loadBookings() {
       const loadingContainer = document.getElementById('loadingContainer');
       const bookingsContainer = document.getElementById('bookingsContainer');
-      
       try {
         loadingContainer.style.display = 'block';
         bookingsContainer.innerHTML = '';
-
-        console.log('Fetching bookings from API...');
-        
-        // Fetch bookings - the correct endpoint based on your API_BASE
-        const bookings = await apiFetch("/bookings/my-bookings", {
-          headers: authHeader()
-        });
-
-        console.log('Bookings received:', bookings);
-
+        const bookings = await apiFetch("/bookings/my-bookings", { headers: authHeader() });
         loadingContainer.style.display = 'none';
-
         if (!bookings || bookings.length === 0) {
           bookingsContainer.innerHTML = `
             <div class="no-bookings">
               No bookings found. <a href="courts.html" style="color: #6366f1; text-decoration: underline;">Book your first court!</a>
-            </div>
-          `;
+            </div>`;
           return;
         }
-
         allBookings = bookings;
         displayBookings(bookings);
-
       } catch (err) {
         console.error("Error loading bookings:", err);
         loadingContainer.style.display = 'none';
@@ -402,38 +392,29 @@
           <div class="no-bookings">
             <p>Unable to load bookings. Please try again later.</p>
             <button onclick="loadBookings()" class="btn btn-primary" style="margin-top: 15px;">Retry</button>
-          </div>
-        `;
+          </div>`;
       }
     }
 
-    // Display bookings
     function displayBookings(bookings) {
       const bookingsContainer = document.getElementById('bookingsContainer');
-      
       if (!bookings || bookings.length === 0) {
         bookingsContainer.innerHTML = '<div class="no-bookings">No bookings found for this filter.</div>';
         return;
       }
-
       bookingsContainer.innerHTML = bookings.map(booking => {
-        // Determine status class
         const status = booking.status.toLowerCase();
         const statusClass = `status-${status}`;
-        
-        // Determine if booking can be cancelled (only BOOKED status, not confirmed)
-        const bookingDate = new Date(booking.date); // Using 'date' field from DB
+        const bookingDate = new Date(booking.date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const canCancel = status === 'booked' && bookingDate >= today;
-        
         return `
-          <div class="booking-card">
+          <div class="booking-card" id="booking-card-${booking.id}">
             <div class="booking-header">
               <div class="booking-title">${booking.court_name || `Court ${booking.court_id}`}</div>
               <span class="booking-status ${statusClass}">${booking.status}</span>
             </div>
-            
             <div class="booking-details">
               <div class="detail-item">
                 <span class="detail-label">📅 Date</span>
@@ -452,7 +433,6 @@
                 <span class="detail-value">#${booking.id}</span>
               </div>
             </div>
-            
             <div class="booking-actions">
               ${status === 'confirmed' || status === 'booked' ? `
                 <button class="btn btn-primary" onclick="viewReceipt(${booking.id})">View Receipt</button>
@@ -464,23 +444,15 @@
                 <button class="btn btn-secondary" onclick="checkIn(${booking.id})">Check In</button>
               ` : ''}
             </div>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
-    // Filter bookings
     function filterBookings(filter, button) {
       currentFilter = filter;
-      
-      // Update active button
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
       button.classList.add('active');
-      
       let filtered = allBookings;
-      
       if (filter === 'upcoming') {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -493,56 +465,96 @@
       } else if (filter === 'cancelled') {
         filtered = allBookings.filter(b => b.status === 'cancelled');
       }
-      
       displayBookings(filtered);
     }
 
-    // View receipt
     function viewReceipt(bookingId) {
       localStorage.setItem('bookingId', bookingId);
       location.href = 'receipt.html';
     }
 
-    // Cancel booking
-    async function cancelBooking(bookingId) {
-      if (!confirm('Are you sure you want to cancel this booking? You will receive a full refund.')) {
-        return;
-      }
-      
-      try {
-        const result = await apiFetch(`/bookings/cancel/${bookingId}`, {
-          method: 'POST',
-          headers: authHeader()
-        });
-        
-        showAlert('Booking cancelled successfully. Coins have been refunded.', 'success');
-        setTimeout(() => loadBookings(), 1500);
-      } catch (err) {
-        console.error('Cancel error:', err);
-        showAlert('Error cancelling booking: ' + (err.message || 'Unknown error'), 'error');
-      }
+    // ── Toast helper ──
+    function showToast(message, type = 'info') {
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      const container = document.getElementById('toastContainer');
+      const id = 'toast_' + Date.now();
+      const el = document.createElement('div');
+      el.className = `toast toast-${type}`;
+      el.id = id;
+      el.innerHTML = `
+        <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+        <span class="toast-text">${message}</span>
+        <button class="toast-close" onclick="dismissToast('${id}')">✕</button>`;
+      container.appendChild(el);
+      setTimeout(() => dismissToast(id), 4500);
     }
 
-    // Check in
-    async function checkIn(bookingId) {
+    function dismissToast(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('hide');
+      setTimeout(() => el.remove(), 320);
+    }
+
+    // ── Custom confirm modal ──
+    let _pendingCancelId = null;
+
+    function openConfirm(bookingId) {
+      _pendingCancelId = bookingId;
+      document.getElementById('confirmOverlay').classList.add('show');
+    }
+
+    function closeConfirm() {
+      _pendingCancelId = null;
+      document.getElementById('confirmOverlay').classList.remove('show');
+    }
+
+    document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeConfirm();
+    });
+
+    document.getElementById('confirmYesBtn').addEventListener('click', async function() {
+      const bookingId = _pendingCancelId;
+      closeConfirm();
+      if (!bookingId) return;
+
+      // Animate the specific card out using its ID
+      const targetCard = document.getElementById(`booking-card-${bookingId}`);
+      if (targetCard) targetCard.classList.add('cancelling');
+
       try {
-        const result = await apiFetch(`/bookings/checkin/${bookingId}`, {
+        await apiFetch(`/bookings/cancel/${bookingId}`, {
           method: 'POST',
           headers: authHeader()
         });
-        
-        showAlert('Check-in successful!', 'success');
+        showToast('Booking cancelled. Coins refunded to your wallet! 🪙', 'success');
+        setTimeout(() => loadBookings(), 1800);
+      } catch (err) {
+        console.error('Cancel error:', err);
+        if (targetCard) targetCard.classList.remove('cancelling');
+        showToast('Error cancelling booking: ' + (err.message || 'Unknown error'), 'error');
+      }
+    });
+
+    async function cancelBooking(bookingId) {
+      openConfirm(bookingId);
+    }
+
+    async function checkIn(bookingId) {
+      try {
+        await apiFetch(`/bookings/checkin/${bookingId}`, {
+          method: 'POST',
+          headers: authHeader()
+        });
+        showToast('Check-in successful! See you on the court 🏀', 'success');
         setTimeout(() => loadBookings(), 1500);
       } catch (err) {
         console.error('Check-in error:', err);
-        showAlert('Error checking in: ' + (err.message || 'Unknown error'), 'error');
+        showToast('Error during check-in: ' + (err.message || 'Unknown error'), 'error');
       }
     }
 
-    // Load bookings on page load
-    window.addEventListener('DOMContentLoaded', () => {
-      loadBookings();
-    });
+    loadBookings();
   </script>
 </body>
 </html>

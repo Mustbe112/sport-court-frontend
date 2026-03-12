@@ -5,8 +5,218 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Dashboard - Sport Court Booking</title>
   <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/alerts.css">
+  <style>
+    /* Alert Container */
+    .alert-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+    }
+
+    /* Top Up Modal Animations */
+    .modal {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-content {
+      animation: slideUp 0.3s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    @keyframes slideUp {
+      from { 
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to { 
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
+    /* Processing Animation */
+    .processing-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .processing-content {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Coin Balance Animation */
+    .coin-balance-update {
+      animation: pulse 0.6s ease-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); color: #10b981; }
+    }
+
+    /* Top Up Button Hover Effects */
+    .topup-btn {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      border: none;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .topup-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+    }
+
+    .topup-btn:active {
+      transform: translateY(0);
+    }
+
+    /* ── Top-Up Confirm Step ── */
+    .topup-confirm-overlay {
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.97);
+      border-radius: 12px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 28px;
+      opacity: 0; pointer-events: none;
+      transform: scale(0.95) translateY(10px);
+      transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
+      z-index: 50;
+      text-align: center;
+    }
+    .topup-confirm-overlay.show {
+      opacity: 1; pointer-events: all;
+      transform: scale(1) translateY(0);
+    }
+    .topup-confirm-icon {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.18);
+    }
+    .topup-confirm-overlay h3 {
+      font-size: 1.3rem; font-weight: 700;
+      color: #111; margin-bottom: 6px;
+    }
+    .topup-confirm-overlay .confirm-sub {
+      color: #6b7280; font-size: 0.92rem;
+      margin-bottom: 8px;
+    }
+    .topup-price-tag {
+      display: inline-block;
+      background: #f0fdf4; color: #15803d;
+      font-size: 0.85rem; font-weight: 700;
+      padding: 5px 14px; border-radius: 20px;
+      margin-bottom: 28px;
+      border: 1.5px solid #bbf7d0;
+    }
+    .topup-confirm-actions {
+      display: flex; gap: 12px; width: 100%;
+    }
+    .topup-confirm-actions button {
+      flex: 1; padding: 13px;
+      border-radius: 10px; border: none;
+      font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-topup-cancel {
+      background: #f3f4f6; color: #374151;
+    }
+    .btn-topup-cancel:hover { background: #e5e7eb; }
+    .btn-topup-go {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+    }
+    .btn-topup-go:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(37,99,235,0.45);
+    }
+    .topup-btn.selected {
+      outline: 3px solid #fff;
+      box-shadow: 0 0 0 5px rgba(37,99,235,0.45);
+      transform: translateY(-3px) scale(1.04);
+    }
+  </style>
 </head>
 <body>
+  <!-- Alert Container -->
+  <div class="alert-container" id="alertContainer"></div>
+
+  <!-- Processing Overlay -->
+  <div class="processing-overlay" id="processingOverlay">
+    <div class="processing-content">
+      <div class="spinner"></div>
+      <h3>Processing Payment...</h3>
+      <p>Please wait while we add coins to your account</p>
+    </div>
+  </div>
+
   <!-- Navbar -->
   <nav class="navbar">
     <div class="navbar-brand">SportCourt</div>
@@ -70,9 +280,9 @@
     <div class="card">
       <h3>Quick Actions</h3>
       <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <button onclick="location.href='courts.html'"> Book a Court</button>
-        <button onclick="location.href='bookings.html'" class="secondary"> View My Bookings</button>
-        <button onclick="location.href='favorites.html'" class="secondary"> Favorite Courts</button>
+        <button onclick="location.href='courts.html'">Book a Court</button>
+        <button onclick="location.href='bookings.html'" class="secondary">View My Bookings</button>
+        <button onclick="location.href='favorites.html'" class="secondary">Favorite Courts</button>
       </div>
     </div>
 
@@ -112,6 +322,19 @@
       <div class="form-group">
         <input type="number" id="customAmountInput" placeholder="Enter amount" min="10">
         <button onclick="topUpCustom()">Top Up Custom Amount</button>
+      </div>
+
+
+      <!-- Confirm Step Overlay -->
+      <div id="topupConfirmOverlay" class="topup-confirm-overlay">
+        <div class="topup-confirm-icon">🪙</div>
+        <h3 id="confirmTitle">Confirm Top Up</h3>
+        <p class="confirm-sub" id="confirmSub">You are about to purchase</p>
+        <div class="topup-price-tag" id="confirmPriceTag"></div>
+        <div class="topup-confirm-actions">
+          <button class="btn-topup-cancel" onclick="closeTopUpConfirm()">Cancel</button>
+          <button class="btn-topup-go" id="confirmGoBtn">Confirm &amp; Pay</button>
+        </div>
       </div>
 
       <!-- Close button -->
@@ -172,7 +395,7 @@
             <div class="contact-details">
               <span class="contact-label">Email</span>
               <span class="contact-value">
-                <a href="mailto:john@test.com">john@test.com</a>
+                <a href="/cdn-cgi/l/email-protection#c5afaaadab85b1a0b6b1eba6aaa8"><span class="__cf_email__" data-cfemail="f2989d9a9cb286978186dc919d9f">[email&#160;protected]</span></a>
               </span>
             </div>
           </div>
@@ -220,10 +443,10 @@
     </div>
   </footer>
 
-  <script src="../js/api.js"></script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
-  <script src="../js/topup.js"></script> <!-- ADD THIS LINE -->
+  <script src="../js/topup.js"></script>
   <script>
     checkAuth();
 
@@ -243,11 +466,10 @@
         });
 
         const now = new Date();
-        now.setHours(0, 0, 0, 0); // Reset to start of day for proper comparison
+        now.setHours(0, 0, 0, 0);
         
-        // Filter upcoming bookings - use 'date' field (not 'booking_date') and include both 'booked' and 'confirmed' statuses
         const activeBookings = bookings.filter(b => {
-          const bookingDate = new Date(b.date); // Changed from b.booking_date to b.date
+          const bookingDate = new Date(b.date);
           bookingDate.setHours(0, 0, 0, 0);
           return (b.status === 'confirmed' || b.status === 'booked') && bookingDate >= now;
         });
@@ -255,10 +477,8 @@
         document.getElementById("activeBookings").textContent = activeBookings.length;
         document.getElementById("totalBookings").textContent = bookings.length;
 
-        // Display upcoming bookings
         displayUpcomingBookings(activeBookings.slice(0, 5));
 
-        // Load favorites count
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         document.getElementById("favoriteCourts").textContent = favorites.length;
 
@@ -297,46 +517,151 @@
     }
 
     function closeTopUpModal() {
-      document.getElementById("topUpModal").style.display = "none";
+      closeTopUpConfirm && closeTopUpConfirm();
+      const modal = document.getElementById("topUpModal");
+      modal.style.animation = "fadeOut 0.3s ease-out";
+      setTimeout(() => {
+        modal.style.display = "none";
+        modal.style.animation = "";
+      }, 300);
     }
 
-    async function topUp(amount) {
+    function showProcessing() {
+      document.getElementById("processingOverlay").style.display = "flex";
+    }
+
+    function hideProcessing() {
+      const overlay = document.getElementById("processingOverlay");
+      overlay.style.animation = "fadeOut 0.3s ease-out";
+      setTimeout(() => {
+        overlay.style.display = "none";
+        overlay.style.animation = "";
+      }, 300);
+    }
+
+    function showAlert(message, type = 'info') {
+      const container = document.getElementById("alertContainer");
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.textContent = message;
+      
+      container.appendChild(alert);
+      
+      // Auto remove after 4 seconds
+      setTimeout(() => {
+        alert.style.animation = "slideOut 0.3s ease-out";
+        setTimeout(() => alert.remove(), 300);
+      }, 4000);
+    }
+
+    function animateCoinBalance(newBalance) {
+      const balanceElement = document.getElementById("coinBalance");
+      const currentBalance = parseInt(balanceElement.textContent);
+      
+      balanceElement.classList.add("coin-balance-update");
+      
+      const duration = 800;
+      const steps = 30;
+      const increment = (newBalance - currentBalance) / steps;
+      let current = currentBalance;
+      let step = 0;
+      
+      const timer = setInterval(() => {
+        step++;
+        current += increment;
+        balanceElement.textContent = Math.round(current);
+        
+        if (step >= steps) {
+          clearInterval(timer);
+          balanceElement.textContent = newBalance;
+          setTimeout(() => {
+            balanceElement.classList.remove("coin-balance-update");
+          }, 600);
+        }
+      }, duration / steps);
+    }
+
+    async function topUp(amount, price) {
       try {
+        closeTopUpModal();
+        setTimeout(() => showProcessing(), 300);
+        
+        // Simulate realistic payment processing time
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
         const data = await apiFetch("/users/topup", {
           method: "POST",
           headers: authHeader(),
           body: JSON.stringify({ amount })
         });
 
-        showAlert(`Successfully added ${amount} coins to your account!`, 'success');
-        document.getElementById("coinBalance").textContent = data.coin_balance;
-        closeTopUpModal();
+        hideProcessing();
+        
+        setTimeout(() => {
+          showAlert(`Successfully added ${amount} coins to your account!`, 'success');
+          animateCoinBalance(data.coin_balance);
+        }, 400);
+        
       } catch(err) {
-        showAlert('Top up failed. Please try again.', 'error');
+        hideProcessing();
+        setTimeout(() => {
+          showAlert('❌ Payment failed. Please try again or contact support.', 'error');
+        }, 400);
       }
     }
 
+    // ── Top-up confirm step ──
+    let _pendingTopUp = null;
+
     function topUpPreset(amount, price) {
-      if (!confirm(`Top up ${amount} coins for $${price}?`)) return;
-      topUp(amount);
+      _pendingTopUp = { amount, price };
+
+      // Populate confirm overlay
+      document.getElementById('confirmTitle').textContent = `Add ${amount} Coins`;
+      document.getElementById('confirmSub').textContent = 'You are about to purchase';
+      document.getElementById('confirmPriceTag').textContent = `+${amount} coins — $${price}`;
+
+      // Show overlay
+      document.getElementById('topupConfirmOverlay').classList.add('show');
     }
+
+    // Confirm & Pay button handler — defined once, always reads _pendingTopUp
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('confirmGoBtn').addEventListener('click', function() {
+        if (!_pendingTopUp) return;
+        const { amount, price } = _pendingTopUp;
+        closeTopUpConfirm();
+        topUp(amount, price);
+      });
+    });
+
+    function closeTopUpConfirm() {
+      document.getElementById('topupConfirmOverlay').classList.remove('show');
+      document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('selected'));
+      _pendingTopUp = null;
+    }
+
+
 
     async function topUpCustom() {
       const amount = parseInt(document.getElementById("customAmountInput").value);
       if (isNaN(amount) || amount < 10) {
-        showAlert('Minimum top up amount is 10 coins', 'warning');
+        showAlert('⚠️ Minimum top up amount is 10 coins', 'info');
         return;
       }
-      await topUp(amount);
+      const price = (amount * 0.1).toFixed(2);
+      await topUp(amount, price);
     }
 
     // Close modal when clicking outside
-    window.onclick = function(event) {
+        // Close modal when clicking outside
+    window.onclick = function(e) {
       const modal = document.getElementById("topUpModal");
-      if (event.target == modal) {
-        modal.style.display = "none";
-      }
+      if (e.target === modal) closeTopUpModal();
     }
+
+    formatDate = (d) => new Date(d).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+    formatTime = (t) => { if(!t) return ''; const [h,m]=t.split(':'); const hr=parseInt(h); return `${hr%12||12}:${m} ${hr>=12?'PM':'AM'}`; };
 
     loadDashboard();
     loadNotifications();
