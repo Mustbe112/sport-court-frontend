@@ -241,7 +241,7 @@ All API calls go through `js/api.js` using the `apiFetch()` helper, which automa
 Edit the `API_BASE` constant in `js/api.js`:
 
 ```javascript
-const API_BASE = "https://your-backend-url.com/api";
+const API_BASE = "https://sport-court-backend.onrender.com";
 ```
 
 ### Coin Top-Up Packages
