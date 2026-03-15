@@ -1,10 +1,10 @@
-# 🏟️ SportCourt — Sports Court Booking System
+# SportCourt — Sports Court Booking System
 
 A full-stack web application for booking sports courts with real-time availability, coin-based payments, QR code check-ins, and an admin management panel.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
@@ -27,23 +27,23 @@ SportCourt is a browser-based court booking platform where users can browse avai
 ## Features
 
 ### User Features
-- 🔐 Login & Registration with JWT authentication
-- 🏟️ Browse & filter courts by type, name, and price
-- 📅 Real-time availability checking before booking
-- 💰 Coin-based payment system with top-up support
-- 📱 QR code generation for each booking (check-in)
-- 🔔 Real-time notifications (booking confirmations, reminders, cancellations)
-- ⭐ Favorite courts for quick re-booking
-- 🧾 Downloadable booking receipts
-- 👤 Profile management and booking history
+- Login & Registration with JWT authentication
+- Browse & filter courts by type, name, and price
+- Real-time availability checking before booking
+- Coin-based payment system with top-up support
+- QR code generation for each booking (check-in)
+- Real-time notifications (booking confirmations, reminders, cancellations)
+- Favorite courts for quick re-booking
+- Downloadable booking receipts
+- Profile management and booking history
 
 ### Admin Features
-- 📊 Dashboard with analytics charts (revenue trends, peak hours, court demand)
-- 🏟️ Court management — add, edit, activate/deactivate courts
-- 🔧 Scheduled maintenance with automatic booking cancellation & refund
-- 📋 Booking management — view and cancel any booking
-- 📷 QR code scanner for user check-in validation
-- 📈 Stats: high-demand courts, peak hours, revenue over time
+- Dashboard with analytics charts (revenue trends, peak hours, court demand)
+- Court management — add, edit, activate/deactivate courts
+- Scheduled maintenance with automatic booking cancellation & refund
+- Booking management — view and cancel any booking
+- QR code scanner for user check-in validation
+- Stats: high-demand courts, peak hours, revenue over time
 
 ---
 
@@ -262,4 +262,4 @@ This project is for educational and demonstration purposes.
 
 ---
 
-> Made with ❤️ — SportCourt © 2026
+
