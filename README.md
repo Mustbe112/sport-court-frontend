@@ -2,6 +2,10 @@
 
 A full-stack web application for booking sports courts with real-time availability, coin-based payments, QR code check-ins, and an admin management panel.
 
+ **Frontend:** https://tourmaline-tulumba-4614bf.netlify.app/
+ **Backend API:** https://sport-court-backend.onrender.com
+
+> **Note:** The backend is hosted on Render's free tier and may take 20–30 seconds to wake up on the first request.
 ---
 
 ## Table of Contents
