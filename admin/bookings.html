@@ -21,7 +21,6 @@
       <a href="bookings.html">Manage Bookings</a>
       <a href="scanner.html">QR Scanner</a>
       <a href="profile.html">Profile</a>
-      
       <a href="#" onclick="logout()">Logout</a>
     </div>
   </nav>
@@ -61,37 +60,27 @@
     </div>
   </div>
 
-    <!-- Footer -->
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-content">
-      <!-- Brand Section -->
       <div class="footer-section footer-brand">
         <div class="footer-logo">
           <div class="footer-logo-mark"></div>
           <div class="footer-logo-text">SportCourt</div>
         </div>
-        <p class="footer-description">
-          Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.
-        </p>
-        <span class="footer-tagline">
-          <span class="dot-live"></span>
-          Book Smart, Play Hard
-        </span>
+        <p class="footer-description">Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.</p>
+        <span class="footer-tagline"><span class="dot-live"></span> Book Smart, Play Hard</span>
       </div>
-
-      <!-- Quick Links -->
       <div class="footer-section">
         <h3>Quick Links</h3>
         <div class="footer-links">
           <a href="dashboard.html" class="footer-link">Dashboard</a>
-          <a href="courts.html" class="footer-link">Browse Courts</a>
-          <a href="bookings.html" class="footer-link">My Bookings</a>
-          <a href="favorites.html" class="footer-link">Favorites</a>
+          <a href="courts.html" class="footer-link">Manage Courts</a>
+          <a href="bookings.html" class="footer-link">Manage Bookings</a>
+          <a href="scanner.html" class="footer-link">QR Scanner</a>
           <a href="profile.html" class="footer-link">Profile</a>
         </div>
       </div>
-
-      <!-- Resources -->
       <div class="footer-section">
         <h3>Resources</h3>
         <div class="footer-links">
@@ -102,8 +91,6 @@
           <a href="#" class="footer-link">Court Rules</a>
         </div>
       </div>
-
-      <!-- Contact Information -->
       <div class="footer-section">
         <h3>Contact Us</h3>
         <div class="footer-contact-info">
@@ -111,22 +98,16 @@
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Email</span>
-              <span class="contact-value">
-                <a href="mailto:john@test.com">john@test.com</a>
-              </span>
+              <span class="contact-value"><a href="mailto:john@test.com">john@test.com</a></span>
             </div>
           </div>
-          
           <div class="contact-item">
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Phone</span>
-              <span class="contact-value">
-                <a href="tel:+91234565">+91234565</a>
-              </span>
+              <span class="contact-value"><a href="tel:+91234565">+91234565</a></span>
             </div>
           </div>
-          
           <div class="contact-item">
             <div class="contact-icon"></div>
             <div class="contact-details">
@@ -135,8 +116,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Social Media Links -->
         <div class="footer-social">
           <a href="#" class="social-link" title="Facebook"></a>
           <a href="#" class="social-link" title="Twitter"></a>
@@ -145,12 +124,8 @@
         </div>
       </div>
     </div>
-
-    <!-- Footer Bottom -->
     <div class="footer-bottom">
-      <div class="footer-copyright">
-        © 2026 SportCourt. All rights reserved. Made with <span class="heart"></span>
-      </div>
+      <div class="footer-copyright">© 2026 SportCourt. All rights reserved. Made with <span class="heart"></span></div>
       <div class="footer-legal">
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Service</a>
@@ -166,22 +141,17 @@
     checkAdminAuth();
     let allBookings = [];
     let currentFilter = 'all';
+    let lastUpdatedId = null;
 
-    // Utility functions for formatting
     function formatDate(dateStr) {
       if (!dateStr) return 'N/A';
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return 'Invalid Date';
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      });
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
     function formatTime(timeStr) {
       if (!timeStr) return 'N/A';
-      // Handle both full datetime and time-only strings
       const timePart = timeStr.includes('T') ? timeStr.split('T')[1] : timeStr;
       const [hours, minutes] = timePart.split(':');
       const hour = parseInt(hours);
@@ -190,25 +160,10 @@
       return `${displayHour}:${minutes} ${ampm}`;
     }
 
-    function isToday(dateStr) {
-      if (!dateStr) return false;
-      // Strip any time portion, keep only YYYY-MM-DD
-      const datePart = dateStr.split('T')[0];
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      return datePart === `${yyyy}-${mm}-${dd}`;
-    }
-
     async function loadBookings() {
       try {
-        // Add timestamp to prevent caching
         const timestamp = new Date().getTime();
-        allBookings = await apiFetch(`/admin/bookings?_t=${timestamp}`, {
-          headers: authHeader()
-        });
-        console.log('Loaded bookings:', allBookings.length);
+        allBookings = await apiFetch(`/admin/bookings?_t=${timestamp}`, { headers: authHeader() });
       } catch(err) {
         console.error("Error loading bookings:", err);
       }
@@ -217,8 +172,6 @@
     function filterBookings(filter) {
       currentFilter = filter;
       document.querySelectorAll('[id^="btn"]').forEach(b => b.className = 'secondary');
-      
-      // Handle the button highlighting
       const btnId = `btn${filter.charAt(0).toUpperCase() + filter.slice(1)}`;
       const btn = document.getElementById(btnId);
       if (btn) btn.className = 'success';
@@ -227,30 +180,24 @@
       const dateFilter = document.getElementById("dateFilter").value;
       let filtered = allBookings;
 
-      // Filter by status
       if (filter !== 'all') {
         filtered = filtered.filter(b => b.status === filter);
       }
 
-      // Filter by date (exact match)
       if (dateFilter) {
         filtered = filtered.filter(b => {
-          // Normalize both dates to YYYY-MM-DD format for comparison
           const bookingDate = b.date ? b.date.split('T')[0] : '';
           return bookingDate === dateFilter;
         });
       }
 
-      // Filter by search text (ID, court name, email, or partial date)
       if (search) {
         filtered = filtered.filter(b => {
           const idMatch = b.id && b.id.toString().includes(search);
           const courtMatch = b.court_name && b.court_name.toLowerCase().includes(search);
           const emailMatch = b.email && b.email.toLowerCase().includes(search);
-          // Normalize date for search (handle both YYYY-MM-DD and datetime formats)
           const normalizedDate = b.date ? b.date.split('T')[0] : '';
           const dateMatch = normalizedDate.includes(search);
-          
           return idMatch || courtMatch || emailMatch || dateMatch;
         });
       }
@@ -267,8 +214,6 @@
     function displayBookings(bookings) {
       const container = document.getElementById("bookingsList");
       const countElement = document.getElementById("bookingCount");
-
-      // Update count
       countElement.textContent = `Showing ${bookings.length} booking${bookings.length !== 1 ? 's' : ''}`;
 
       if (bookings.length === 0) {
@@ -300,16 +245,13 @@
                 <td>${formatTime(b.start_time)} - ${formatTime(b.end_time)}</td>
                 <td><span style="color: ${getStatusColor(b.status)}; font-weight: bold;">${b.status.replace('_', ' ').toUpperCase()}</span></td>
                 <td>${b.total_price || 0} coins</td>
-                <td>
-                  ${getActionButtons(b)}
-                </td>
+                <td>${getActionButtons(b)}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
       `;
-      
-      // Clear the lastUpdatedId after a delay
+
       if (lastUpdatedId) {
         setTimeout(() => { lastUpdatedId = null; }, 3000);
       }
@@ -317,67 +259,54 @@
 
     function getActionButtons(booking) {
       const buttons = [];
-      
-      // For BOOKED status → Check in + Cancel
+
+      // BOOKED → Check in + Cancel
       if (booking.status === 'booked') {
-        buttons.push(`<button onclick="confirmBooking(${booking.id})" class="success" style="padding: 5px 10px; width: auto; margin: 2px;">✓ Check in</button>`);
+        buttons.push(`<button onclick="confirmBooking(${booking.id})" class="success" style="padding: 5px 10px; width: auto; margin: 2px;">✓ Check In</button>`);
         buttons.push(`<button onclick="cancelBooking(${booking.id})" class="danger" style="padding: 5px 10px; width: auto; margin: 2px;">✗ Cancel</button>`);
       }
-      
-      // For CONFIRMED status → Check out (user is currently playing)
+
+      // CONFIRMED → Check out (admin only)
       if (booking.status === 'confirmed') {
-        // Check if potentially late
         const now = new Date();
-        const bookingEnd = new Date(`${booking.date} ${booking.end_time}`);
-        const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000); // +15 minutes
+        const dateStr = (booking.date || '').split('T')[0];
+        const bookingEnd = new Date(`${dateStr} ${booking.end_time}`);
+        const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000);
         const isLate = now > gracePeriodEnd;
-        
-        const checkoutBtnClass = isLate ? 'danger' : 'primary';
-        const checkoutText = isLate ? '⚠️ Check out (LATE)' : '✓ Check out';
-        
-        buttons.push(`<button onclick="checkOutBooking(${booking.id}, ${isLate})" class="${checkoutBtnClass}" style="padding: 5px 10px; width: auto; margin: 2px;">${checkoutText}</button>`);
+
+        const btnClass = isLate ? 'danger' : 'primary';
+        const btnText = isLate ? '⚠️ Check Out (LATE)' : '✓ Check Out';
+        buttons.push(`<button onclick="checkOutBooking(${booking.id}, ${isLate})" class="${btnClass}" style="padding: 5px 10px; width: auto; margin: 2px;">${btnText}</button>`);
       }
 
-      // COMPLETED, CANCELLED = No actions
       return buttons.length > 0 ? buttons.join('') : '-';
     }
 
     function getStatusColor(status) {
       const colors = {
-        booked: '#f59e0b',      // orange - waiting for check-in
-        confirmed: '#16a34a',   // green - currently playing
-        completed: '#2563eb',   // blue - finished
-        cancelled: '#dc2626'    // red - cancelled
+        booked:    '#f59e0b',
+        confirmed: '#16a34a',
+        completed: '#2563eb',
+        cancelled: '#dc2626',
+        no_show:   '#7c3aed'
       };
       return colors[status] || '#64748b';
     }
 
-    let lastUpdatedId = null;
-
     async function confirmBooking(id) {
-      if (!confirm('Confirm this booking? This means the user has checked in.')) return;
+      if (!confirm('Confirm check-in for this booking? This means the user has arrived.')) return;
 
       try {
-        console.log('Confirming booking ID:', id);
-        const response = await apiFetch(`/admin/bookings/${id}/confirm`, {
+        await apiFetch(`/admin/bookings/${id}/confirm`, {
           method: "POST",
           headers: authHeader()
         });
-        console.log('Confirm response:', response);
-        
+
         lastUpdatedId = id;
-        showAlert('✅ Booking confirmed! Status changed to CONFIRMED. User has been notified.', 'success');
-        
-        // Small delay to ensure database commit
+        showAlert('✅ Booking confirmed! User checked in. Status changed to CONFIRMED.', 'success');
+
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Reload bookings data
-        console.log('Loading fresh bookings...');
         await loadBookings();
-        console.log('Bookings loaded, count:', allBookings.length);
-        console.log('Looking for booking', id, 'in fresh data:', allBookings.find(b => b.id === id));
-        
-        // Switch to 'all' view so user can see the confirmed booking
         filterBookings('all');
       } catch(err) {
         console.error('Confirm error:', err);
@@ -393,72 +322,55 @@
           method: "DELETE",
           headers: authHeader()
         });
-        
-        const refundMsg = response.refunded_amount 
-          ? ` ${response.refunded_amount} coins have been refunded.`
-          : '';
-        
+
+        const refundMsg = response.refunded_amount ? ` ${response.refunded_amount} coins refunded.` : '';
         lastUpdatedId = id;
         showAlert(`✅ Booking cancelled. User notified and refunded.${refundMsg}`, 'success');
-        
-        // Small delay to ensure database commit
+
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Reload bookings data
         await loadBookings();
-        
-        // Switch to 'all' view so user can see the cancelled booking
         filterBookings('all');
       } catch(err) {
         showAlert(err.message || 'Cancellation failed', 'error');
       }
     }
 
-    // Check out function
     async function checkOutBooking(id, isLate) {
       const booking = allBookings.find(b => b.id === id);
       if (!booking) return;
-      
+
       let confirmMessage = 'Check out this booking?';
-      
+
       if (isLate) {
         const now = new Date();
-        const bookingEnd = new Date(`${booking.date} ${booking.end_time}`);
+        const dateStr = (booking.date || '').split('T')[0];
+        const bookingEnd = new Date(`${dateStr} ${booking.end_time}`);
         const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000);
         const minutesLate = Math.floor((now - gracePeriodEnd) / 60000);
-        
-        confirmMessage = `⚠️ WARNING: User is ${minutesLate} minutes late!\n\n`;
-        confirmMessage += 'A 50 coin penalty will be applied.\n\n';
+
+        confirmMessage = `⚠️ WARNING: User is ${minutesLate} minutes past their booking end time!\n\n`;
+        confirmMessage += `A penalty equal to 1 hour of this court's rate will be charged on their next booking.\n\n`;
         confirmMessage += 'Proceed with checkout?';
       }
-      
+
       if (!confirm(confirmMessage)) return;
 
       try {
-        console.log('Checking out booking ID:', id);
-        const response = await apiFetch(`/bookings/checkout/${id}`, {
+        await apiFetch(`/bookings/checkout/${id}`, {
           method: "POST",
           headers: authHeader()
         });
-        console.log('Checkout response:', response);
-        
+
         lastUpdatedId = id;
-        
+
         if (isLate) {
-          showAlert('✅ Booking checked out. 50 coin late penalty applied to user.', 'warning');
+          showAlert('✅ Booking checked out. A penalty (1-hour court rate) has been applied to the user\'s account.', 'success');
         } else {
           showAlert('✅ Booking checked out successfully!', 'success');
         }
-        
-        // Small delay to ensure database commit
+
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Reload bookings data
-        console.log('Loading fresh bookings...');
         await loadBookings();
-        console.log('Bookings loaded, count:', allBookings.length);
-        
-        // Refresh current view
         filterBookings(currentFilter);
       } catch(err) {
         console.error('Checkout error:', err);
@@ -466,12 +378,8 @@
       }
     }
 
-    async function init() {
-      await loadBookings();
-      filterBookings('all');
-    }
-    
-    init();
+    // Init
+    loadBookings().then(() => filterBookings('all'));
   </script>
 </body>
 </html>

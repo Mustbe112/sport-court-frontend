@@ -186,7 +186,7 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="navbar-brand">🏟️ SportCourt</div>
+    <div class="navbar-brand">SportCourt</div>
     <div class="navbar-links">
       <a href="dashboard.html">Dashboard</a>
       <a href="bookings.html">My Bookings</a>
@@ -240,6 +240,11 @@
           <div class="receipt-row">
             <span>Court Rental:</span>
             <span id="courtCost"></span>
+          </div>
+          <!-- Penalty row — only rendered when penalty_amount > 0 -->
+          <div id="penaltyReceiptRow" class="receipt-row" style="display:none; background:#fff7ed; padding:10px 12px; border-radius:6px; margin:4px 0; border-bottom:1px solid #fed7aa;">
+            <span style="color:#c2410c;">⚠️ Penalty Fee <small style="font-weight:400;">(late checkout / no-show from prior session)</small></span>
+            <span id="penaltyCost" style="color:#c2410c; font-weight:700;"></span>
           </div>
           <div id="servicesSection"></div>
           <div class="receipt-row receipt-total">
@@ -364,10 +369,30 @@
           `${formatTime(booking.start_time)} - ${formatTime(booking.end_time)}`;
         document.getElementById("status").textContent = booking.status.toUpperCase();
         
-        // Using 'total_price' field from database
+        // Using 'total_price' field from database.
+        // If a breakdown was saved by booking.html (same session), use it so we
+        // can show court rental and penalty as separate line items.
+        const breakdown = JSON.parse(localStorage.getItem('lastBookingBreakdown') || 'null');
         const totalAmount = booking.total_price || 0;
-        document.getElementById("courtCost").textContent = totalAmount + ' coins';
-        document.getElementById("totalCost").textContent = totalAmount + ' coins';
+
+        if (breakdown) {
+          // Show court rental cost separately from penalty
+          document.getElementById("courtCost").textContent = breakdown.base_cost + ' coins';
+
+          if (breakdown.penalty_amount > 0) {
+            document.getElementById("penaltyReceiptRow").style.display = 'flex';
+            document.getElementById("penaltyCost").textContent = breakdown.penalty_amount + ' coins';
+          }
+
+          document.getElementById("totalCost").textContent = breakdown.total_price + ' coins';
+
+          // Clear so revisiting the receipt later doesn't show stale breakdown
+          localStorage.removeItem('lastBookingBreakdown');
+        } else {
+          // Fallback: no breakdown saved (e.g., user navigated back later)
+          document.getElementById("courtCost").textContent = totalAmount + ' coins';
+          document.getElementById("totalCost").textContent = totalAmount + ' coins';
+        }
 
         // Services
         if (booking.services) {
@@ -532,6 +557,18 @@
         doc.text('Court Rental:', 20, yPos);
         doc.setFont(undefined, 'normal');
         doc.text(courtCost, 170, yPos, { align: 'right' });
+
+        // Penalty line — only if the element is visible (penalty > 0)
+        const penaltyRow = document.getElementById('penaltyReceiptRow');
+        if (penaltyRow && penaltyRow.style.display !== 'none') {
+          yPos += 8;
+          doc.setTextColor(194, 65, 12); // orange-700
+          doc.setFont(undefined, 'bold');
+          doc.text('⚠ Penalty Fee:', 20, yPos);
+          doc.setFont(undefined, 'normal');
+          doc.text(document.getElementById('penaltyCost').textContent, 170, yPos, { align: 'right' });
+          doc.setTextColor(...darkColor);
+        }
         
         // Total box
         yPos += 10;

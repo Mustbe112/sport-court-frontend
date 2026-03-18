@@ -37,10 +37,24 @@
       <h2>Book Court: <span id="courtName"></span></h2>
       <p id="courtDetails"></p>
 
+      <!-- Penalty Warning Banner (shown when user has a pending penalty) -->
+      <div id="penaltyWarningBanner" style="display:none; background:#fff7ed; border:1.5px solid #fb923c; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
+        <div style="display:flex; align-items:flex-start; gap:12px;">
+          <span style="font-size:1.4em; line-height:1; flex-shrink:0;">⚠️</span>
+          <div>
+            <div style="font-weight:700; color:#9a3412; margin-bottom:4px;">Pending Penalty Fee</div>
+            <div style="color:#c2410c; font-size:0.93em; line-height:1.6;">
+              You have a <strong id="penaltyBannerAmount">0</strong> coin penalty from a previous late checkout or no-show
+              (equal to 1 hour of that court's rate). This amount will be added to your booking total today.
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Step 1: Select Date and Time -->
       <div id="step1">
-        <h3>Step 1: Select Date & Time</h3>
-        
+        <h3>Step 1: Select Date &amp; Time</h3>
+
         <div class="form-group">
           <label>Select Date</label>
           <input type="date" id="bookingDate" onchange="checkAvailability()">
@@ -57,22 +71,23 @@
         </div>
 
         <div id="availabilityResult"></div>
-        
+
         <button onclick="proceedToPayment()" id="continueBtn" style="display:none;">Continue to Payment</button>
       </div>
 
       <!-- Step 2: Payment Summary -->
       <div id="step2" style="display:none;">
         <h3>Step 2: Payment Summary</h3>
-        
+
         <div class="receipt-details" style="background: #f9fafb; padding: 20px; border-radius: 8px;">
           <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
             <span>Court Rental</span>
             <span id="courtCost">0 coins</span>
           </div>
-          <div class="receipt-row" id="penaltyRow" style="display:none; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-            <span>Late Checkout Penalty</span>
-            <span id="penaltyCost">0 coins</span>
+          <!-- Penalty row — orange styled, only shown when penalty > 0 -->
+          <div class="receipt-row" id="penaltyRow" style="display:none; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid #fed7aa; background:#fff7ed; border-radius:6px; margin:4px 0;">
+            <span style="color:#c2410c;">⚠️ Penalty Fee <small style="font-weight:400;">(1-hr court rate from prior session)</small></span>
+            <span id="penaltyCost" style="color:#c2410c; font-weight:700;">0 coins</span>
           </div>
           <div class="receipt-row receipt-total" style="display: flex; justify-content: space-between; background: #eff6ff; padding: 15px; margin-top: 10px; border-radius: 8px;">
             <span style="font-weight: bold; font-size: 1.1em;">Total</span>
@@ -94,7 +109,7 @@
 
         <div style="display: flex; gap: 10px; margin-top: 20px;">
           <button onclick="backToDateTime()" class="secondary">Back</button>
-          <button onclick="confirmBooking()" id="payBtn" style="background: #22c55e; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Confirm & Pay</button>
+          <button onclick="confirmBooking()" id="payBtn" style="background: #22c55e; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Confirm &amp; Pay</button>
         </div>
       </div>
 
@@ -119,25 +134,17 @@
     </div>
   </div>
 
-    <!-- Footer -->
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-content">
-      <!-- Brand Section -->
       <div class="footer-section footer-brand">
         <div class="footer-logo">
           <div class="footer-logo-mark"></div>
           <div class="footer-logo-text">SportCourt</div>
         </div>
-        <p class="footer-description">
-          Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.
-        </p>
-        <span class="footer-tagline">
-          <span class="dot-live"></span>
-          Book Smart, Play Hard
-        </span>
+        <p class="footer-description">Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.</p>
+        <span class="footer-tagline"><span class="dot-live"></span> Book Smart, Play Hard</span>
       </div>
-
-      <!-- Quick Links -->
       <div class="footer-section">
         <h3>Quick Links</h3>
         <div class="footer-links">
@@ -148,8 +155,6 @@
           <a href="profile.html" class="footer-link">Profile</a>
         </div>
       </div>
-
-      <!-- Resources -->
       <div class="footer-section">
         <h3>Resources</h3>
         <div class="footer-links">
@@ -160,8 +165,6 @@
           <a href="#" class="footer-link">Court Rules</a>
         </div>
       </div>
-
-      <!-- Contact Information -->
       <div class="footer-section">
         <h3>Contact Us</h3>
         <div class="footer-contact-info">
@@ -169,22 +172,16 @@
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Email</span>
-              <span class="contact-value">
-                <a href="mailto:john@test.com">john@test.com</a>
-              </span>
+              <span class="contact-value"><a href="mailto:john@test.com">john@test.com</a></span>
             </div>
           </div>
-          
           <div class="contact-item">
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Phone</span>
-              <span class="contact-value">
-                <a href="tel:+91234565">+91234565</a>
-              </span>
+              <span class="contact-value"><a href="tel:+91234565">+91234565</a></span>
             </div>
           </div>
-          
           <div class="contact-item">
             <div class="contact-icon"></div>
             <div class="contact-details">
@@ -193,8 +190,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Social Media Links -->
         <div class="footer-social">
           <a href="#" class="social-link" title="Facebook"></a>
           <a href="#" class="social-link" title="Twitter"></a>
@@ -203,12 +198,8 @@
         </div>
       </div>
     </div>
-
-    <!-- Footer Bottom -->
     <div class="footer-bottom">
-      <div class="footer-copyright">
-        © 2026 SportCourt. All rights reserved. Made with <span class="heart"></span>
-      </div>
+      <div class="footer-copyright">© 2026 SportCourt. All rights reserved. Made with <span class="heart"></span></div>
       <div class="footer-legal">
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Service</a>
@@ -225,10 +216,10 @@
     checkAuth();
 
     let selectedCourt = null;
-    let userBalance = 0;
-    let duration = 0;
-    let baseCost = 0;
-    let userPenalty = 0;
+    let userBalance   = 0;
+    let duration      = 0;
+    let baseCost      = 0;
+    let userPenalty   = 0;
 
     async function loadCourtDetails() {
       const courtId = localStorage.getItem('selectedCourtId');
@@ -241,25 +232,27 @@
       try {
         const courts = await apiFetch("/courts");
         selectedCourt = courts.find(c => c.id == courtId);
-        
+
         if (!selectedCourt) {
           showAlert('Court not found', 'error');
           location.href = 'courts.html';
           return;
         }
 
-        document.getElementById("courtName").textContent = selectedCourt.name;
-        document.getElementById("courtDetails").textContent = 
+        document.getElementById("courtName").textContent    = selectedCourt.name;
+        document.getElementById("courtDetails").textContent =
           `${selectedCourt.type.toUpperCase()} - ${selectedCourt.price_per_hour} coins per hour`;
 
-        // Load user balance and penalty
-        const user = await apiFetch("/users/me", {
-          headers: authHeader()
-        });
-        userBalance = user.coin_balance || 0;
-        userPenalty = user.penalty || 0;
+        // Load user balance AND penalty (penalty is now included in /users/me)
+        const user   = await apiFetch("/users/me", { headers: authHeader() });
+        userBalance  = user.coin_balance || 0;
+        userPenalty  = user.penalty      || 0;
 
-        console.log("User balance:", userBalance, "Penalty:", userPenalty);
+        // Show penalty warning banner if user has a pending penalty
+        if (userPenalty > 0) {
+          document.getElementById('penaltyWarningBanner').style.display = 'block';
+          document.getElementById('penaltyBannerAmount').textContent     = userPenalty;
+        }
 
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
@@ -273,15 +266,16 @@
 
     function calculateDuration() {
       const startTime = document.getElementById("startTime").value;
-      const endTime = document.getElementById("endTime").value;
+      const endTime   = document.getElementById("endTime").value;
 
       if (startTime && endTime) {
-        const start = new Date(`2000-01-01 ${startTime}`);
-        const end = new Date(`2000-01-01 ${endTime}`);
-        duration = (end - start) / (1000 * 60 * 60); // hours
+        const start = new Date(`2000-01-01T${startTime}`);
+        const end   = new Date(`2000-01-01T${endTime}`);
+        duration = (end - start) / (1000 * 60 * 60);
 
         if (duration <= 0) {
           showAlert('End time must be after start time', 'warning');
+          document.getElementById("continueBtn").style.display = 'none';
           return;
         }
 
@@ -291,51 +285,43 @@
     }
 
     async function checkAvailability() {
-      const date = document.getElementById("bookingDate").value;
-      const startTime = document.getElementById("startTime").value + ':00'; // Add seconds
-      const endTime = document.getElementById("endTime").value + ':00'; // Add seconds
+      const date      = document.getElementById("bookingDate").value;
+      const startTime = document.getElementById("startTime").value + ':00';
+      const endTime   = document.getElementById("endTime").value   + ':00';
 
-      if (!date || !startTime || !endTime || duration <= 0) {
-        return;
-      }
+      if (!date || !startTime || !endTime || duration <= 0) return;
 
       try {
-        console.log("Checking availability:", {
-          court_id: selectedCourt.id,
-          date: date,
-          start_time: startTime,
-          end_time: endTime
-        });
-
         const result = await apiFetch("/bookings/availability", {
           method: "POST",
           headers: authHeader(),
           body: JSON.stringify({
-            court_id: selectedCourt.id,
-            date: date,
+            court_id:   selectedCourt.id,
+            date:       date,
             start_time: startTime,
-            end_time: endTime
+            end_time:   endTime
           })
         });
 
-        console.log("Availability result:", result);
-
         const resultDiv = document.getElementById("availabilityResult");
-        
+
         if (result.available) {
           resultDiv.innerHTML = `
-            <div style="background: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <div style="background:#d1fae5; color:#065f46; padding:15px; border-radius:8px; margin:15px 0;">
               ✅ Court is available for the selected time slot!<br>
               <strong>Duration:</strong> ${duration} hour(s)<br>
               <strong>Cost:</strong> ${baseCost} coins
+              ${userPenalty > 0
+                ? `<br><span style="color:#c2410c; font-weight:600;">⚠️ +${userPenalty} coins penalty fee will be added at checkout</span>`
+                : ''}
             </div>
           `;
           document.getElementById("continueBtn").style.display = 'block';
         } else {
           resultDiv.innerHTML = `
-            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <div style="background:#fee2e2; color:#991b1b; padding:15px; border-radius:8px; margin:15px 0;">
               ❌ Court is not available for the selected time slot.<br>
-              Please choose a different time.
+              ${result.reason ? `Reason: ${result.reason}` : 'Please choose a different time.'}
             </div>
           `;
           document.getElementById("continueBtn").style.display = 'none';
@@ -358,83 +344,74 @@
     }
 
     function updateTotal() {
-      let total = baseCost + userPenalty;
+      const total = baseCost + userPenalty;
 
-      document.getElementById("courtCost").textContent = baseCost + ' coins';
-      document.getElementById("totalCost").textContent = total + ' coins';
-      document.getElementById("userBalance").textContent = userBalance + ' coins';
+      document.getElementById("courtCost").textContent    = baseCost    + ' coins';
+      document.getElementById("totalCost").textContent    = total       + ' coins';
+      document.getElementById("userBalance").textContent  = userBalance  + ' coins';
       document.getElementById("balanceAfter").textContent = (userBalance - total) + ' coins';
 
-      // Show penalty if exists
+      // Show or hide penalty line item
       if (userPenalty > 0) {
         document.getElementById("penaltyRow").style.display = 'flex';
-        document.getElementById("penaltyCost").textContent = userPenalty + ' coins';
+        document.getElementById("penaltyCost").textContent  = userPenalty + ' coins';
+      } else {
+        document.getElementById("penaltyRow").style.display = 'none';
       }
 
-      // Check if user has enough balance
+      // Enable / disable pay button based on balance
       if (userBalance < total) {
         document.getElementById("insufficientFunds").style.display = 'block';
-        document.getElementById("payBtn").disabled = true;
+        document.getElementById("payBtn").disabled      = true;
         document.getElementById("payBtn").style.opacity = '0.5';
-        document.getElementById("payBtn").style.cursor = 'not-allowed';
+        document.getElementById("payBtn").style.cursor  = 'not-allowed';
       } else {
         document.getElementById("insufficientFunds").style.display = 'none';
-        document.getElementById("payBtn").disabled = false;
+        document.getElementById("payBtn").disabled      = false;
         document.getElementById("payBtn").style.opacity = '1';
-        document.getElementById("payBtn").style.cursor = 'pointer';
+        document.getElementById("payBtn").style.cursor  = 'pointer';
       }
     }
 
     async function confirmBooking() {
-      document.getElementById("step2").style.display = 'none';
+      document.getElementById("step2").style.display      = 'none';
       document.getElementById("processing").style.display = 'block';
 
       try {
-        const date = document.getElementById("bookingDate").value;
+        const date      = document.getElementById("bookingDate").value;
         const startTime = document.getElementById("startTime").value + ':00';
-        const endTime = document.getElementById("endTime").value + ':00';
+        const endTime   = document.getElementById("endTime").value   + ':00';
 
-        console.log("Creating booking:", {
-          court_id: selectedCourt.id,
-          date: date,
-          start_time: startTime,
-          end_time: endTime
-        });
-
-        const booking = await apiFetch("/bookings/book", {
+        const bookingResult = await apiFetch("/bookings/book", {
           method: "POST",
           headers: authHeader(),
           body: JSON.stringify({
-            court_id: selectedCourt.id,
-            date: date,
+            court_id:   selectedCourt.id,
+            date:       date,
             start_time: startTime,
-            end_time: endTime
+            end_time:   endTime
           })
         });
 
-        console.log("Booking response:", booking);
+        // Save the payment breakdown so receipt.html can display it correctly
+        localStorage.setItem('lastBookingBreakdown', JSON.stringify({
+          base_cost:      bookingResult.base_cost      ?? baseCost,
+          penalty_amount: bookingResult.penalty_amount ?? userPenalty,
+          total_price:    bookingResult.total_price    ?? (baseCost + userPenalty)
+        }));
 
         showAlert('Booking confirmed! Redirecting...', 'success');
-        
-        // Wait 2 seconds, then fetch bookings and redirect
+
         setTimeout(async () => {
           try {
-            const bookings = await apiFetch("/bookings/my-bookings", {
-              headers: authHeader()
-            });
-            
-            console.log("Fetched bookings after creation:", bookings);
-            
+            const bookings = await apiFetch("/bookings/my-bookings", { headers: authHeader() });
             if (bookings && bookings.length > 0) {
-              // Get the most recent booking
-              const latestBooking = bookings[0];
-              localStorage.setItem('bookingId', latestBooking.id);
+              localStorage.setItem('bookingId', bookings[0].id);
               location.href = 'receipt.html';
             } else {
               location.href = 'bookings.html';
             }
           } catch (e) {
-            console.error("Error fetching bookings:", e);
             location.href = 'bookings.html';
           }
         }, 2000);
@@ -443,7 +420,7 @@
         console.error("Booking error:", err);
         showAlert('Booking failed: ' + (err.message || 'Please try again'), 'error');
         document.getElementById("processing").style.display = 'none';
-        document.getElementById("step2").style.display = 'block';
+        document.getElementById("step2").style.display      = 'block';
       }
     }
 
@@ -462,27 +439,16 @@
           headers: authHeader(),
           body: JSON.stringify({ amount })
         });
-
         userBalance = data.coin_balance;
         showAlert(`Successfully added ${amount} coins!`, 'success');
         updateTotal();
         closeTopUpModal();
       } catch(err) {
-        console.error("Top up error:", err);
         showAlert('Top up failed', 'error');
       }
     }
 
-    // Add CSS for spinner animation
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-
+    // Kick off page load
     loadCourtDetails();
     loadNotifications();
   </script>

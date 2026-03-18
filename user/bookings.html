@@ -24,11 +24,7 @@
       align-items: center;
       margin-bottom: 15px;
     }
-    .booking-title {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #333;
-    }
+    .booking-title { font-size: 1.3em; font-weight: bold; color: #333; }
     .booking-status {
       padding: 6px 12px;
       border-radius: 20px;
@@ -51,45 +47,40 @@
     .detail-item { display: flex; flex-direction: column; }
     .detail-label { font-size: 0.85em; color: #666; margin-bottom: 4px; }
     .detail-value { font-weight: 600; color: #333; }
-
     .booking-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    .btn-primary           { background: #6366f1; color: white; }
-    .btn-primary:hover     { background: #4f46e5; }
-    .btn-danger            { background: #ef4444; color: white; }
-    .btn-danger:hover      { background: #dc2626; }
-    .btn-secondary         { background: #e5e7eb; color: #374151; }
-    .btn-secondary:hover   { background: #d1d5db; }
+    .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+    .btn-primary       { background: #6366f1; color: white; }
+    .btn-primary:hover { background: #4f46e5; }
+    .btn-danger        { background: #ef4444; color: white; }
+    .btn-danger:hover  { background: #dc2626; }
 
     .filter-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
     .filter-btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-      background: #e5e7eb;
-      color: #374151;
-      transition: all 0.2s;
+      padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;
+      font-weight: 500; background: #e5e7eb; color: #374151; transition: all 0.2s;
     }
     .filter-btn.active { background: #22c55e; color: white; }
     .filter-btn:hover  { transform: translateY(-1px); }
 
-    .no-bookings {
-      text-align: center; padding: 40px; color: #666;
-      font-size: 1.1em; background: white; border-radius: 8px;
-    }
+    .no-bookings { text-align: center; padding: 40px; color: #666; font-size: 1.1em; background: white; border-radius: 8px; }
     .loading { text-align: center; padding: 40px; font-size: 1.1em; color: #666; }
     .error-message   { background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
     .success-message { background: #d1fae5; color: #065f46; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+
+    /* Info note for confirmed bookings */
+    .checkin-note {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 0.88em;
+      color: #1e40af;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
 
     /* ── Custom Confirm Modal ── */
     .confirm-overlay {
@@ -97,16 +88,12 @@
       background: rgba(0,0,0,0.45);
       backdrop-filter: blur(4px);
       display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
-      opacity: 0; pointer-events: none;
+      z-index: 9999; opacity: 0; pointer-events: none;
       transition: opacity 0.25s ease;
     }
     .confirm-overlay.show { opacity: 1; pointer-events: all; }
-
     .confirm-modal {
-      background: #fff;
-      border-radius: 16px;
-      padding: 32px 28px 24px;
+      background: #fff; border-radius: 16px; padding: 32px 28px 24px;
       width: 100%; max-width: 420px;
       box-shadow: 0 24px 60px rgba(0,0,0,0.2);
       transform: scale(0.88) translateY(20px);
@@ -114,91 +101,58 @@
       text-align: center;
     }
     .confirm-overlay.show .confirm-modal { transform: scale(1) translateY(0); }
-
     .confirm-icon {
-      width: 64px; height: 64px;
-      background: #fee2e2;
-      border-radius: 50%;
+      width: 64px; height: 64px; background: #fee2e2; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
-      margin: 0 auto 16px;
+      font-size: 28px; margin: 0 auto 16px;
     }
     .confirm-modal h3 { font-size: 1.25rem; font-weight: 700; color: #111; margin-bottom: 8px; }
     .confirm-modal p  { color: #6b7280; font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px; }
-
     .confirm-refund-badge {
       display: inline-flex; align-items: center; gap: 6px;
       background: #d1fae5; color: #065f46;
       font-size: 0.82rem; font-weight: 600;
-      padding: 5px 12px; border-radius: 20px;
-      margin-bottom: 24px;
+      padding: 5px 12px; border-radius: 20px; margin-bottom: 24px;
     }
     .confirm-actions { display: flex; gap: 12px; }
     .confirm-actions button {
-      flex: 1; padding: 12px;
-      border-radius: 10px; border: none;
-      font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
+      flex: 1; padding: 12px; border-radius: 10px; border: none;
+      font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-    .confirm-btn-cancel           { background: #f3f4f6; color: #374151; }
-    .confirm-btn-cancel:hover     { background: #e5e7eb; }
+    .confirm-btn-cancel       { background: #f3f4f6; color: #374151; }
+    .confirm-btn-cancel:hover { background: #e5e7eb; }
     .confirm-btn-confirm {
       background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      box-shadow: 0 4px 12px rgba(239,68,68,0.35);
+      color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.35);
     }
-    .confirm-btn-confirm:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(239,68,68,0.45);
-    }
+    .confirm-btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239,68,68,0.45); }
 
-    /* ── Booking card cancel animation ── */
+    /* ── Cancel animation ── */
     @keyframes cancelSlideOut {
       0%   { opacity:1; transform: translateX(0) scale(1); max-height: 300px; margin-bottom: 15px; }
       40%  { opacity:0.6; transform: translateX(30px) scale(0.98); }
       100% { opacity:0; transform: translateX(-60px) scale(0.94); max-height: 0; margin-bottom: 0; padding:0; }
     }
-    .booking-card.cancelling {
-      animation: cancelSlideOut 0.55s cubic-bezier(0.4,0,0.2,1) forwards;
-      overflow: hidden;
-    }
+    .booking-card.cancelling { animation: cancelSlideOut 0.55s cubic-bezier(0.4,0,0.2,1) forwards; overflow: hidden; }
 
-    /* ── Toast notifications ── */
-    #toastContainer {
-      position: fixed; bottom: 28px; right: 28px;
-      display: flex; flex-direction: column; gap: 10px;
-      z-index: 10000;
-    }
+    /* ── Toast ── */
+    #toastContainer { position: fixed; bottom: 28px; right: 28px; display: flex; flex-direction: column; gap: 10px; z-index: 10000; }
     .toast {
       display: flex; align-items: center; gap: 12px;
-      padding: 14px 18px;
-      border-radius: 12px;
-      font-weight: 500; font-size: 0.9rem;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.14);
-      min-width: 280px; max-width: 360px;
-      animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
-      pointer-events: all;
+      padding: 14px 18px; border-radius: 12px; font-weight: 500; font-size: 0.9rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14); min-width: 280px; max-width: 360px;
+      animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; pointer-events: all;
     }
     .toast.hide { animation: toastOut 0.3s ease forwards; }
     .toast-icon  { font-size: 1.2rem; flex-shrink: 0; }
     .toast-text  { flex: 1; }
-    .toast-close {
-      background: none; border: none; cursor: pointer;
-      opacity: 0.6; font-size: 1rem; padding: 0; line-height: 1;
-    }
+    .toast-close { background: none; border: none; cursor: pointer; opacity: 0.6; font-size: 1rem; padding: 0; line-height: 1; }
     .toast-close:hover { opacity: 1; }
     .toast-success { background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981; }
     .toast-error   { background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; }
     .toast-info    { background: #eff6ff; color: #1e40af; border-left: 4px solid #3b82f6; }
-
-    @keyframes toastIn {
-      from { opacity:0; transform: translateX(60px) scale(0.9); }
-      to   { opacity:1; transform: translateX(0) scale(1); }
-    }
-    @keyframes toastOut {
-      from { opacity:1; transform: translateX(0) scale(1); max-height: 80px; margin-bottom:10px; }
-      to   { opacity:0; transform: translateX(60px) scale(0.9); max-height:0; margin-bottom:0; }
-    }
+    @keyframes toastIn  { from { opacity:0; transform: translateX(60px) scale(0.9); } to { opacity:1; transform: translateX(0) scale(1); } }
+    @keyframes toastOut { from { opacity:1; transform: translateX(0) scale(1); max-height: 80px; margin-bottom:10px; } to { opacity:0; transform: translateX(60px) scale(0.9); max-height:0; margin-bottom:0; } }
   </style>
 </head>
 <body>
@@ -259,15 +213,9 @@
           <div class="footer-logo-mark"></div>
           <div class="footer-logo-text">SportCourt</div>
         </div>
-        <p class="footer-description">
-          Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.
-        </p>
-        <span class="footer-tagline">
-          <span class="dot-live"></span>
-          Book Smart, Play Hard
-        </span>
+        <p class="footer-description">Your premier destination for booking sports courts.</p>
+        <span class="footer-tagline"><span class="dot-live"></span> Book Smart, Play Hard</span>
       </div>
-
       <div class="footer-section">
         <h3>Quick Links</h3>
         <div class="footer-links">
@@ -278,7 +226,6 @@
           <a href="profile.html" class="footer-link">Profile</a>
         </div>
       </div>
-
       <div class="footer-section">
         <h3>Resources</h3>
         <div class="footer-links">
@@ -289,7 +236,6 @@
           <a href="#" class="footer-link">Court Rules</a>
         </div>
       </div>
-
       <div class="footer-section">
         <h3>Contact Us</h3>
         <div class="footer-contact-info">
@@ -307,27 +253,11 @@
               <span class="contact-value"><a href="tel:+91234565">+91234565</a></span>
             </div>
           </div>
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Support</span>
-              <span class="contact-value">Customer Service</span>
-            </div>
-          </div>
-        </div>
-        <div class="footer-social">
-          <a href="#" class="social-link" title="Facebook"></a>
-          <a href="#" class="social-link" title="Twitter"></a>
-          <a href="#" class="social-link" title="Instagram"></a>
-          <a href="#" class="social-link" title="LinkedIn"></a>
         </div>
       </div>
     </div>
-
     <div class="footer-bottom">
-      <div class="footer-copyright">
-        © 2026 SportCourt. All rights reserved. Made with <span class="heart"></span>
-      </div>
+      <div class="footer-copyright">© 2026 SportCourt. All rights reserved. Made with <span class="heart"></span></div>
       <div class="footer-legal">
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Service</a>
@@ -347,8 +277,7 @@
 
     function formatDate(dateString) {
       if (!dateString) return 'N/A';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
     function formatTime(timeString) {
@@ -402,6 +331,7 @@
         bookingsContainer.innerHTML = '<div class="no-bookings">No bookings found for this filter.</div>';
         return;
       }
+
       bookingsContainer.innerHTML = bookings.map(booking => {
         const status = booking.status.toLowerCase();
         const statusClass = `status-${status}`;
@@ -409,11 +339,20 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const canCancel = status === 'booked' && bookingDate >= today;
+
+        // Info note for confirmed bookings — admin will check them out
+        const confirmedNote = status === 'confirmed' ? `
+          <div class="checkin-note">
+            <span style="flex-shrink:0;">ℹ️</span>
+            <div>You are <strong>checked in</strong>. The staff will check you out when your session ends.
+            Please leave on time to avoid a penalty fee.</div>
+          </div>` : '';
+
         return `
           <div class="booking-card" id="booking-card-${booking.id}">
             <div class="booking-header">
               <div class="booking-title">${booking.court_name || `Court ${booking.court_id}`}</div>
-              <span class="booking-status ${statusClass}">${booking.status}</span>
+              <span class="booking-status ${statusClass}">${booking.status.replace('_', ' ')}</span>
             </div>
             <div class="booking-details">
               <div class="detail-item">
@@ -422,7 +361,7 @@
               </div>
               <div class="detail-item">
                 <span class="detail-label">⏰ Time</span>
-                <span class="detail-value">${formatTime(booking.start_time)} - ${formatTime(booking.end_time)}</span>
+                <span class="detail-value">${formatTime(booking.start_time)} – ${formatTime(booking.end_time)}</span>
               </div>
               <div class="detail-item">
                 <span class="detail-label">💰 Total Cost</span>
@@ -433,15 +372,13 @@
                 <span class="detail-value">#${booking.id}</span>
               </div>
             </div>
+            ${confirmedNote}
             <div class="booking-actions">
               ${status === 'confirmed' || status === 'booked' ? `
                 <button class="btn btn-primary" onclick="viewReceipt(${booking.id})">View Receipt</button>
               ` : ''}
               ${canCancel ? `
                 <button class="btn btn-danger" onclick="cancelBooking(${booking.id})">Cancel Booking</button>
-              ` : ''}
-              ${status === 'confirmed' && !booking.checked_in ? `
-                <button class="btn btn-secondary" onclick="checkIn(${booking.id})">Check In</button>
               ` : ''}
             </div>
           </div>`;
@@ -473,7 +410,7 @@
       location.href = 'receipt.html';
     }
 
-    // ── Toast helper ──
+    // ── Toast ──
     function showToast(message, type = 'info') {
       const icons = { success: '✅', error: '❌', info: 'ℹ️' };
       const container = document.getElementById('toastContainer');
@@ -496,7 +433,7 @@
       setTimeout(() => el.remove(), 320);
     }
 
-    // ── Custom confirm modal ──
+    // ── Cancel confirm modal ──
     let _pendingCancelId = null;
 
     function openConfirm(bookingId) {
@@ -518,7 +455,6 @@
       closeConfirm();
       if (!bookingId) return;
 
-      // Animate the specific card out using its ID
       const targetCard = document.getElementById(`booking-card-${bookingId}`);
       if (targetCard) targetCard.classList.add('cancelling');
 
@@ -538,20 +474,6 @@
 
     async function cancelBooking(bookingId) {
       openConfirm(bookingId);
-    }
-
-    async function checkIn(bookingId) {
-      try {
-        await apiFetch(`/bookings/checkin/${bookingId}`, {
-          method: 'POST',
-          headers: authHeader()
-        });
-        showToast('Check-in successful! See you on the court 🏀', 'success');
-        setTimeout(() => loadBookings(), 1500);
-      } catch (err) {
-        console.error('Check-in error:', err);
-        showToast('Error during check-in: ' + (err.message || 'Unknown error'), 'error');
-      }
     }
 
     loadBookings();
