@@ -5,8 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Browse Courts - Sport Court Booking</title>
   <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/alerts.css">
+  <style>
+    .alert-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
+  <!-- Alert Container -->
+  <div class="alert-container" id="alertContainer"></div>
   <!-- Navbar -->
   <nav class="navbar">
     <div class="navbar-brand">SportCourt</div>
@@ -17,7 +36,13 @@
       <a href="favorites.html">Favorites</a>
       <a href="profile.html">Profile</a>
       <div class="notification-badge">
-        <a href="#" onclick="toggleNotifications(); return false;">🔔 <span id="notifBadge" class="badge" style="display:none;">0</span></a>
+        <button class="notif-btn" onclick="toggleNotifications(); return false;" aria-label="Notifications">
+          <svg class="notif-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span id="notifBadge" class="notif-count" style="display:none;">0</span>
+        </button>
       </div>
       <a href="#" onclick="logout()">Logout</a>
     </div>
@@ -117,7 +142,7 @@
             <div class="contact-details">
               <span class="contact-label">Email</span>
               <span class="contact-value">
-                <a href="mailto:john@test.com">john@test.com</a>
+                <a href="/cdn-cgi/l/email-protection#adc7c2c5c3edd9c8ded983cec2c0"><span class="__cf_email__" data-cfemail="610b0e090f21150412154f020e0c">[email&#160;protected]</span></a>
               </span>
             </div>
           </div>
@@ -165,7 +190,7 @@
     </div>
   </footer>
 
-  <script src="../js/api.js"></script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
   <script>
@@ -257,6 +282,18 @@
     function bookCourt(courtId) {
       localStorage.setItem('selectedCourtId', courtId);
       location.href = 'booking.html';
+    }
+
+    function showAlert(message, type = 'info') {
+      const container = document.getElementById("alertContainer");
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.textContent = message;
+      container.appendChild(alert);
+      setTimeout(() => {
+        alert.style.animation = "slideOut 0.3s ease-out";
+        setTimeout(() => alert.remove(), 300);
+      }, 4000);
     }
 
     loadCourts();
