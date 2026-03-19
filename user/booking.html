@@ -37,15 +37,15 @@
       <h2>Book Court: <span id="courtName"></span></h2>
       <p id="courtDetails"></p>
 
-      <!-- Penalty Warning Banner (shown when user has a pending penalty) -->
+      <!-- Penalty Warning Banner -->
       <div id="penaltyWarningBanner" style="display:none; background:#fff7ed; border:1.5px solid #fb923c; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
         <div style="display:flex; align-items:flex-start; gap:12px;">
           <span style="font-size:1.4em; line-height:1; flex-shrink:0;">⚠️</span>
           <div>
             <div style="font-weight:700; color:#9a3412; margin-bottom:4px;">Pending Penalty Fee</div>
             <div style="color:#c2410c; font-size:0.93em; line-height:1.6;">
-              You have a <strong id="penaltyBannerAmount">0</strong> coin penalty from a previous late checkout or no-show
-              (equal to 1 hour of that court's rate). This amount will be added to your booking total today.
+              You have a <strong id="penaltyBannerAmount">0</strong> coin penalty from a previous late checkout.
+              This amount will be added to your booking total today.
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@
             <span>Court Rental</span>
             <span id="courtCost">0 coins</span>
           </div>
-          <!-- Penalty row — orange styled, only shown when penalty > 0 -->
+          <!-- Penalty row — only shown when penalty > 0 -->
           <div class="receipt-row" id="penaltyRow" style="display:none; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid #fed7aa; background:#fff7ed; border-radius:6px; margin:4px 0;">
             <span style="color:#c2410c;">⚠️ Penalty Fee <small style="font-weight:400;">(1-hr court rate from prior session)</small></span>
             <span id="penaltyCost" style="color:#c2410c; font-weight:700;">0 coins</span>
@@ -243,10 +243,10 @@
         document.getElementById("courtDetails").textContent =
           `${selectedCourt.type.toUpperCase()} - ${selectedCourt.price_per_hour} coins per hour`;
 
-        // Load user balance AND penalty (penalty is now included in /users/me)
-        const user   = await apiFetch("/users/me", { headers: authHeader() });
-        userBalance  = user.coin_balance || 0;
-        userPenalty  = user.penalty      || 0;
+        // Load user balance AND penalty
+        const user  = await apiFetch("/users/me", { headers: authHeader() });
+        userBalance = user.coin_balance || 0;
+        userPenalty = user.penalty      || 0;
 
         // Show penalty warning banner if user has a pending penalty
         if (userPenalty > 0) {
@@ -291,6 +291,15 @@
 
       if (!date || !startTime || !endTime || duration <= 0) return;
 
+      // Format "HH:MM:SS" or "HH:MM" → "9:00 PM"
+      function fmt(timeStr) {
+        if (!timeStr) return timeStr;
+        const [h, m] = timeStr.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const hour = h % 12 || 12;
+        return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+      }
+
       try {
         const result = await apiFetch("/bookings/availability", {
           method: "POST",
@@ -318,10 +327,27 @@
           `;
           document.getElementById("continueBtn").style.display = 'block';
         } else {
+          // Build helpful hint showing next available time in 12-hour format
+          let extraMsg = '';
+          if (result.next_available_time) {
+            extraMsg = `
+              <div style="margin-top:10px; background:#fef3c7; color:#92400e; padding:10px 14px; border-radius:6px; border-left:4px solid #f59e0b;">
+                🕐 <strong>Next available start time: ${fmt(result.next_available_time)}</strong><br>
+                <small>A 15-minute maintenance gap is required between bookings.</small>
+              </div>`;
+          } else if (result.next_booking_start) {
+            extraMsg = `
+              <div style="margin-top:10px; background:#fef3c7; color:#92400e; padding:10px 14px; border-radius:6px; border-left:4px solid #f59e0b;">
+                🕐 <strong>Next booking starts at: ${fmt(result.next_booking_start)}</strong><br>
+                <small>Please choose an end time at least 15 minutes before the next booking.</small>
+              </div>`;
+          }
+
           resultDiv.innerHTML = `
             <div style="background:#fee2e2; color:#991b1b; padding:15px; border-radius:8px; margin:15px 0;">
               ❌ Court is not available for the selected time slot.<br>
-              ${result.reason ? `Reason: ${result.reason}` : 'Please choose a different time.'}
+              ${result.reason ? `<strong>Reason:</strong> ${result.reason}` : 'Please choose a different time.'}
+              ${extraMsg}
             </div>
           `;
           document.getElementById("continueBtn").style.display = 'none';
@@ -346,8 +372,8 @@
     function updateTotal() {
       const total = baseCost + userPenalty;
 
-      document.getElementById("courtCost").textContent    = baseCost    + ' coins';
-      document.getElementById("totalCost").textContent    = total       + ' coins';
+      document.getElementById("courtCost").textContent    = baseCost     + ' coins';
+      document.getElementById("totalCost").textContent    = total        + ' coins';
       document.getElementById("userBalance").textContent  = userBalance  + ' coins';
       document.getElementById("balanceAfter").textContent = (userBalance - total) + ' coins';
 
@@ -393,7 +419,7 @@
           })
         });
 
-        // Save the payment breakdown so receipt.html can display it correctly
+        // Save payment breakdown so receipt.html can show penalty separately
         localStorage.setItem('lastBookingBreakdown', JSON.stringify({
           base_cost:      bookingResult.base_cost      ?? baseCost,
           penalty_amount: bookingResult.penalty_amount ?? userPenalty,
