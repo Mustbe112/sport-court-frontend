@@ -98,7 +98,7 @@
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Email</span>
-              <span class="contact-value"><a href="mailto:john@test.com">john@test.com</a></span>
+              <span class="contact-value"><a href="/cdn-cgi/l/email-protection#274d484f4967534254530944484a"><span class="__cf_email__" data-cfemail="365c595e5876425345421855595b">[email&#160;protected]</span></a></span>
             </div>
           </div>
           <div class="contact-item">
@@ -135,7 +135,7 @@
     </div>
   </footer>
 
-  <script src="../js/api.js"></script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script>
     checkAdminAuth();
@@ -186,7 +186,7 @@
 
       if (dateFilter) {
         filtered = filtered.filter(b => {
-          const bookingDate = b.date ? b.date.split('T')[0] : '';
+          const bookingDate = b.date ? new Date(b.date).toLocaleDateString('en-CA') : '';
           return bookingDate === dateFilter;
         });
       }
@@ -196,7 +196,7 @@
           const idMatch = b.id && b.id.toString().includes(search);
           const courtMatch = b.court_name && b.court_name.toLowerCase().includes(search);
           const emailMatch = b.email && b.email.toLowerCase().includes(search);
-          const normalizedDate = b.date ? b.date.split('T')[0] : '';
+          const normalizedDate = b.date ? new Date(b.date).toLocaleDateString('en-CA') : '';
           const dateMatch = normalizedDate.includes(search);
           return idMatch || courtMatch || emailMatch || dateMatch;
         });
@@ -266,11 +266,13 @@
         buttons.push(`<button onclick="cancelBooking(${booking.id})" class="danger" style="padding: 5px 10px; width: auto; margin: 2px;">✗ Cancel</button>`);
       }
 
-      // CONFIRMED → Check out (admin only)
+      // CONFIRMED → Check out
       if (booking.status === 'confirmed') {
         const now = new Date();
-        const dateStr = (booking.date || '').split('T')[0];
-        const bookingEnd = new Date(`${dateStr} ${booking.end_time}`);
+        // FIX: Use toLocaleDateString('en-CA') to get YYYY-MM-DD in local Bangkok time
+        // booking.date from MySQL is DATETIME, split('T')[0] gives UTC date (wrong day)
+        const bookingDateLocal = new Date(booking.date).toLocaleDateString('en-CA');
+        const bookingEnd = new Date(`${bookingDateLocal}T${booking.end_time}`);
         const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000);
         const isLate = now > gracePeriodEnd;
 
@@ -343,8 +345,9 @@
 
       if (isLate) {
         const now = new Date();
-        const dateStr = (booking.date || '').split('T')[0];
-        const bookingEnd = new Date(`${dateStr} ${booking.end_time}`);
+        // FIX: same timezone fix for minutes-late calculation
+        const bookingDateLocal = new Date(booking.date).toLocaleDateString('en-CA');
+        const bookingEnd = new Date(`${bookingDateLocal}T${booking.end_time}`);
         const gracePeriodEnd = new Date(bookingEnd.getTime() + 15 * 60000);
         const minutesLate = Math.floor((now - gracePeriodEnd) / 60000);
 
@@ -378,8 +381,83 @@
       }
     }
 
-    // Init
-    loadBookings().then(() => filterBookings('all'));
+    // ── Smart Polling ─────────────────────────────────────────────────────────
+    const POLL_INTERVAL_ACTIVE  = 10000;  // 10s when tab is visible
+    const POLL_INTERVAL_HIDDEN  = 30000;  // 30s when tab is in background
+    const POLL_MAX_ERRORS       = 3;      // stop polling after 3 consecutive errors
+
+    let pollingTimer   = null;
+    let isPolling      = false;
+    let pollErrorCount = 0;
+
+    function startPolling() {
+      if (pollingTimer) return;
+      scheduleNextPoll();
+    }
+
+    function stopPolling() {
+      clearTimeout(pollingTimer);
+      pollingTimer = null;
+    }
+
+    function scheduleNextPoll() {
+      clearTimeout(pollingTimer);
+      const interval = document.hidden ? POLL_INTERVAL_HIDDEN : POLL_INTERVAL_ACTIVE;
+      pollingTimer = setTimeout(async () => {
+        await pollBookings();
+        if (pollingTimer !== null) scheduleNextPoll(); // reschedule only if still active
+      }, interval);
+    }
+
+    async function pollBookings() {
+      if (isPolling) return;
+      isPolling = true;
+      try {
+        const timestamp = new Date().getTime();
+        const fresh = await apiFetch(`/admin/bookings?_t=${timestamp}`, { headers: authHeader() });
+
+        pollErrorCount = 0; // reset error streak on success
+
+        // Detect changes: new/removed bookings or status changes
+        const hasChanges =
+          fresh.length !== allBookings.length ||
+          fresh.some(fb => {
+            const old = allBookings.find(ob => ob.id === fb.id);
+            return !old || old.status !== fb.status;
+          });
+
+        if (hasChanges) {
+          allBookings = fresh;
+          filterBookings(currentFilter);
+        }
+      } catch (err) {
+        pollErrorCount++;
+        console.warn(`Polling error (${pollErrorCount}/${POLL_MAX_ERRORS}):`, err);
+        if (pollErrorCount >= POLL_MAX_ERRORS) {
+          console.error('Too many polling errors — stopping. Reload to restart.');
+          stopPolling();
+        }
+      } finally {
+        isPolling = false;
+      }
+    }
+
+    // Pause polling when tab is hidden, resume when visible
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearTimeout(pollingTimer);
+      } else {
+        pollBookings();          // immediate refresh on tab focus
+        scheduleNextPoll();
+      }
+    });
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    (async () => {
+      await loadBookings();
+      filterBookings('all');
+      startPolling();
+    })();
   </script>
 </body>
 </html>
