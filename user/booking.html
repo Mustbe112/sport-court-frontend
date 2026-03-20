@@ -243,6 +243,13 @@
         document.getElementById("courtDetails").textContent =
           `${selectedCourt.type.toUpperCase()} - ${selectedCourt.price_per_hour} coins per hour`;
 
+        // Check if user is suspended — redirect to suspended page if so
+        const suspStatus = await apiFetch("/auth/suspension-status", { headers: authHeader() });
+        if (suspStatus.suspended) {
+          location.href = 'suspended.html';
+          return;
+        }
+
         // Load user balance AND penalty
         const user  = await apiFetch("/users/me", { headers: authHeader() });
         userBalance = user.coin_balance || 0;
@@ -291,7 +298,7 @@
 
       if (!date || !startTime || !endTime || duration <= 0) return;
 
-      // Format "HH:MM:SS" or "HH:MM" → "9:00 PM"
+      // Format "HH:MM:SS" → "9:00 PM"
       function fmt(timeStr) {
         if (!timeStr) return timeStr;
         const [h, m] = timeStr.split(':').map(Number);
@@ -327,7 +334,6 @@
           `;
           document.getElementById("continueBtn").style.display = 'block';
         } else {
-          // Build helpful hint showing next available time in 12-hour format
           let extraMsg = '';
           if (result.next_available_time) {
             extraMsg = `
@@ -377,7 +383,6 @@
       document.getElementById("userBalance").textContent  = userBalance  + ' coins';
       document.getElementById("balanceAfter").textContent = (userBalance - total) + ' coins';
 
-      // Show or hide penalty line item
       if (userPenalty > 0) {
         document.getElementById("penaltyRow").style.display = 'flex';
         document.getElementById("penaltyCost").textContent  = userPenalty + ' coins';
@@ -385,7 +390,6 @@
         document.getElementById("penaltyRow").style.display = 'none';
       }
 
-      // Enable / disable pay button based on balance
       if (userBalance < total) {
         document.getElementById("insufficientFunds").style.display = 'block';
         document.getElementById("payBtn").disabled      = true;
@@ -419,6 +423,12 @@
           })
         });
 
+        // Handle suspension response from backend
+        if (bookingResult.suspended) {
+          location.href = 'suspended.html';
+          return;
+        }
+
         // Save payment breakdown so receipt.html can show penalty separately
         localStorage.setItem('lastBookingBreakdown', JSON.stringify({
           base_cost:      bookingResult.base_cost      ?? baseCost,
@@ -444,6 +454,11 @@
 
       } catch(err) {
         console.error("Booking error:", err);
+        // If backend returns suspended error, redirect
+        if (err.message && err.message.toLowerCase().includes('suspended')) {
+          location.href = 'suspended.html';
+          return;
+        }
         showAlert('Booking failed: ' + (err.message || 'Please try again'), 'error');
         document.getElementById("processing").style.display = 'none';
         document.getElementById("step2").style.display      = 'block';

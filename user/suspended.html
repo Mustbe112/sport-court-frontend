@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Suspended - SportCourt</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body {
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .suspend-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .ban-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 20px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50% { box-shadow: 0 0 0 15px rgba(239,68,68,0); }
+    }
+
+    h2 {
+      text-align: center;
+      color: #dc2626;
+      margin: 0 0 8px;
+      font-size: 1.6em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .info-box {
+      background: #fef2f2;
+      border: 1.5px solid #fecaca;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+      border-bottom: 1px solid #fee2e2;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-row span:first-child { color: #64748b; }
+    .info-row span:last-child { font-weight: 600; color: #1e293b; }
+
+    .countdown {
+      text-align: center;
+      background: #fff7ed;
+      border: 1.5px solid #fb923c;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .countdown-label {
+      font-size: 12px;
+      color: #9a3412;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .countdown-timer {
+      font-size: 2em;
+      font-weight: 800;
+      color: #ea580c;
+      font-family: monospace;
+      letter-spacing: 2px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 24px 0;
+    }
+
+    .appeal-section h3 {
+      margin: 0 0 6px;
+      color: #1e293b;
+      font-size: 1em;
+    }
+
+    .appeal-section p {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 100px;
+      box-sizing: border-box;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { border-color: #6366f1; }
+
+    .btn-appeal {
+      width: 100%;
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-appeal:hover { background: #4f46e5; transform: translateY(-1px); }
+    .btn-appeal:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-logout {
+      width: 100%;
+      background: transparent;
+      color: #64748b;
+      border: 1.5px solid #e2e8f0;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover { background: #f1f5f9; }
+
+    .appeal-status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .appeal-pending  { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .appeal-approved { background: #d1fae5; color: #065f46; border: 1px solid #86efac; }
+    .appeal-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    .error-box   { display:none; background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; font-size:13px; margin-top:8px; }
+    .success-box { display:none; background:#d1fae5; color:#065f46; padding:10px; border-radius:8px; font-size:13px; margin-top:8px; }
+  </style>
+</head>
+<body>
+
+<div class="suspend-card">
+  <div class="ban-icon">🚫</div>
+  <h2>Account Suspended</h2>
+  <p class="subtitle">You have been temporarily suspended from using SportCourt.</p>
+
+  <!-- Suspension Info -->
+  <div class="info-box" id="infoBox">
+    <div class="info-row">
+      <span>Reason</span>
+      <span id="suspensionReason">Loading...</span>
+    </div>
+    <div class="info-row">
+      <span>Suspended Until</span>
+      <span id="suspendedUntil">Loading...</span>
+    </div>
+    <div class="info-row">
+      <span>Late Checkouts</span>
+      <span id="lateCount">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Countdown Timer -->
+  <div class="countdown">
+    <div class="countdown-label">⏳ Suspension lifts in</div>
+    <div class="countdown-timer" id="countdownTimer">--:--:--</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Appeal Section -->
+  <div class="appeal-section">
+    <h3>📨 Submit an Appeal</h3>
+    <p>If you believe this suspension was unfair, you can submit an appeal to the admin for review.</p>
+
+    <!-- Appeal status (shown if already submitted) -->
+    <div id="appealStatusBox" style="display:none;"></div>
+
+    <!-- Appeal form (hidden if appeal already submitted) -->
+    <div id="appealForm">
+      <textarea id="appealMessage" placeholder="Explain why you believe this suspension should be lifted... (minimum 10 characters)"></textarea>
+      <div class="error-box" id="appealError"></div>
+      <div class="success-box" id="appealSuccess"></div>
+      <button class="btn-appeal" id="appealBtn" onclick="submitAppeal()">Submit Appeal</button>
+    </div>
+  </div>
+
+  <button class="btn-logout" onclick="logout()">← Logout</button>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script>
+  checkAuth();
+
+  let countdownInterval = null;
+
+  async function loadSuspensionStatus() {
+    try {
+      const data = await apiFetch('/auth/suspension-status', { headers: authHeader() });
+
+      if (!data.suspended) {
+        // No longer suspended — go to dashboard
+        location.href = 'dashboard.html';
+        return;
+      }
+
+      // Populate info
+      document.getElementById('suspensionReason').textContent = data.suspension_reason || 'Repeated late checkouts';
+      document.getElementById('suspendedUntil').textContent   = formatDate(data.suspended_until);
+      document.getElementById('lateCount').textContent        = data.late_checkout_count + ' times';
+
+      // Start countdown
+      startCountdown(new Date(data.suspended_until));
+
+      // Show appeal status if exists
+      if (data.appeal) {
+        showAppealStatus(data.appeal);
+      }
+
+    } catch(err) {
+      console.error('Error loading suspension status:', err);
+    }
+  }
+
+  function startCountdown(endDate) {
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    function update() {
+      const now  = new Date();
+      const diff = endDate - now;
+
+      if (diff <= 0) {
+        clearInterval(countdownInterval);
+        document.getElementById('countdownTimer').textContent = 'Suspension ended!';
+        setTimeout(() => location.reload(), 2000);
+        return;
+      }
+
+      const days    = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours   = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        document.getElementById('countdownTimer').textContent =
+          `${days}d ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+      } else {
+        document.getElementById('countdownTimer').textContent =
+          `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
+      }
+    }
+
+    update();
+    countdownInterval = setInterval(update, 1000);
+  }
+
+  function showAppealStatus(appeal) {
+    const box = document.getElementById('appealStatusBox');
+    const form = document.getElementById('appealForm');
+
+    const statusClass = {
+      pending:  'appeal-pending',
+      approved: 'appeal-approved',
+      rejected: 'appeal-rejected'
+    }[appeal.status] || 'appeal-pending';
+
+    const statusText = {
+      pending:  '⏳ Your appeal is pending admin review.',
+      approved: '✅ Your appeal was approved! Refreshing...',
+      rejected: '❌ Your appeal was rejected.'
+    }[appeal.status];
+
+    box.innerHTML = `<div class="appeal-status ${statusClass}">${statusText}</div>`;
+    box.style.display = 'block';
+
+    if (appeal.status === 'approved') {
+      setTimeout(() => location.reload(), 2000);
+    }
+
+    // Hide form if pending or approved
+    if (appeal.status === 'pending' || appeal.status === 'approved') {
+      form.style.display = 'none';
+    }
+  }
+
+  async function submitAppeal() {
+    const message  = document.getElementById('appealMessage').value.trim();
+    const errorBox = document.getElementById('appealError');
+    const successBox = document.getElementById('appealSuccess');
+    const btn      = document.getElementById('appealBtn');
+
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    if (!message || message.length < 10) {
+      errorBox.textContent = 'Please write at least 10 characters explaining your appeal.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    try {
+      await apiFetch('/auth/appeal', {
+        method: 'POST',
+        headers: authHeader(),
+        body: JSON.stringify({ message })
+      });
+
+      successBox.textContent = '✅ Appeal submitted! Admin will review it shortly.';
+      successBox.style.display = 'block';
+
+      // Hide form, show pending status
+      setTimeout(() => {
+        document.getElementById('appealForm').style.display = 'none';
+        document.getElementById('appealStatusBox').innerHTML =
+          '<div class="appeal-status appeal-pending">⏳ Your appeal is pending admin review.</div>';
+        document.getElementById('appealStatusBox').style.display = 'block';
+      }, 1500);
+
+    } catch(err) {
+      errorBox.textContent = err.message || 'Failed to submit appeal. Please try again.';
+      errorBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit Appeal';
+    }
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function logout() {
+    localStorage.clear();
+    location.href = '../index.html';
+  }
+
+  loadSuspensionStatus();
+
+  // Poll every 10 seconds to detect if admin unsuspended or approved appeal
+  setInterval(loadSuspensionStatus, 10000);
+</script>
+</body>
+</html>
