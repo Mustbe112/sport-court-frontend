@@ -428,6 +428,10 @@
           </button>
         </div>
 
+        <div style="text-align: right; margin-top: -8px; margin-bottom: 8px;">
+          <a href="#" onclick="showForgotPanel(); return false;" style="font-size: 13px; color: #6366f1; text-decoration: none;">Forgot password?</a>
+        </div>
+
         <button type="submit" class="btn-cta">Sign In</button>
       </form>
 
@@ -435,6 +439,86 @@
       <p class="auth-footer">
         Don't have an account? <a href="register.html">Create one</a>
       </p>
+
+      <!-- ── FORGOT PASSWORD PANEL ── -->
+      <div id="forgotPanel" style="display:none; margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+
+        <!-- Step 1: Try with Recovery ID -->
+        <div id="forgotStep1">
+          <h3 style="margin: 0 0 5px 0; font-size: 1em;">Reset with Recovery ID</h3>
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Enter your email, Recovery ID and new password.</p>
+
+          <div class="field">
+            <label>Email</label>
+            <input id="forgotEmail" type="email" placeholder="you@email.com">
+          </div>
+          <div class="field">
+            <label>Recovery ID</label>
+            <input id="forgotRecoveryId" type="text" placeholder="Your Recovery ID">
+          </div>
+          <div class="field">
+            <label>New Password</label>
+            <input id="forgotNewPw" type="password" placeholder="Min 6 characters">
+          </div>
+
+          <div id="forgotError" style="display:none; background:#fee2e2; color:#991b1b; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:10px;"></div>
+          <div id="forgotSuccess" style="display:none; background:#d1fae5; color:#065f46; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:10px;"></div>
+
+          <button onclick="submitForgotPassword()" class="btn-cta" style="margin-bottom: 10px;">Reset Password</button>
+
+          <p style="text-align: center; font-size: 13px; color: #64748b;">
+            Forgot your Recovery ID too?
+            <a href="#" onclick="showAdminResetPanel(); return false;" style="color: #f59e0b; font-weight: 600;">Request admin reset</a>
+          </p>
+        </div>
+
+        <!-- Step 2: Request Admin Reset -->
+        <div id="forgotStep2" style="display:none;">
+          <h3 style="margin: 0 0 5px 0; font-size: 1em; color: #f59e0b;">Request Admin Reset</h3>
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Enter your email. Admin will reset your account and provide new credentials.</p>
+
+          <div class="field">
+            <label>Email</label>
+            <input id="adminResetEmail" type="email" placeholder="you@email.com">
+          </div>
+
+          <div id="adminResetError" style="display:none; background:#fee2e2; color:#991b1b; padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:10px;"></div>
+
+          <button onclick="submitAdminReset()" class="btn-cta" style="background: #f59e0b; margin-bottom: 10px;">Submit Request</button>
+
+          <p style="text-align: center; font-size: 13px;">
+            <a href="#" onclick="showForgotStep1(); return false;" style="color: #6366f1;">← Back</a>
+          </p>
+        </div>
+
+        <!-- Step 3: Waiting for admin with animation -->
+        <div id="forgotStep3" style="display:none; text-align: center; padding: 20px 0;">
+          <div style="width: 60px; height: 60px; border: 4px solid #e5e7eb; border-top: 4px solid #f59e0b; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+          <h3 style="color: #f59e0b; margin-bottom: 8px;">Waiting for Admin</h3>
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">Your request has been submitted. The admin will reset your account shortly.</p>
+          <p id="waitingEmail" style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 16px;"></p>
+          <div style="background: #fef3c7; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; color: #92400e;">
+            ⏳ Checking every 5 seconds for admin confirmation...
+          </div>
+          <div id="resetReadyBox" style="display:none; background:#d1fae5; border: 1.5px solid #86efac; border-radius:10px; padding:16px; margin-bottom:16px; text-align:left;">
+            <div style="font-weight: 700; color: #065f46; margin-bottom: 8px;">✅ Admin has reset your account!</div>
+            <div style="font-size: 13px; color: #065f46; margin-bottom: 8px;">Use these credentials to log in, then update your password and Recovery ID.</div>
+            <div style="background: white; border-radius: 8px; padding: 12px;">
+              <div style="margin-bottom: 8px;">
+                <span style="font-size: 11px; color: #64748b;">TEMPORARY PASSWORD</span><br>
+                <span id="tempPassword" style="font-size: 1.3em; font-weight: 700; color: #16a34a; font-family: monospace; letter-spacing: 2px;"></span>
+              </div>
+              <div>
+                <span style="font-size: 11px; color: #64748b;">NEW RECOVERY ID</span><br>
+                <span id="tempRecoveryId" style="font-size: 1.3em; font-weight: 700; color: #2563eb; font-family: monospace; letter-spacing: 2px;"></span>
+              </div>
+            </div>
+          </div>
+          <button onclick="hideForgotPanel()" style="background: #6366f1; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;">
+            Back to Login
+          </button>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -480,6 +564,142 @@ document.querySelectorAll('.btn-cta').forEach(btn => {
     r.addEventListener('animationend', () => r.remove());
   });
 });
+</script>
+
+<script>
+// ── FORGOT PASSWORD LOGIC ──
+
+let resetPollingInterval = null;
+let waitingForResetEmail = '';
+
+function showForgotPanel() {
+  document.getElementById('forgotPanel').style.display = 'block';
+  showForgotStep1();
+}
+
+function hideForgotPanel() {
+  document.getElementById('forgotPanel').style.display = 'none';
+  stopPolling();
+}
+
+function showForgotStep1() {
+  document.getElementById('forgotStep1').style.display = 'block';
+  document.getElementById('forgotStep2').style.display = 'none';
+  document.getElementById('forgotStep3').style.display = 'none';
+}
+
+function showAdminResetPanel() {
+  document.getElementById('forgotStep1').style.display = 'none';
+  document.getElementById('forgotStep2').style.display = 'block';
+  document.getElementById('forgotStep3').style.display = 'none';
+  // Pre-fill email from step 1 if available
+  const email = document.getElementById('forgotEmail').value;
+  if (email) document.getElementById('adminResetEmail').value = email;
+}
+
+async function submitForgotPassword() {
+  const email       = document.getElementById('forgotEmail').value.trim();
+  const recovery_id = document.getElementById('forgotRecoveryId').value.trim();
+  const new_password = document.getElementById('forgotNewPw').value;
+  const errorDiv    = document.getElementById('forgotError');
+  const successDiv  = document.getElementById('forgotSuccess');
+
+  errorDiv.style.display = 'none';
+  successDiv.style.display = 'none';
+
+  if (!email || !recovery_id || !new_password) {
+    errorDiv.textContent = 'Please fill in all fields.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  if (new_password.length < 6) {
+    errorDiv.textContent = 'New password must be at least 6 characters.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  try {
+    const result = await apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, recovery_id, new_password })
+    });
+
+    successDiv.textContent = result.message + ' Redirecting to login...';
+    successDiv.style.display = 'block';
+
+    setTimeout(() => {
+      document.getElementById('forgotPanel').style.display = 'none';
+      document.getElementById('email').value = email;
+    }, 2000);
+
+  } catch(err) {
+    errorDiv.textContent = err.message || 'Reset failed. Please check your Recovery ID.';
+    errorDiv.style.display = 'block';
+  }
+}
+
+async function submitAdminReset() {
+  const email    = document.getElementById('adminResetEmail').value.trim();
+  const errorDiv = document.getElementById('adminResetError');
+  errorDiv.style.display = 'none';
+
+  if (!email) {
+    errorDiv.textContent = 'Please enter your email.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  try {
+    await apiFetch('/auth/request-admin-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    waitingForResetEmail = email;
+    document.getElementById('forgotStep1').style.display = 'none';
+    document.getElementById('forgotStep2').style.display = 'none';
+    document.getElementById('forgotStep3').style.display = 'block';
+    document.getElementById('waitingEmail').textContent = email;
+
+    // Start polling every 5 seconds
+    startResetPolling(email);
+
+  } catch(err) {
+    errorDiv.textContent = err.message || 'Request failed. Please try again.';
+    errorDiv.style.display = 'block';
+  }
+}
+
+function startResetPolling(email) {
+  stopPolling();
+  resetPollingInterval = setInterval(async () => {
+    try {
+      const result = await apiFetch(`/auth/reset-status/${encodeURIComponent(email)}`);
+      if (result.ready) {
+        stopPolling();
+        // Show the temp credentials
+        document.getElementById('tempPassword').textContent  = result.temp_password;
+        document.getElementById('tempRecoveryId').textContent = result.recovery_id;
+        document.getElementById('resetReadyBox').style.display = 'block';
+
+        // Clear temp_password from DB after showing (optional security step)
+        // The user should log in with the temp password and change it
+      }
+    } catch(err) {
+      // Silently ignore polling errors
+    }
+  }, 5000);
+}
+
+function stopPolling() {
+  if (resetPollingInterval) {
+    clearInterval(resetPollingInterval);
+    resetPollingInterval = null;
+  }
+}
 </script>
 </body>
 </html>
