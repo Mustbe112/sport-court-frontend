@@ -56,6 +56,15 @@ async function login() {
       if (loadingText) loadingText.textContent = 'Login successful!';
     }
 
+    // If admin reset was used → force user to set new credentials first (one-time use)
+    if (data.force_reset) {
+      if (loadingSubtext) loadingSubtext.textContent = 'Please set your new credentials...';
+      setTimeout(() => {
+        location.href = "user/reset-credentials.html";
+      }, 1500);
+      return;
+    }
+
     // Determine redirect based on role
     let redirectUrl;
     if (data.user.role === "admin") {
