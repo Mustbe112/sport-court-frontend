@@ -203,6 +203,13 @@
       transform: translateY(20px);
     }
 
+    /* Forgot panel fields must always be visible — override the opacity:0 above */
+    #forgotPanel .field {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+    }
+
     .animate-in .auth-card .field:nth-of-type(1) {
       animation: slideUpFade 0.5s ease forwards;
       animation-delay: 0.6s;
