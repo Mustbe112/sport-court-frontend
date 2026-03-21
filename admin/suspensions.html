@@ -13,10 +13,9 @@
       <a href="dashboard.html">Dashboard</a>
       <a href="courts.html">Manage Courts</a>
       <a href="bookings.html">Manage Bookings</a>
-      <a href="suspensions.html" style="color: var(--c-accent, #22c55e); font-weight: 600;">Suspensions</a>
-      <a href="passwords.html">Password Mgmt</a>
+      <a href="users.html">Users</a>     
       <a href="scanner.html">QR Scanner</a>
-      <a href="profile.html">Profile</a>
+      <a href="reports.html">Reports</a>
       <a href="#" onclick="logout()">Logout</a>
     </div>
   </nav>
@@ -24,37 +23,45 @@
   <div class="dashboard-container">
     <div class="dashboard-header">
       <h2>Suspension Management</h2>
-      <p>Manage suspended users and review appeals</p>
+      <p>Review appeals and manage suspended users</p>
     </div>
 
-    <!-- Currently Suspended Users -->
+    <!-- Section 1: Suspended Users + Appeals Combined -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h3 style="margin:0;">🚫 Currently Suspended Users</h3>
-        <span id="suspendedCount" style="background:#fee2e2; color:#991b1b; padding:4px 12px; border-radius:20px; font-size:14px; font-weight:600;"></span>
+        <div>
+          <h3 style="margin:0 0 4px 0;">Suspended Users</h3>
+          <p style="margin:0; font-size:13px; color:#64748b;">Users with a pending appeal appear first. You can review their appeal, unsuspend, or permanently ban them.</p>
+        </div>
+        <span id="suspendedCount" style="background:#fee2e2; color:#991b1b; padding:4px 12px; border-radius:20px; font-size:14px; font-weight:600; white-space:nowrap;"></span>
       </div>
       <input type="text" id="searchSuspended" placeholder="Search by name or email..." onkeyup="filterSuspended()" style="width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; box-sizing:border-box; margin-bottom:15px; outline:none;">
       <div id="suspendedList"></div>
     </div>
 
-    <!-- Pending Appeals -->
+    <!-- Section 2: Ban / Unban Management -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-        <h3 style="margin:0;">📨 Appeal Requests</h3>
-        <span id="appealCount" style="background:#fef3c7; color:#92400e; padding:4px 12px; border-radius:20px; font-size:14px; font-weight:600;"></span>
+        <div>
+          <h3 style="margin:0 0 4px 0;">Permanently Banned Users</h3>
+          <p style="margin:0; font-size:13px; color:#64748b;">Users who have been permanently banned. You can unban them here.</p>
+        </div>
+        <span id="bannedCount" style="background:#fef2f2; color:#7f1d1d; padding:4px 12px; border-radius:20px; font-size:14px; font-weight:600; white-space:nowrap;"></span>
       </div>
-      <input type="text" id="searchAppeals" placeholder="Search by name or email..." onkeyup="filterAppeals()" style="width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; box-sizing:border-box; margin-bottom:15px; outline:none;">
-      <div id="appealsList"></div>
+      <input type="text" id="searchBanned" placeholder="Search by name or email..." onkeyup="filterBanned()" style="width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; box-sizing:border-box; margin-bottom:15px; outline:none;">
+      <div id="bannedList"></div>
     </div>
   </div>
 
-  <!-- Resolve Appeal Modal -->
+  <!-- Review Appeal Modal -->
   <div id="resolveModal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:500px;">
-      <span class="close" onclick="closeResolveModal()">&times;</span>
-      <h2 id="resolveModalTitle">Review Appeal</h2>
+    <div class="modal-content" style="max-width:520px; position:relative;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2 id="resolveModalTitle" style="margin:0;">Review Appeal</h2>
+        <button onclick="closeResolveModal()" style="background:none; border:none; font-size:28px; cursor:pointer; color:#64748b; line-height:1; padding:0 4px;">&times;</button>
+      </div>
 
-      <div id="resolveAppealInfo" style="background:#f8fafc; border-radius:8px; padding:16px; margin-bottom:16px; font-size:14px; color:#374151; line-height:1.6;"></div>
+      <div id="resolveAppealInfo" style="background:#f8fafc; border-radius:8px; padding:16px; margin-bottom:16px; font-size:14px; color:#374151; line-height:1.6; border-left:4px solid #6366f1;"></div>
 
       <div class="form-group">
         <label>Admin Note (optional)</label>
@@ -64,33 +71,33 @@
       <div style="display:flex; gap:10px; margin-top:16px;">
         <button onclick="resolveAppeal('approve')"
           style="flex:1; background:#16a34a; color:white; border:none; padding:12px; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px;">
-          ✅ Approve & Unsuspend
+          Approve &amp; Unsuspend
         </button>
         <button onclick="resolveAppeal('reject')"
           style="flex:1; background:#dc2626; color:white; border:none; padding:12px; border-radius:8px; font-weight:700; cursor:pointer; font-size:14px;">
-          ❌ Reject Appeal
+          Reject Appeal
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Manual Suspend Modal -->
-  <div id="suspendModal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:400px;">
-      <span class="close" onclick="closeSuspendModal()">&times;</span>
-      <h2>Suspend User</h2>
-      <p id="suspendUserName" style="color:#64748b; font-size:14px; margin-bottom:16px;"></p>
-      <div class="form-group">
-        <label>Reason</label>
-        <textarea id="suspendReason" rows="3" placeholder="Reason for suspension..." style="width:100%; padding:10px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; box-sizing:border-box; font-family:inherit;"></textarea>
+  <!-- Ban Modal -->
+  <div id="banModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:420px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2 style="margin:0; color:#7f1d1d;">Permanent Ban</h2>
+        <button onclick="closeBanModal()" style="background:none; border:none; font-size:28px; cursor:pointer; color:#64748b; line-height:1; padding:0 4px;">&times;</button>
+      </div>
+      <div style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#991b1b;">
+        This will <strong>permanently ban</strong> <span id="banUserNameLabel"></span>. They will not be able to book courts until manually unbanned by an admin.
       </div>
       <div class="form-group">
-        <label>Duration (days)</label>
-        <input type="number" id="suspendDays" value="7" min="1" max="365" style="width:100%; padding:10px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; box-sizing:border-box;">
+        <label>Ban Reason</label>
+        <textarea id="banReason" rows="3" placeholder="Reason for permanent ban..." style="width:100%; padding:10px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; box-sizing:border-box; font-family:inherit; margin-top:6px;"></textarea>
       </div>
-      <button onclick="confirmSuspend()"
-        style="width:100%; background:#dc2626; color:white; border:none; padding:12px; border-radius:8px; font-weight:700; cursor:pointer; margin-top:10px;">
-        Suspend User
+      <button onclick="confirmBan()"
+        style="width:100%; background:#7f1d1d; color:white; border:none; padding:12px; border-radius:8px; font-weight:700; cursor:pointer; margin-top:10px; font-size:15px;">
+        Confirm Permanent Ban
       </button>
     </div>
   </div>
@@ -127,12 +134,86 @@
   <script>
     checkAdminAuth();
 
-    let selectedAppealId = null;
-    let selectedSuspendUserId = null;
-    let allSuspendedUsers = [];
-    let allAppeals = [];
+    let selectedAppealId   = null;
+    let selectedBanUserId  = null;
 
-    // ── FILTER FUNCTIONS ──
+    let allSuspendedUsers  = []; // non-permanently-banned suspended users
+    let allBannedUsers     = []; // permanently banned users
+    let appealsByUserId    = {}; // map: userId -> appeal object (most recent pending first)
+
+    // ── HELPERS ──
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    function isPermanentlyBanned(suspendedUntil) {
+      return new Date(suspendedUntil).getFullYear() >= 2099;
+    }
+
+    function getAppealStatusBadge(status) {
+      const badges = {
+        pending:  '<span style="background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600;">Pending</span>',
+        approved: '<span style="background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600;">Approved</span>',
+        rejected: '<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600;">Rejected</span>'
+      };
+      return badges[status] || status;
+    }
+
+    // ── LOAD DATA ──
+
+    async function loadAll() {
+      try {
+        const [users, appeals] = await Promise.all([
+          apiFetch('/admin/suspensions', { headers: authHeader() }),
+          apiFetch('/admin/appeals',     { headers: authHeader() })
+        ]);
+
+        // Build appeal lookup by user_id (prefer pending, then latest)
+        appealsByUserId = {};
+        const sorted = [...appeals].sort((a, b) => {
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (b.status === 'pending' && a.status !== 'pending') return 1;
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+        sorted.forEach(a => {
+          if (!appealsByUserId[a.user_id]) appealsByUserId[a.user_id] = a;
+        });
+
+        // Split: banned vs suspended
+        allBannedUsers    = users.filter(u => isPermanentlyBanned(u.suspended_until));
+        allSuspendedUsers = users.filter(u => !isPermanentlyBanned(u.suspended_until));
+
+        // Sort suspended: users with a pending appeal first
+        allSuspendedUsers.sort((a, b) => {
+          const aHasPending = appealsByUserId[a.id]?.status === 'pending' ? 0 : 1;
+          const bHasPending = appealsByUserId[b.id]?.status === 'pending' ? 0 : 1;
+          return aHasPending - bHasPending;
+        });
+
+        // Update counts
+        const suspCount = document.getElementById('suspendedCount');
+        suspCount.textContent = `${allSuspendedUsers.length} suspended`;
+        suspCount.style.background = allSuspendedUsers.length > 0 ? '#fee2e2' : '#d1fae5';
+        suspCount.style.color      = allSuspendedUsers.length > 0 ? '#991b1b' : '#065f46';
+
+        const banCount = document.getElementById('bannedCount');
+        banCount.textContent = `${allBannedUsers.length} banned`;
+        banCount.style.background = allBannedUsers.length > 0 ? '#fef2f2' : '#d1fae5';
+        banCount.style.color      = allBannedUsers.length > 0 ? '#7f1d1d' : '#065f46';
+
+        displaySuspended(allSuspendedUsers);
+        displayBanned(allBannedUsers);
+      } catch(err) {
+        console.error('Error loading data:', err);
+      }
+    }
+
+    // ── FILTER ──
 
     function filterSuspended() {
       const search = document.getElementById('searchSuspended').value.toLowerCase();
@@ -143,46 +224,112 @@
       displaySuspended(filtered);
     }
 
-    function filterAppeals() {
-      const search = document.getElementById('searchAppeals').value.toLowerCase();
-      const filtered = allAppeals.filter(a =>
-        a.name.toLowerCase().includes(search) ||
-        a.email.toLowerCase().includes(search)
+    function filterBanned() {
+      const search = document.getElementById('searchBanned').value.toLowerCase();
+      const filtered = allBannedUsers.filter(u =>
+        u.name.toLowerCase().includes(search) ||
+        u.email.toLowerCase().includes(search)
       );
-      displayAppeals(filtered);
+      displayBanned(filtered);
     }
 
-    // ── LOAD DATA ──
-
-    async function loadSuspended() {
-      try {
-        allSuspendedUsers = await apiFetch('/admin/suspensions', { headers: authHeader() });
-        const countEl = document.getElementById('suspendedCount');
-        countEl.textContent = `${allSuspendedUsers.length} suspended`;
-        countEl.style.background = allSuspendedUsers.length > 0 ? '#fee2e2' : '#d1fae5';
-        countEl.style.color      = allSuspendedUsers.length > 0 ? '#991b1b' : '#065f46';
-        displaySuspended(allSuspendedUsers);
-      } catch(err) {
-        console.error('Error loading suspended users:', err);
-      }
-    }
+    // ── DISPLAY: SUSPENDED + APPEALS COMBINED ──
 
     function displaySuspended(users) {
+      const container = document.getElementById('suspendedList');
+
       if (users.length === 0) {
-        document.getElementById('suspendedList').innerHTML =
-          '<p style="color:#64748b;">No users found.</p>';
+        container.innerHTML = '<p style="color:#64748b;">No suspended users found.</p>';
         return;
       }
 
-      document.getElementById('suspendedList').innerHTML = `
+      container.innerHTML = `
         <table>
           <thead>
             <tr>
               <th>User</th>
-              <th>Reason</th>
+              <th>Suspension Reason</th>
               <th>Late Checkouts</th>
               <th>Last Late Checkout</th>
               <th>Suspended Until</th>
+              <th>Appeal</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u => {
+              const appeal = appealsByUserId[u.id] || null;
+              const hasPendingAppeal = appeal?.status === 'pending';
+
+              return `
+                <tr style="${hasPendingAppeal ? 'background:#fffbeb;' : ''}">
+                  <td>
+                    <strong>${u.name}</strong><br>
+                    <small style="color:#64748b;">${u.email}</small>
+                  </td>
+                  <td style="max-width:180px; font-size:13px; color:#64748b;">${u.suspension_reason || 'N/A'}</td>
+                  <td style="text-align:center;">
+                    <span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-weight:700;">
+                      ${u.late_checkout_count}x
+                    </span>
+                  </td>
+                  <td style="font-size:13px; color:#64748b;">${formatDate(u.last_late_checkout)}</td>
+                  <td style="font-size:13px; font-weight:600; color:#dc2626;">${formatDate(u.suspended_until)}</td>
+                  <td style="max-width:200px;">
+                    ${appeal ? `
+                      <div style="font-size:12px; color:#374151; margin-bottom:5px; line-height:1.4; font-style:italic;">"${appeal.message}"</div>
+                      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        ${getAppealStatusBadge(appeal.status)}
+                        <span style="font-size:11px; color:#94a3b8;">${formatDate(appeal.created_at)}</span>
+                      </div>
+                    ` : '<span style="color:#94a3b8; font-size:13px;">No appeal</span>'}
+                  </td>
+                  <td>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                      ${hasPendingAppeal ? `
+                        <button onclick="openResolveModal(${appeal.id}, '${u.name}', '${appeal.message.replace(/'/g, "\\'")}')"
+                          style="background:#6366f1; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; white-space:nowrap;">
+                          Review Appeal
+                        </button>
+                      ` : `
+                        <button onclick="unsuspendUser(${u.id}, '${u.name}')"
+                          style="background:#16a34a; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">
+                          Unsuspend
+                        </button>
+                      `}
+                      <button onclick="openBanModal(${u.id}, '${u.name}')"
+                        style="background:#7f1d1d; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">
+                        Ban
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // ── DISPLAY: BANNED USERS ──
+
+    function displayBanned(users) {
+      const container = document.getElementById('bannedList');
+
+      if (users.length === 0) {
+        container.innerHTML = '<p style="color:#64748b;">No permanently banned users.</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Ban Reason</th>
+              <th>Late Checkouts</th>
+              <th>Last Late Checkout</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -200,77 +347,16 @@
                   </span>
                 </td>
                 <td style="font-size:13px; color:#64748b;">${formatDate(u.last_late_checkout)}</td>
-                <td style="font-size:13px; color:#dc2626; font-weight:600;">${formatDate(u.suspended_until)}</td>
+                <td>
+                  <span style="background:#7f1d1d; color:white; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600;">
+                    Permanently Banned
+                  </span>
+                </td>
                 <td>
                   <button onclick="unsuspendUser(${u.id}, '${u.name}')"
                     style="background:#16a34a; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">
-                    ✅ Unsuspend
+                    Unban
                   </button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-
-    async function loadAppeals() {
-      try {
-        allAppeals = await apiFetch('/admin/appeals', { headers: authHeader() });
-        const pending = allAppeals.filter(a => a.status === 'pending');
-        const countEl = document.getElementById('appealCount');
-        countEl.textContent = `${pending.length} pending`;
-        countEl.style.background = pending.length > 0 ? '#fef3c7' : '#d1fae5';
-        countEl.style.color      = pending.length > 0 ? '#92400e' : '#065f46';
-        displayAppeals(allAppeals);
-      } catch(err) {
-        console.error('Error loading appeals:', err);
-      }
-    }
-
-    function displayAppeals(appeals) {
-      if (appeals.length === 0) {
-        document.getElementById('appealsList').innerHTML =
-          '<p style="color:#64748b;">No appeals found.</p>';
-        return;
-      }
-
-      document.getElementById('appealsList').innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Appeal Message</th>
-              <th>Late Checkouts</th>
-              <th>Last Late Checkout</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${appeals.map(a => `
-              <tr style="${a.status === 'pending' ? 'background:#fffbeb;' : ''}">
-                <td>
-                  <strong>${a.name}</strong><br>
-                  <small style="color:#64748b;">${a.email}</small>
-                </td>
-                <td style="max-width:200px; font-size:13px;">${a.message}</td>
-                <td style="text-align:center;">
-                  <span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-weight:700;">
-                    ${a.late_checkout_count}x
-                  </span>
-                </td>
-                <td style="font-size:13px; color:#64748b;">${formatDate(a.last_late_checkout)}</td>
-                <td>${getAppealStatusBadge(a.status)}</td>
-                <td style="font-size:13px; color:#64748b;">${formatDate(a.created_at)}</td>
-                <td>
-                  ${a.status === 'pending' ? `
-                    <button onclick="openResolveModal(${a.id}, '${a.name}', '${a.message.replace(/'/g, "\\'")}')"
-                      style="background:#6366f1; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px;">
-                      Review
-                    </button>
-                  ` : `<span style="color:#94a3b8; font-size:13px;">${a.admin_note || '-'}</span>`}
                 </td>
               </tr>
             `).join('')}
@@ -282,16 +368,14 @@
     // ── ACTIONS ──
 
     async function unsuspendUser(userId, userName) {
-      if (!confirm(`Unsuspend ${userName}? Their penalties will be marked as resolved.`)) return;
-
+      if (!confirm(`Unsuspend / unban ${userName}? Their penalties will be marked as resolved.`)) return;
       try {
         await apiFetch(`/admin/users/${userId}/unsuspend`, {
           method: 'POST',
           headers: authHeader()
         });
-        showAlert(`✅ ${userName} has been unsuspended.`, 'success');
-        loadSuspended();
-        loadAppeals();
+        showAlert(`${userName} has been unsuspended.`, 'success');
+        loadAll();
       } catch(err) {
         showAlert(err.message || 'Failed to unsuspend', 'error');
       }
@@ -300,7 +384,8 @@
     function openResolveModal(appealId, userName, message) {
       selectedAppealId = appealId;
       document.getElementById('resolveModalTitle').textContent = `Review Appeal — ${userName}`;
-      document.getElementById('resolveAppealInfo').textContent = `"${message}"`;
+      document.getElementById('resolveAppealInfo').innerHTML =
+        `<strong>Appeal message:</strong><br>"${message}"`;
       document.getElementById('adminNote').value = '';
       document.getElementById('resolveModal').style.display = 'flex';
     }
@@ -312,55 +397,59 @@
 
     async function resolveAppeal(action) {
       const adminNote = document.getElementById('adminNote').value.trim();
-
       try {
         await apiFetch(`/admin/appeals/${selectedAppealId}/resolve`, {
           method: 'POST',
           headers: authHeader(),
           body: JSON.stringify({ action, admin_note: adminNote })
         });
-
         const msg = action === 'approve'
-          ? '✅ Appeal approved. User has been unsuspended.'
-          : '❌ Appeal rejected. User notified.';
-
+          ? 'Appeal approved. User has been unsuspended.'
+          : 'Appeal rejected. User has been notified.';
         showAlert(msg, 'success');
         closeResolveModal();
-        loadSuspended();
-        loadAppeals();
+        loadAll();
       } catch(err) {
         showAlert(err.message || 'Failed to resolve appeal', 'error');
       }
     }
 
-    // ── HELPERS ──
-
-    function getAppealStatusBadge(status) {
-      const badges = {
-        pending:  '<span style="background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600;">⏳ Pending</span>',
-        approved: '<span style="background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600;">✅ Approved</span>',
-        rejected: '<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600;">❌ Rejected</span>'
-      };
-      return badges[status] || status;
+    function openBanModal(userId, userName) {
+      selectedBanUserId = userId;
+      document.getElementById('banUserNameLabel').textContent = userName;
+      document.getElementById('banReason').value = '';
+      document.getElementById('banModal').style.display = 'flex';
     }
 
-    function formatDate(dateStr) {
-      if (!dateStr) return 'N/A';
-      return new Date(dateStr).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
+    function closeBanModal() {
+      document.getElementById('banModal').style.display = 'none';
+      selectedBanUserId = null;
+    }
+
+    async function confirmBan() {
+      const reason = document.getElementById('banReason').value.trim();
+      if (!reason) {
+        showAlert('Please enter a reason for the ban.', 'error');
+        return;
+      }
+      if (!confirm('Are you sure? This will permanently ban this user until manually unbanned.')) return;
+      try {
+        await apiFetch(`/admin/users/${selectedBanUserId}/ban`, {
+          method: 'POST',
+          headers: authHeader(),
+          body: JSON.stringify({ reason })
+        });
+        showAlert('User has been permanently banned.', 'success');
+        closeBanModal();
+        loadAll();
+      } catch(err) {
+        showAlert(err.message || 'Failed to ban user', 'error');
+      }
     }
 
     // ── INIT ──
-    loadSuspended();
-    loadAppeals();
-
-    // Smart polling — check every 15 seconds for new appeals
-    setInterval(() => {
-      loadSuspended();
-      loadAppeals();
-    }, 15000);
+    loadAll();
+    setInterval(loadAll, 15000);
   </script>
 </body>
 </html>

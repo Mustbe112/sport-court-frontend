@@ -251,21 +251,34 @@
       const data = await apiFetch('/auth/suspension-status', { headers: authHeader() });
 
       if (!data.suspended) {
-        // No longer suspended — go to dashboard
+        // No longer suspended — go to dashboard (don't loop)
+        clearInterval(pollInterval);
         location.href = 'dashboard.html';
         return;
       }
 
-      // Populate info
+      const isPermanentBan = new Date(data.suspended_until).getFullYear() >= 2099;
+
+      // Show different UI for permanent ban vs temporary suspension
+      if (isPermanentBan) {
+        document.querySelector('h2').textContent = 'Account Permanently Banned';
+        document.querySelector('.subtitle').textContent = 'Your account has been permanently banned from SportCourt.';
+        document.querySelector('.ban-icon').textContent = '🚫';
+        document.getElementById('suspendedUntil').textContent = 'Permanent';
+        document.querySelector('.countdown').style.display = 'none'; // hide countdown
+      } else {
+        document.getElementById('suspendedUntil').textContent = formatDate(data.suspended_until);
+        // Start countdown only once
+        if (!countdownInterval) {
+          startCountdown(new Date(data.suspended_until));
+        }
+      }
+
       document.getElementById('suspensionReason').textContent = data.suspension_reason || 'Repeated late checkouts';
-      document.getElementById('suspendedUntil').textContent   = formatDate(data.suspended_until);
       document.getElementById('lateCount').textContent        = data.late_checkout_count + ' times';
 
-      // Start countdown
-      startCountdown(new Date(data.suspended_until));
-
-      // Show appeal status if exists
-      if (data.appeal) {
+      // Only show appeal status if pending or rejected (not stale approved appeals)
+      if (data.appeal && data.appeal.status !== 'approved') {
         showAppealStatus(data.appeal);
       }
 
@@ -307,30 +320,24 @@
   }
 
   function showAppealStatus(appeal) {
-    const box = document.getElementById('appealStatusBox');
+    const box  = document.getElementById('appealStatusBox');
     const form = document.getElementById('appealForm');
 
     const statusClass = {
       pending:  'appeal-pending',
-      approved: 'appeal-approved',
       rejected: 'appeal-rejected'
     }[appeal.status] || 'appeal-pending';
 
     const statusText = {
       pending:  '⏳ Your appeal is pending admin review.',
-      approved: '✅ Your appeal was approved! Refreshing...',
-      rejected: '❌ Your appeal was rejected.'
+      rejected: '❌ Your appeal was rejected. You may submit a new appeal below.'
     }[appeal.status];
 
     box.innerHTML = `<div class="appeal-status ${statusClass}">${statusText}</div>`;
     box.style.display = 'block';
 
-    if (appeal.status === 'approved') {
-      setTimeout(() => location.reload(), 2000);
-    }
-
-    // Hide form if pending or approved
-    if (appeal.status === 'pending' || appeal.status === 'approved') {
+    // Hide form only if pending (rejected users can re-appeal)
+    if (appeal.status === 'pending') {
       form.style.display = 'none';
     }
   }
@@ -392,10 +399,12 @@
     location.href = '../index.html';
   }
 
+  let pollInterval = null;
+
   loadSuspensionStatus();
 
   // Poll every 10 seconds to detect if admin unsuspended or approved appeal
-  setInterval(loadSuspensionStatus, 10000);
+  pollInterval = setInterval(loadSuspensionStatus, 10000);
 </script>
 </body>
 </html>

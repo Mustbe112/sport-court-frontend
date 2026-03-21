@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports - Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">SportCourt Admin</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html">Manage Courts</a>
+      <a href="bookings.html">Manage Bookings</a>
+        <a href="users.html">Users</a>
+      <a href="scanner.html">QR Scanner</a>
+      
+      
+      <a href="reports.html" style="color: var(--c-accent, #22c55e); font-weight: 600;">Reports</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h2>Reports &amp; Export</h2>
+      <p>View and export sales, bookings, cancellations and penalty data</p>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card">
+      <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;">
+        <div>
+          <label style="display:block; font-size:13px; color:#64748b; margin-bottom:4px; font-weight:600;">From</label>
+          <input type="date" id="dateFrom" style="padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none;">
+        </div>
+        <div>
+          <label style="display:block; font-size:13px; color:#64748b; margin-bottom:4px; font-weight:600;">To</label>
+          <input type="date" id="dateTo" style="padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:14px; outline:none;">
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button onclick="setPreset(7)"  class="secondary" style="padding:9px 16px; width:auto;">Last 7 days</button>
+          <button onclick="setPreset(30)" class="secondary" style="padding:9px 16px; width:auto;">Last 30 days</button>
+          <button onclick="setPreset(90)" class="secondary" style="padding:9px 16px; width:auto;">Last 90 days</button>
+          <button onclick="loadReport()"  style="padding:9px 20px; width:auto; background:#6366f1; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer;">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="stats-grid" id="summaryCards" style="display:none;">
+      <div class="stat-card">
+        <h3>Total Revenue</h3>
+        <div class="stat-value" id="sumRevenue">0</div>
+        <div class="stat-label">coins (confirmed + completed)</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Bookings</h3>
+        <div class="stat-value" id="sumBookings">0</div>
+        <div class="stat-label">in selected period</div>
+      </div>
+      <div class="stat-card">
+        <h3>Cancellations</h3>
+        <div class="stat-value" id="sumCancellations">0</div>
+        <div class="stat-label">refunded bookings</div>
+      </div>
+      <div class="stat-card">
+        <h3>Penalties Issued</h3>
+        <div class="stat-value" id="sumPenalties">0</div>
+        <div class="stat-label">late checkout penalties</div>
+      </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="card" id="exportCard" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h3 style="margin:0 0 4px;">Export CSV</h3>
+          <p style="margin:0; font-size:13px; color:#64748b;">Download individual sections as CSV files</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button onclick="exportCSV('revenue_by_date')"   style="width:auto; padding:8px 16px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">Revenue by Date</button>
+          <button onclick="exportCSV('revenue_by_court')"  style="width:auto; padding:8px 16px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">Revenue by Court</button>
+          <button onclick="exportCSV('booking_status')"    style="width:auto; padding:8px 16px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">Booking Status</button>
+          <button onclick="exportCSV('cancellations')"     style="width:auto; padding:8px 16px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">Cancellations</button>
+          <button onclick="exportCSV('penalties')"         style="width:auto; padding:8px 16px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">Penalties</button>
+          <button onclick="exportCSV('top_users')"         style="width:auto; padding:8px 16px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">Top Users</button>
+          <button onclick="exportAllCSV()"                 style="width:auto; padding:8px 20px; background:#1e293b; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px;">Export All</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue by Date -->
+    <div class="card" id="sectionRevenueDate" style="display:none;">
+      <h3 style="margin-bottom:4px;">Revenue by Date</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:15px;">Daily revenue and booking count for confirmed and completed bookings</p>
+      <div id="tableRevenueDate"></div>
+    </div>
+
+    <!-- Revenue by Court -->
+    <div class="card" id="sectionRevenueCourt" style="display:none;">
+      <h3 style="margin-bottom:4px;">Revenue by Court</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:15px;">Total and average revenue earned per court</p>
+      <div id="tableRevenueCourt"></div>
+    </div>
+
+    <!-- Booking Status Distribution -->
+    <div class="card" id="sectionBookingStatus" style="display:none;">
+      <h3 style="margin-bottom:4px;">Booking Status Distribution</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:15px;">Count and total coin value for each booking status</p>
+      <div id="tableBookingStatus"></div>
+    </div>
+
+    <!-- Cancellations -->
+    <div class="card" id="sectionCancellations" style="display:none;">
+      <h3 style="margin-bottom:4px;">Cancellation Details</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:15px;">All cancelled bookings with user and court info</p>
+      <div id="tableCancellations"></div>
+    </div>
+
+    <!-- Penalties -->
+    <div class="card" id="sectionPenalties" style="display:none;">
+      <h3 style="margin-bottom:4px;">Penalties Issued</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:15px;">Users with late checkout penalties in this period</p>
+      <div id="tablePenalties"></div>
+    </div>
+
+    <!-- Top Users -->
+    <div class="card" id="sectionTopUsers" style="display:none;">
+      <h3 style="margin-bottom:4px;">Top Users by Spend</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:15px;">Highest spending users in the selected period</p>
+      <div id="tableTopUsers"></div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-section footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-mark"></div>
+          <div class="footer-logo-text">SportCourt</div>
+        </div>
+        <p class="footer-description">Your premier destination for booking sports courts.</p>
+        <span class="footer-tagline"><span class="dot-live"></span> Book Smart, Play Hard</span>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <div class="footer-links">
+          <a href="dashboard.html" class="footer-link">Dashboard</a>
+          <a href="courts.html" class="footer-link">Manage Courts</a>
+          <a href="bookings.html" class="footer-link">Manage Bookings</a>
+          
+          
+          <a href="users.html" class="footer-link">Users</a>
+          <a href="reports.html" class="footer-link">Reports</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copyright">© 2026 SportCourt. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    checkAdminAuth();
+
+    let reportData = null;
+
+    // ── INIT: set default date range to last 30 days ──
+    (function initDates() {
+      const today = new Date();
+      const from  = new Date(today);
+      from.setDate(from.getDate() - 30);
+      document.getElementById('dateTo').value   = today.toISOString().slice(0, 10);
+      document.getElementById('dateFrom').value = from.toISOString().slice(0, 10);
+    })();
+
+    function setPreset(days) {
+      const today = new Date();
+      const from  = new Date(today);
+      from.setDate(from.getDate() - days);
+      document.getElementById('dateTo').value   = today.toISOString().slice(0, 10);
+      document.getElementById('dateFrom').value = from.toISOString().slice(0, 10);
+      loadReport();
+    }
+
+    // ── LOAD REPORT ──
+    async function loadReport() {
+      const from = document.getElementById('dateFrom').value;
+      const to   = document.getElementById('dateTo').value;
+
+      if (!from || !to) {
+        showAlert('Please select a date range.', 'error');
+        return;
+      }
+      if (from > to) {
+        showAlert('From date must be before To date.', 'error');
+        return;
+      }
+
+      try {
+        reportData = await apiFetch(`/admin/reports?from=${from}&to=${to}`, { headers: authHeader() });
+
+        renderSummary();
+        renderRevenueByDate();
+        renderRevenueByCourt();
+        renderBookingStatus();
+        renderCancellations();
+        renderPenalties();
+        renderTopUsers();
+
+        // Show all sections
+        ['summaryCards', 'exportCard',
+         'sectionRevenueDate', 'sectionRevenueCourt', 'sectionBookingStatus',
+         'sectionCancellations', 'sectionPenalties', 'sectionTopUsers'
+        ].forEach(id => document.getElementById(id).style.display = '');
+
+      } catch(err) {
+        showAlert(err.message || 'Failed to load report.', 'error');
+      }
+    }
+
+    // ── SUMMARY CARDS ──
+    function renderSummary() {
+      const revenue    = reportData.revenue_by_date.reduce((s, r) => s + Number(r.revenue), 0);
+      const bookings   = reportData.booking_status.reduce((s, r) => s + Number(r.count), 0);
+      const cancelled  = (reportData.booking_status.find(r => r.status === 'cancelled') || {}).count || 0;
+      const penalties  = reportData.penalties.reduce((s, p) => s + Number(p.penalty_count), 0);
+
+      document.getElementById('sumRevenue').textContent      = revenue.toLocaleString() + ' coins';
+      document.getElementById('sumBookings').textContent     = bookings;
+      document.getElementById('sumCancellations').textContent = cancelled;
+      document.getElementById('sumPenalties').textContent    = penalties;
+    }
+
+    // ── REVENUE BY DATE ──
+    function renderRevenueByDate() {
+      const rows = reportData.revenue_by_date;
+      if (!rows.length) {
+        document.getElementById('tableRevenueDate').innerHTML = '<p style="color:#64748b;">No data for this period.</p>';
+        return;
+      }
+      document.getElementById('tableRevenueDate').innerHTML = `
+        <table>
+          <thead><tr><th>Date</th><th>Bookings</th><th>Revenue (coins)</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td>${formatDate(r.date)}</td>
+                <td>${r.bookings}</td>
+                <td style="font-weight:600; color:#16a34a;">${Number(r.revenue).toLocaleString()}</td>
+              </tr>`).join('')}
+            <tr style="background:#f8fafc; font-weight:700;">
+              <td>Total</td>
+              <td>${rows.reduce((s,r)=>s+Number(r.bookings),0)}</td>
+              <td style="color:#16a34a;">${rows.reduce((s,r)=>s+Number(r.revenue),0).toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>`;
+    }
+
+    // ── REVENUE BY COURT ──
+    function renderRevenueByCourt() {
+      const rows = reportData.revenue_by_court;
+      if (!rows.length) {
+        document.getElementById('tableRevenueCourt').innerHTML = '<p style="color:#64748b;">No data for this period.</p>';
+        return;
+      }
+      document.getElementById('tableRevenueCourt').innerHTML = `
+        <table>
+          <thead><tr><th>Court</th><th>Type</th><th>Bookings</th><th>Total Revenue (coins)</th><th>Avg per Booking</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td><strong>${r.court_name}</strong></td>
+                <td style="text-transform:capitalize;">${r.court_type}</td>
+                <td>${r.total_bookings}</td>
+                <td style="font-weight:600; color:#16a34a;">${Number(r.total_revenue).toLocaleString()}</td>
+                <td>${Math.round(r.avg_revenue).toLocaleString()}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // ── BOOKING STATUS ──
+    function renderBookingStatus() {
+      const rows = reportData.booking_status;
+      if (!rows.length) {
+        document.getElementById('tableBookingStatus').innerHTML = '<p style="color:#64748b;">No data for this period.</p>';
+        return;
+      }
+      const statusColors = { confirmed:'#16a34a', completed:'#2563eb', cancelled:'#dc2626', booked:'#f59e0b', no_show:'#7c3aed' };
+      document.getElementById('tableBookingStatus').innerHTML = `
+        <table>
+          <thead><tr><th>Status</th><th>Count</th><th>Total Value (coins)</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td><span style="color:${statusColors[r.status]||'#64748b'}; font-weight:600; text-transform:capitalize;">${r.status.replace('_',' ')}</span></td>
+                <td>${r.count}</td>
+                <td>${Number(r.total_value).toLocaleString()}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // ── CANCELLATIONS ──
+    function renderCancellations() {
+      const rows = reportData.cancellations;
+      if (!rows.length) {
+        document.getElementById('tableCancellations').innerHTML = '<p style="color:#64748b;">No cancellations in this period.</p>';
+        return;
+      }
+      document.getElementById('tableCancellations').innerHTML = `
+        <table>
+          <thead><tr><th>Booking ID</th><th>User</th><th>Court</th><th>Date</th><th>Time</th><th>Refunded (coins)</th><th>Cancelled At</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td>#${r.id}</td>
+                <td><strong>${r.user_name}</strong><br><small style="color:#64748b;">${r.email}</small></td>
+                <td>${r.court_name}</td>
+                <td>${formatDate(r.date)}</td>
+                <td>${formatTime(r.start_time)} – ${formatTime(r.end_time)}</td>
+                <td style="color:#dc2626; font-weight:600;">${Number(r.total_price).toLocaleString()}</td>
+                <td style="font-size:13px; color:#64748b;">${formatDate(r.created_at)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // ── PENALTIES ──
+    function renderPenalties() {
+      const rows = reportData.penalties;
+      if (!rows.length) {
+        document.getElementById('tablePenalties').innerHTML = '<p style="color:#64748b;">No penalties in this period.</p>';
+        return;
+      }
+      document.getElementById('tablePenalties').innerHTML = `
+        <table>
+          <thead><tr><th>User</th><th>Penalties</th><th>Total Amount (coins)</th><th>Last Penalty</th></tr></thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td><strong>${r.user_name}</strong><br><small style="color:#64748b;">${r.email}</small></td>
+                <td><span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-weight:700;">${r.penalty_count}x</span></td>
+                <td style="font-weight:600; color:#c2410c;">${Number(r.total_penalty_amount).toLocaleString()}</td>
+                <td style="font-size:13px; color:#64748b;">${formatDate(r.last_penalty)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // ── TOP USERS ──
+    function renderTopUsers() {
+      const rows = reportData.top_users;
+      if (!rows.length) {
+        document.getElementById('tableTopUsers').innerHTML = '<p style="color:#64748b;">No data for this period.</p>';
+        return;
+      }
+      document.getElementById('tableTopUsers').innerHTML = `
+        <table>
+          <thead><tr><th>Rank</th><th>User</th><th>Bookings</th><th>Total Spent (coins)</th></tr></thead>
+          <tbody>
+            ${rows.map((r, i) => `
+              <tr>
+                <td style="font-weight:700; color:#64748b;">#${i + 1}</td>
+                <td><strong>${r.name}</strong><br><small style="color:#64748b;">${r.email}</small></td>
+                <td>${r.total_bookings}</td>
+                <td style="font-weight:700; color:#6366f1;">${Number(r.total_spent).toLocaleString()}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    // ── CSV EXPORT ──
+    function toCSV(headers, rows) {
+      const escape = v => {
+        const s = String(v ?? '').replace(/"/g, '""');
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
+      };
+      return [headers.join(','), ...rows.map(r => r.map(escape).join(','))].join('\n');
+    }
+
+    function downloadCSV(filename, content) {
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCSV(section) {
+      if (!reportData) { showAlert('Please load the report first.', 'error'); return; }
+      const from = reportData.period.from;
+      const to   = reportData.period.to;
+
+      let content, filename;
+
+      switch(section) {
+        case 'revenue_by_date':
+          content = toCSV(
+            ['Date', 'Bookings', 'Revenue (coins)'],
+            reportData.revenue_by_date.map(r => [formatDate(r.date), r.bookings, r.revenue])
+          );
+          filename = `revenue_by_date_${from}_${to}.csv`;
+          break;
+
+        case 'revenue_by_court':
+          content = toCSV(
+            ['Court Name', 'Type', 'Total Bookings', 'Total Revenue (coins)', 'Avg per Booking'],
+            reportData.revenue_by_court.map(r => [r.court_name, r.court_type, r.total_bookings, r.total_revenue, Math.round(r.avg_revenue)])
+          );
+          filename = `revenue_by_court_${from}_${to}.csv`;
+          break;
+
+        case 'booking_status':
+          content = toCSV(
+            ['Status', 'Count', 'Total Value (coins)'],
+            reportData.booking_status.map(r => [r.status, r.count, r.total_value])
+          );
+          filename = `booking_status_${from}_${to}.csv`;
+          break;
+
+        case 'cancellations':
+          content = toCSV(
+            ['Booking ID', 'User Name', 'Email', 'Court', 'Date', 'Start Time', 'End Time', 'Refunded (coins)', 'Cancelled At'],
+            reportData.cancellations.map(r => [r.id, r.user_name, r.email, r.court_name, formatDate(r.date), formatTime(r.start_time), formatTime(r.end_time), r.total_price, formatDate(r.created_at)])
+          );
+          filename = `cancellations_${from}_${to}.csv`;
+          break;
+
+        case 'penalties':
+          content = toCSV(
+            ['User Name', 'Email', 'Penalty Count', 'Total Amount (coins)', 'Last Penalty'],
+            reportData.penalties.map(r => [r.user_name, r.email, r.penalty_count, r.total_penalty_amount, formatDate(r.last_penalty)])
+          );
+          filename = `penalties_${from}_${to}.csv`;
+          break;
+
+        case 'top_users':
+          content = toCSV(
+            ['Rank', 'Name', 'Email', 'Total Bookings', 'Total Spent (coins)'],
+            reportData.top_users.map((r, i) => [i + 1, r.name, r.email, r.total_bookings, r.total_spent])
+          );
+          filename = `top_users_${from}_${to}.csv`;
+          break;
+      }
+
+      downloadCSV(filename, content);
+      showAlert(`Exported ${filename}`, 'success');
+    }
+
+    function exportAllCSV() {
+      if (!reportData) { showAlert('Please load the report first.', 'error'); return; }
+      ['revenue_by_date', 'revenue_by_court', 'booking_status', 'cancellations', 'penalties', 'top_users']
+        .forEach(s => exportCSV(s));
+    }
+
+    // ── HELPERS ──
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return 'N/A';
+      const timePart = timeStr.includes('T') ? timeStr.split('T')[1] : timeStr;
+      const [h, m]   = timePart.split(':');
+      const hour     = parseInt(h);
+      return `${hour % 12 || 12}:${m} ${hour >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    // Auto-load report on page open
+    loadReport();
+  </script>
+</body>
+</html>
