@@ -6,6 +6,7 @@
   <title>User Dashboard - Sport Court Booking</title>
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/alerts.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     /* Alert Container */
     .alert-container {
@@ -202,6 +203,292 @@
       box-shadow: 0 0 0 5px rgba(37,99,235,0.45);
       transform: translateY(-3px) scale(1.04);
     }
+
+    /* ══════════════════════════════════════════════
+       MEMBER ID CARD — ANIMATED TIER SYSTEM
+    ══════════════════════════════════════════════ */
+    .card-scene { display:flex; justify-content:center; margin-bottom:2rem; }
+
+    .mem-card {
+      width:100%; max-width:800px;
+      border-radius:18px; overflow:hidden;
+      animation:memDrop .65s cubic-bezier(.16,1,.3,1) both;
+      position:relative;
+      transform-style:preserve-3d;
+      will-change:transform;
+      cursor:default;
+    }
+    @keyframes memDrop {
+      from{opacity:0;transform:translateY(-18px) rotateX(4deg);}
+      to{opacity:1;transform:translateY(0) rotateX(0);}
+    }
+
+
+
+    /* Animated bar flow */
+    @keyframes barFlow {
+      0%   { background-position:200% center; }
+      100% { background-position:-200% center; }
+    }
+
+    /* ── BRONZE ── */
+    .tier-bronze {
+      background:#0f0d0b;
+      box-shadow:0 2px 8px rgba(0,0,0,.25),0 16px 48px rgba(180,100,30,.14);
+    }
+    .tier-bronze .mem-top-bar {
+      height:4px;
+      background:linear-gradient(90deg,#6b3a1f,#cd7f32 35%,#e8a96a 50%,#cd7f32 65%,#6b3a1f);
+      background-size:200% 100%;
+      animation:barFlow 3s linear infinite;
+    }
+    .tier-bronze .mem-brand   { color:#cd7f32; }
+    .tier-bronze .mem-tier-name { color:#cd7f32; }
+    .tier-bronze .mem-letter  { color:#cd7f32; }
+    .tier-bronze .mem-avatar  { background:#1a120a; border-color:rgba(205,127,50,.4); }
+    .tier-bronze .mem-sv.green{ color:#e8a96a; }
+    .tier-bronze .mem-sep     { background:rgba(205,127,50,.15); }
+    .tier-bronze .mem-next    { background:rgba(205,127,50,.08); border-color:rgba(205,127,50,.2); }
+    .tier-bronze .mem-next-dot{ background:#cd7f32; }
+    .tier-bronze .mem-next-label{ color:rgba(205,127,50,.7); }
+    .tier-bronze .mem-next-val{ color:#e8b07a; }
+    .tier-bronze .mem-footer  { background:#090704; border-top:1px solid rgba(205,127,50,.08); }
+    .tier-bronze .mem-bars span{ background:rgba(205,127,50,.35); }
+    .tier-bronze .mem-right   { background:#f5f0eb; border-left:1px solid rgba(205,127,50,.15); }
+    .tier-bronze .mem-qr-hint { color:#a0846a; }
+    .tier-bronze .mem-qr-id   { color:#6b4c35; }
+    .tier-bronze .tier-progress-fill { background:linear-gradient(90deg,#cd7f32,#e8a96a); }
+    .tier-bronze .mb-role { background:rgba(205,127,50,.15); color:#cd7f32; }
+
+    /* ── SILVER ── */
+    .tier-silver {
+      background:#0c0d10;
+      box-shadow:0 2px 8px rgba(0,0,0,.25),0 16px 48px rgba(160,170,190,.12);
+    }
+    .tier-silver .mem-top-bar {
+      height:4px;
+      background:linear-gradient(90deg,#6b7280,#c0c0c0 35%,#e8e8e8 50%,#c0c0c0 65%,#6b7280);
+      background-size:200% 100%;
+      animation:barFlow 3.5s linear infinite;
+    }
+    .tier-silver .mem-brand   { color:#d1d5db; }
+    .tier-silver .mem-tier-name { color:#d1d5db; }
+    .tier-silver .mem-letter  { color:#d1d5db; }
+    .tier-silver .mem-avatar  { background:#141618; border-color:rgba(209,213,219,.3); }
+    .tier-silver .mem-sv.green{ color:#d1d5db; }
+    .tier-silver .mem-sep     { background:rgba(209,213,219,.1); }
+    .tier-silver .mem-next    { background:rgba(209,213,219,.06); border-color:rgba(209,213,219,.16); }
+    .tier-silver .mem-next-dot{ background:#c0c0c0; animation:silverPulse 2.5s infinite; }
+    @keyframes silverPulse {
+      0%,100%{ box-shadow:0 0 0 2px rgba(192,192,192,.2); }
+      50%    { box-shadow:0 0 0 5px rgba(192,192,192,.06); }
+    }
+    .tier-silver .mem-next-label{ color:rgba(209,213,219,.55); }
+    .tier-silver .mem-next-val{ color:#e2e8f0; }
+    .tier-silver .mem-footer  { background:#080909; border-top:1px solid rgba(209,213,219,.06); }
+    .tier-silver .mem-bars span{ background:rgba(209,213,219,.3); }
+    .tier-silver .mem-right   { background:#f8f9fa; border-left:1px solid rgba(209,213,219,.15); }
+    .tier-silver .mem-qr-hint { color:#94a3b8; }
+    .tier-silver .mem-qr-id   { color:#334155; }
+    .tier-silver .tier-progress-fill { background:linear-gradient(90deg,#9ca3af,#e2e8f0); }
+    .tier-silver .mb-role { background:rgba(209,213,219,.12); color:#d1d5db; }
+
+    /* ── GOLD ── */
+    .tier-gold {
+      background:#0a0900;
+      animation:memDrop .65s cubic-bezier(.16,1,.3,1) both, goldGlow 3s ease-in-out infinite;
+    }
+    @keyframes goldGlow {
+      0%,100%{ box-shadow:0 2px 8px rgba(0,0,0,.3),0 20px 60px rgba(255,200,0,.18); }
+      50%    { box-shadow:0 2px 8px rgba(0,0,0,.3),0 28px 80px rgba(255,200,0,.3),0 0 120px rgba(255,180,0,.1); }
+    }
+    .tier-gold .mem-top-bar {
+      height:4px;
+      background:linear-gradient(90deg,#92660a,#ffd700 30%,#fff4b0 50%,#ffd700 70%,#92660a);
+      background-size:200% 100%;
+      animation:barFlow 2.5s linear infinite;
+    }
+    .tier-gold .mem-brand   { color:#ffd700; }
+    .tier-gold .mem-tier-name { color:#ffd700; }
+    .tier-gold .mem-letter  { color:#ffd700; }
+    .tier-gold .mem-avatar  { background:#181400; border-color:rgba(255,215,0,.45); }
+    .tier-gold .mem-sv.green{ color:#ffd700; }
+    .tier-gold .mem-sep     { background:rgba(255,215,0,.12); }
+    .tier-gold .mem-next    { background:rgba(255,215,0,.07); border-color:rgba(255,215,0,.22); }
+    .tier-gold .mem-next-dot{ background:#ffd700; animation:goldPulse 2s infinite; }
+    @keyframes goldPulse {
+      0%,100%{ box-shadow:0 0 0 2px rgba(255,215,0,.25); }
+      50%    { box-shadow:0 0 0 6px rgba(255,215,0,.08),0 0 12px rgba(255,215,0,.3); }
+    }
+    .tier-gold .mem-next-label{ color:rgba(255,215,0,.65); }
+    .tier-gold .mem-next-val{ color:#fef3c7; }
+    .tier-gold .mem-footer  { background:#060500; border-top:1px solid rgba(255,215,0,.08); }
+    .tier-gold .mem-bars span{ background:rgba(255,215,0,.4); }
+    .tier-gold .mem-right   { background:#fffbeb; border-left:1px solid rgba(255,215,0,.2); }
+    .tier-gold .mem-qr-hint { color:#a07820; }
+    .tier-gold .mem-qr-id   { color:#78560a; }
+    .tier-gold .tier-progress-fill {
+      background:linear-gradient(90deg,#b8860b,#ffd700,#fff4b0);
+      background-size:200% 100%; animation:barFlow 2s linear infinite;
+    }
+    .tier-gold .mb-role { background:rgba(255,215,0,.12); color:#ffd700; }
+
+    /* ── PLATINUM ── */
+    .tier-platinum {
+      background:#030710;
+      animation:memDrop .65s cubic-bezier(.16,1,.3,1) both, platGlow 4s ease-in-out infinite;
+    }
+    @keyframes platGlow {
+      0%,100%{ box-shadow:0 2px 8px rgba(0,0,0,.4),0 24px 72px rgba(100,200,255,.18); }
+      50%    { box-shadow:0 2px 8px rgba(0,0,0,.4),0 32px 96px rgba(100,200,255,.32),0 0 160px rgba(80,180,255,.14); }
+    }
+    .tier-platinum .mem-top-bar {
+      height:4px;
+      background:linear-gradient(90deg,#0369a1,#7dd3fc 30%,#e0f2fe 50%,#7dd3fc 70%,#0369a1);
+      background-size:200% 100%;
+      animation:barFlow 2s linear infinite;
+    }
+    .tier-platinum .mem-brand   { color:#7dd3fc; }
+    .tier-platinum .mem-tier-name { color:#7dd3fc; }
+    .tier-platinum .mem-letter  { color:#7dd3fc; }
+    .tier-platinum .mem-avatar  { background:#0a1220; border-color:rgba(125,211,252,.45); }
+    .tier-platinum .mem-sv.green{ color:#7dd3fc; }
+    .tier-platinum .mem-sep     { background:rgba(125,211,252,.12); }
+    .tier-platinum .mem-next    { background:rgba(125,211,252,.07); border-color:rgba(125,211,252,.22); }
+    .tier-platinum .mem-next-dot{ background:#7dd3fc; animation:platPulse 1.8s infinite; }
+    @keyframes platPulse {
+      0%,100%{ box-shadow:0 0 0 2px rgba(125,211,252,.25),0 0 6px rgba(125,211,252,.2); }
+      50%    { box-shadow:0 0 0 6px rgba(125,211,252,.08),0 0 20px rgba(125,211,252,.4); }
+    }
+    .tier-platinum .mem-next-label{ color:rgba(125,211,252,.6); }
+    .tier-platinum .mem-next-val{ color:#bae6fd; }
+    .tier-platinum .mem-footer  { background:#020610; border-top:1px solid rgba(125,211,252,.08); }
+    .tier-platinum .mem-bars span{ background:rgba(125,211,252,.4); }
+    .tier-platinum .mem-right   { background:#f0f9ff; border-left:1px solid rgba(125,211,252,.2); }
+    .tier-platinum .mem-qr-hint { color:#0369a1; }
+    .tier-platinum .mem-qr-id   { color:#0c4a6e; }
+    .tier-platinum .tier-progress-fill {
+      background:linear-gradient(90deg,#0369a1,#7dd3fc,#e0f2fe);
+      background-size:200% 100%; animation:barFlow 1.5s linear infinite;
+    }
+    .tier-platinum .mb-role { background:rgba(125,211,252,.12); color:#7dd3fc; }
+    /* Floating particles for platinum */
+    .tier-platinum .mem-left { position:relative; overflow:hidden; }
+    .plat-particle {
+      position:absolute; border-radius:50%;
+      background:rgba(125,211,252,.12);
+      animation:floatUp linear infinite;
+      pointer-events:none; z-index:0;
+    }
+    @keyframes floatUp {
+      0%  { transform:translateY(120%) scale(0); opacity:0; }
+      10% { opacity:1; }
+      90% { opacity:.3; }
+      100%{ transform:translateY(-120%) scale(1); opacity:0; }
+    }
+
+    /* ── Shared card structure ── */
+    .mem-body { display:flex; }
+    .mem-left {
+      flex:1; min-width:0;
+      padding:26px 30px 22px;
+      display:flex; flex-direction:column; gap:16px;
+      border-right:1px solid rgba(255,255,255,.06);
+    }
+    .mem-header { display:flex; align-items:center; justify-content:space-between; }
+    .mem-brand {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:1.2rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+    }
+    .mem-type-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+    .mem-type {
+      font-size:.58rem; font-weight:600; letter-spacing:.16em;
+      text-transform:uppercase; color:rgba(255,255,255,.2);
+      border:1px solid rgba(255,255,255,.1); padding:2px 8px; border-radius:4px;
+    }
+    .mem-tier-name {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:.7rem; font-weight:800; letter-spacing:.14em;
+      text-transform:uppercase; text-align:right;
+    }
+    .mem-identity { display:flex; align-items:center; gap:16px; }
+    .mem-avatar {
+      width:64px; height:64px; border-radius:12px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      border-width:1.5px; border-style:solid;
+    }
+    .mem-letter {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:2.3rem; font-weight:800; line-height:1;
+    }
+    .mem-name {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:2rem; font-weight:800;
+      text-transform:uppercase; letter-spacing:.06em;
+      color:#fff; line-height:1; margin-bottom:4px;
+    }
+    .mem-email { font-size:.73rem; color:rgba(255,255,255,.32); margin-bottom:8px; }
+    .mem-badges { display:flex; gap:5px; flex-wrap:wrap; }
+    .mem-badge {
+      font-size:.58rem; font-weight:700;
+      letter-spacing:.12em; text-transform:uppercase;
+      padding:2px 8px; border-radius:4px;
+    }
+    .mb-active  { background:rgba(74,222,128,.1); color:#4ade80; }
+    .mb-id      { background:rgba(255,255,255,.06); color:rgba(255,255,255,.36); font-family:monospace; letter-spacing:.06em; }
+    .mb-penalty { background:rgba(239,68,68,.15); color:#f87171; }
+    .mem-sep { height:1px; }
+    .mem-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+    .mem-sl {
+      font-size:.58rem; font-weight:500; letter-spacing:.12em;
+      text-transform:uppercase; color:rgba(255,255,255,.26); margin-bottom:5px;
+    }
+    .mem-sv {
+      font-family:'Barlow Condensed',sans-serif;
+      font-size:1.25rem; font-weight:700; color:#fff; line-height:1;
+    }
+    .mem-sv.red { color:#f87171; }
+    .mem-next {
+      display:flex; align-items:center; gap:8px;
+      border-radius:8px; padding:9px 12px;
+    }
+    .mem-next-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .mem-next-label { font-size:.58rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
+    .mem-next-val { font-size:.78rem; font-weight:600; margin-left:auto; }
+    .mem-next-none { color:rgba(255,255,255,.22); }
+    .mem-right {
+      width:188px; flex-shrink:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:10px; padding:22px 18px;
+    }
+    .mem-qr-box {
+      width:142px; height:142px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:8px; overflow:hidden; background:#fff;
+    }
+    .mem-qr-box canvas, .mem-qr-box img { width:138px!important; height:138px!important; }
+    .mem-qr-hint { font-size:.58rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; text-align:center; }
+    .mem-qr-id   { font-size:.65rem; font-weight:600; letter-spacing:.08em; text-align:center; font-family:monospace; }
+    .tier-progress-wrap { display:flex; align-items:center; gap:10px; }
+    .tier-progress-bar {
+      flex:1; height:3px; background:rgba(255,255,255,.07); border-radius:2px; overflow:hidden;
+    }
+    .tier-progress-fill { height:100%; border-radius:2px; transition:width 1.2s cubic-bezier(.16,1,.3,1); }
+    .tier-progress-label { font-size:.58rem; color:rgba(255,255,255,.25); white-space:nowrap; letter-spacing:.04em; }
+    .mem-footer {
+      padding:10px 30px; display:flex; align-items:center; gap:14px;
+    }
+    .mem-bars { display:flex; gap:1.5px; align-items:center; }
+    .mem-bars span { display:block; width:1.5px; border-radius:1px; }
+    .mem-bc  { font-family:monospace; font-size:.56rem; color:rgba(255,255,255,.15); letter-spacing:.07em; }
+    .mem-iss { margin-left:auto; font-size:.56rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.15); }
+    @media(max-width:600px){
+      .mem-body{flex-direction:column;}
+      .mem-right{width:100%;flex-direction:row;justify-content:flex-start;padding:14px 20px;gap:14px;}
+      .mem-stats{grid-template-columns:repeat(3,1fr);}
+    }
+    /* ═════════════════════════════════════════ */
   </style>
 </head>
 <body>
@@ -254,7 +541,113 @@
       <p>Manage your court bookings and view your account</p>
     </div>
 
-    <!-- Stats Grid -->
+    <!-- ══ MEMBER ID CARD ══ -->
+    <div class="card-scene">
+      <div class="mem-card tier-bronze" id="memCard">
+        <div class="mem-top-bar"></div>
+        <div class="mem-body">
+
+          <!-- Left -->
+          <div class="mem-left">
+            <div class="mem-header">
+              <span class="mem-brand">SportCourt</span>
+              <div class="mem-type-wrap">
+                <span class="mem-type">Member Card</span>
+                <span class="mem-tier-name" id="mcTierName">Bronze</span>
+              </div>
+            </div>
+
+            <div class="mem-identity">
+              <div class="mem-avatar"><span class="mem-letter" id="mcLetter">U</span></div>
+              <div>
+                <div class="mem-name" id="mcName">—</div>
+                <div class="mem-email" id="mcEmail">—</div>
+                <div class="mem-badges">
+                  <span class="mem-badge mb-role">Member</span>
+                  <span class="mem-badge mb-active">Active</span>
+                  <span class="mem-badge mb-id" id="mcId">ID #—</span>
+                  <span class="mem-badge" id="mcTierBadge" style="display:none;"></span>
+                  <span class="mem-badge mb-penalty" id="mcPenaltyBadge" style="display:none;">⚠ Penalty</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mem-sep"></div>
+
+            <div class="mem-stats">
+              <div>
+                <div class="mem-sl">Spent</div>
+                <div class="mem-sv green" id="mcSpent">—</div>
+              </div>
+              <div>
+                <div class="mem-sl">Balance</div>
+                <div class="mem-sv" id="mcBalance">—</div>
+              </div>
+              <div>
+                <div class="mem-sl">Bookings</div>
+                <div class="mem-sv" id="mcBookings">—</div>
+              </div>
+              <div>
+                <div class="mem-sl">No-shows</div>
+                <div class="mem-sv" id="mcNoshow">—</div>
+              </div>
+              <div>
+                <div class="mem-sl">Since</div>
+                <div class="mem-sv" id="mcSince">—</div>
+              </div>
+            </div>
+
+            <!-- Tier progress -->
+            <div class="tier-progress-wrap">
+              <div class="tier-progress-bar">
+                <div class="tier-progress-fill" id="mcProgressFill" style="width:0%"></div>
+              </div>
+              <span class="tier-progress-label" id="mcProgressLabel">Loading…</span>
+            </div>
+            <!-- Next booking -->
+            <div class="mem-next" id="mcNext">
+              <div class="mem-next-dot"></div>
+              <span class="mem-next-label">Next booking</span>
+              <span class="mem-next-val" id="mcNextVal"><span class="mem-next-none">None upcoming</span></span>
+            </div>
+          </div>
+
+          <!-- Right — QR -->
+          <div class="mem-right">
+            <div class="mem-qr-box" id="mcQrBox"></div>
+            <div class="mem-qr-hint">Scan to verify</div>
+            <div class="mem-qr-id" id="mcQrId">SC-———</div>
+            <button id="tierRevealBtn" onclick="openTierRevealPage()" style="
+              margin-top:12px;
+              width:100%;
+              padding:10px 0;
+              border:none;
+              border-radius:8px;
+              font-size:.7rem;
+              font-weight:800;
+              letter-spacing:.1em;
+              text-transform:uppercase;
+              cursor:pointer;
+              background:linear-gradient(135deg,#cd7f32,#e8a96a);
+              color:#0f0d0b;
+              box-shadow:0 3px 10px rgba(205,127,50,.35);
+              transition:opacity .2s, transform .2s;
+            " onmouseover="this.style.opacity='.85';this.style.transform='translateY(-1px)'"
+               onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
+              ✦ My Tier Card
+            </button>
+          </div>
+
+        </div>
+        <div class="mem-footer">
+          <div class="mem-bars" id="mcBars"></div>
+          <span class="mem-bc" id="mcBc">SC-0000000</span>
+          <span class="mem-iss" id="mcIss">Issued 2026</span>
+        </div>
+      </div>
+    </div>
+
+        <!-- Stats Grid -->
     <div class="stats-grid">
       <div class="stat-card">
         <h3>Coin Balance</h3>
@@ -456,221 +849,864 @@
   <script>
     checkAuth();
 
+    // ── Tier config ─────────────────────────────────────────
+    const TIERS = [
+      { name:'Platinum', cls:'tier-platinum', min:50000, next:null,  color:'#7dd3fc' },
+      { name:'Gold',     cls:'tier-gold',     min:20000, next:50000, color:'#ffd700' },
+      { name:'Silver',   cls:'tier-silver',   min:5000,  next:20000, color:'#d1d5db' },
+      { name:'Bronze',   cls:'tier-bronze',   min:0,     next:5000,  color:'#cd7f32' },
+    ];
+    function getTier(spent) { return TIERS.find(t => spent >= t.min) || TIERS[TIERS.length-1]; }
+
+    // ── Count-up animation ───────────────────────────────────
+    function countUp(elId, target, formatter) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const dur=1000, steps=40, inc=target/steps;
+      let cur=0, step=0;
+      const fn = formatter || (v => Math.round(v).toLocaleString());
+      const t = setInterval(() => {
+        step++; cur = Math.min(inc*step, target);
+        el.textContent = fn(cur);
+        if (step>=steps) { clearInterval(t); el.textContent = fn(target); }
+      }, dur/steps);
+    }
+
     async function loadDashboard() {
       try {
-        // Load user info
-        const user = await apiFetch("/users/me", {
-          headers: authHeader()
+        const user    = await apiFetch('/users/me', { headers: authHeader() });
+        const name    = user.name || user.email.split('@')[0];
+        const email   = user.email || '';
+        const uid     = user.id   || 0;
+        const balance = user.coin_balance || 0;
+        const penalty = user.penalty || 0;
+
+        document.getElementById('userName').textContent    = name;
+        document.getElementById('coinBalance').textContent = balance;
+
+        // ── Bookings ────────────────────────────────────────
+        const bookings = await apiFetch('/bookings/my-bookings', { headers: authHeader() });
+        const now = new Date(); now.setHours(0,0,0,0);
+        const active = bookings.filter(b => {
+          const bd = new Date(b.date); bd.setHours(0,0,0,0);
+          return (b.status==='confirmed'||b.status==='booked') && bd>=now;
         });
-        
-        document.getElementById("userName").textContent = user.email.split('@')[0];
-        document.getElementById("coinBalance").textContent = user.coin_balance || 0;
+        const completed = bookings.filter(b => b.status==='completed');
+        const noShows   = bookings.filter(b => b.status==='no_show').length;
+        const totalSpent = completed.reduce((s,b) => s+(b.total_price||0), 0);
 
-        // Load bookings
-        const bookings = await apiFetch("/bookings/my-bookings", {
-          headers: authHeader()
-        });
+        document.getElementById('activeBookings').textContent = active.length;
+        document.getElementById('totalBookings').textContent  = bookings.length;
 
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-        
-        const activeBookings = bookings.filter(b => {
-          const bookingDate = new Date(b.date);
-          bookingDate.setHours(0, 0, 0, 0);
-          return (b.status === 'confirmed' || b.status === 'booked') && bookingDate >= now;
-        });
-        
-        document.getElementById("activeBookings").textContent = activeBookings.length;
-        document.getElementById("totalBookings").textContent = bookings.length;
+        // ── Apply tier ───────────────────────────────────────
+        const tier = getTier(totalSpent);
+        const card = document.getElementById('memCard');
+        card.className = 'mem-card ' + tier.cls;
 
-        displayUpcomingBookings(activeBookings.slice(0, 5));
+        // ── One-time reveal — store data, don't auto-show ────
+        window._tierRevealData = { tier, user, totalSpent, bookings: bookings.length, completed: completed.length };
+        // Update the tier reveal button color to match tier
+        updateTierRevealBtn(tier);
 
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        document.getElementById("favoriteCourts").textContent = favorites.length;
-
-      } catch(err) {
-        console.error("Dashboard load error:", err);
-      }
-    }
-
-    function displayUpcomingBookings(bookings) {
-      const container = document.getElementById("upcomingBookings");
-      
-      if (bookings.length === 0) {
-        container.innerHTML = '<p>No upcoming bookings. <a href="courts.html">Book a court now!</a></p>';
-        return;
-      }
-
-      container.innerHTML = bookings.map(b => `
-        <div class="card" style="border-left: 4px solid #2563eb;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <h4>${b.court_name}</h4>
-              <p><strong>Date:</strong> ${formatDate(b.date)}</p>
-              <p><strong>Time:</strong> ${formatTime(b.start_time)} - ${formatTime(b.end_time)}</p>
-              <p><strong>Status:</strong> <span style="color: ${b.status === 'booked' ? '#f59e0b' : '#16a34a'}; font-weight: bold;">${b.status.toUpperCase()}</span></p>
-            </div>
-            <div>
-              <button onclick="location.href='bookings.html'" class="secondary">View Details</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function showTopUpModal() {
-      document.getElementById("topUpModal").style.display = "block";
-    }
-
-    function closeTopUpModal() {
-      closeTopUpConfirm && closeTopUpConfirm();
-      const modal = document.getElementById("topUpModal");
-      modal.style.animation = "fadeOut 0.3s ease-out";
-      setTimeout(() => {
-        modal.style.display = "none";
-        modal.style.animation = "";
-      }, 300);
-    }
-
-    function showProcessing() {
-      document.getElementById("processingOverlay").style.display = "flex";
-    }
-
-    function hideProcessing() {
-      const overlay = document.getElementById("processingOverlay");
-      overlay.style.animation = "fadeOut 0.3s ease-out";
-      setTimeout(() => {
-        overlay.style.display = "none";
-        overlay.style.animation = "";
-      }, 300);
-    }
-
-    function showAlert(message, type = 'info') {
-      const container = document.getElementById("alertContainer");
-      const alert = document.createElement('div');
-      alert.className = `alert alert-${type}`;
-      alert.textContent = message;
-      
-      container.appendChild(alert);
-      
-      // Auto remove after 4 seconds
-      setTimeout(() => {
-        alert.style.animation = "slideOut 0.3s ease-out";
-        setTimeout(() => alert.remove(), 300);
-      }, 4000);
-    }
-
-    function animateCoinBalance(newBalance) {
-      const balanceElement = document.getElementById("coinBalance");
-      const currentBalance = parseInt(balanceElement.textContent);
-      
-      balanceElement.classList.add("coin-balance-update");
-      
-      const duration = 800;
-      const steps = 30;
-      const increment = (newBalance - currentBalance) / steps;
-      let current = currentBalance;
-      let step = 0;
-      
-      const timer = setInterval(() => {
-        step++;
-        current += increment;
-        balanceElement.textContent = Math.round(current);
-        
-        if (step >= steps) {
-          clearInterval(timer);
-          balanceElement.textContent = newBalance;
-          setTimeout(() => {
-            balanceElement.classList.remove("coin-balance-update");
-          }, 600);
+        // ── ID Card static fields ────────────────────────────
+        const memberId = String(uid).padStart(7,'0');
+        const scCode   = 'SC-' + memberId;
+        document.getElementById('mcLetter').textContent   = name.charAt(0).toUpperCase();
+        document.getElementById('mcName').textContent     = name.toUpperCase();
+        document.getElementById('mcEmail').textContent    = email;
+        document.getElementById('mcId').textContent       = 'ID #' + memberId;
+        document.getElementById('mcTierName').textContent = tier.name;
+        document.getElementById('mcQrId').textContent     = scCode;
+        document.getElementById('mcBc').textContent       = scCode;
+        if (penalty > 0) document.getElementById('mcPenaltyBadge').style.display='';
+        if (user.created_at) {
+          const d = new Date(user.created_at);
+          document.getElementById('mcSince').textContent = d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+          document.getElementById('mcIss').textContent   = 'Issued '+d.getFullYear();
         }
-      }, duration / steps);
-    }
+        const noShowEl = document.getElementById('mcNoshow');
+        noShowEl.className = 'mem-sv'+(noShows>0?' red':'');
 
-    async function topUp(amount, price) {
-      try {
-        closeTopUpModal();
-        setTimeout(() => showProcessing(), 300);
-        
-        // Simulate realistic payment processing time
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        const data = await apiFetch("/users/topup", {
-          method: "POST",
-          headers: authHeader(),
-          body: JSON.stringify({ amount })
-        });
+        // ── Tier progress bar ────────────────────────────────
+        const fill  = document.getElementById('mcProgressFill');
+        const label = document.getElementById('mcProgressLabel');
+        if (tier.next === null) {
+          setTimeout(() => { fill.style.width='100%'; fill.style.background=tier.color; }, 400);
+          label.textContent = '★ Maximum tier reached';
+          label.style.color = tier.color;
+        } else {
+          const pct = Math.min(100,((totalSpent-tier.min)/(tier.next-tier.min))*100);
+          setTimeout(() => { fill.style.width=pct+'%'; fill.style.background=tier.color; }, 400);
+          const nextTier = TIERS.find(t=>t.min===tier.next);
+          label.textContent = (tier.next-totalSpent).toLocaleString()+' coins to '+(nextTier?nextTier.name:'next tier');
+        }
 
-        hideProcessing();
-        
+        // ── QR code ──────────────────────────────────────────
+        document.getElementById('mcQrBox').innerHTML='';
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(document.getElementById('mcQrBox'),{
+            text:'SPORTCOURT:MEMBER:'+scCode+':'+email,
+            width:138,height:138,colorDark:'#0a0f14',colorLight:'#ffffff',
+            correctLevel:QRCode.CorrectLevel.M
+          });
+        }
+
+        // ── Barcode bars ─────────────────────────────────────
+        const bars=document.getElementById('mcBars');
+        if (bars) {
+          const h=[18,26,14,22,30,16,24,12,20,28,18,30,14,22,20,16,28];
+          bars.innerHTML=h.map((v,i)=>`<span style="height:${v+(uid*3+i*7)%10}px"></span>`).join('');
+        }
+
+        // ── Count-up animations (delayed so card is visible) ─
         setTimeout(() => {
-          showAlert(`Successfully added ${amount} coins to your account!`, 'success');
-          animateCoinBalance(data.coin_balance);
-        }, 400);
-        
-      } catch(err) {
-        hideProcessing();
-        setTimeout(() => {
-          showAlert('❌ Payment failed. Please try again or contact support.', 'error');
-        }, 400);
-      }
+          countUp('mcSpent',   totalSpent, v => Math.round(v).toLocaleString()+' coins');
+          countUp('mcBalance', balance,    v => Math.round(v).toLocaleString());
+          countUp('mcBookings',bookings.length);
+          countUp('mcNoshow',  noShows);
+        }, 350);
+
+        // ── Next booking ─────────────────────────────────────
+        active.sort((a,b)=>new Date(a.date)-new Date(b.date));
+        const nextEl=document.getElementById('mcNextVal');
+        if (active.length>0) {
+          const nb=active[0];
+          const fmt=t=>{let h,m;if(typeof t==='number'){h=Math.floor(t/3600);m=Math.floor((t%3600)/60);}else{[h,m]=String(t).split(':').map(Number);}return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;};
+          const ds=new Date(nb.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+          nextEl.textContent=ds+' · '+fmt(nb.start_time)+' · '+(nb.court_name||'Court');
+          nextEl.className='mem-next-val';
+        }
+
+        // ── Platinum particles ───────────────────────────────
+        if (tier.cls==='tier-platinum') {
+          const leftPanel=document.querySelector('.tier-platinum .mem-left');
+          if (leftPanel) {
+            for(let i=0;i<8;i++) {
+              const p=document.createElement('div');
+              p.className='plat-particle';
+              const sz=Math.random()*5+3;
+              p.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*85+5}%;bottom:${Math.random()*20}%;animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*4}s`;
+              leftPanel.appendChild(p);
+            }
+          }
+        }
+
+        displayUpcomingBookings(active.slice(0,5));
+        const favorites=JSON.parse(localStorage.getItem('favorites')||'[]');
+        document.getElementById('favoriteCourts').textContent=favorites.length;
+
+      } catch(err) { console.error('Dashboard error:',err); }
     }
 
-    // ── Top-up confirm step ──
-    let _pendingTopUp = null;
-
-    function topUpPreset(amount, price) {
-      _pendingTopUp = { amount, price };
-
-      // Populate confirm overlay
-      document.getElementById('confirmTitle').textContent = `Add ${amount} Coins`;
-      document.getElementById('confirmSub').textContent = 'You are about to purchase';
-      document.getElementById('confirmPriceTag').textContent = `+${amount} coins — $${price}`;
-
-      // Show overlay
-      document.getElementById('topupConfirmOverlay').classList.add('show');
-    }
-
-    // Confirm & Pay button handler — defined once, always reads _pendingTopUp
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('confirmGoBtn').addEventListener('click', function() {
-        if (!_pendingTopUp) return;
-        const { amount, price } = _pendingTopUp;
-        closeTopUpConfirm();
-        topUp(amount, price);
+    // ── 3D hover tilt ────────────────────────────────────────
+    (function(){
+      const card=document.getElementById('memCard');
+      if(!card) return;
+      const MAX=5;
+      card.addEventListener('mousemove',e=>{
+        const r=card.getBoundingClientRect();
+        const x=(e.clientX-r.left)/r.width-.5;
+        const y=(e.clientY-r.top)/r.height-.5;
+        card.style.transform=`perspective(1200px) rotateY(${x*MAX}deg) rotateX(${-y*MAX}deg) scale(1.015)`;
+        card.style.transition='transform .08s ease-out';
       });
-    });
-
-    function closeTopUpConfirm() {
-      document.getElementById('topupConfirmOverlay').classList.remove('show');
-      document.querySelectorAll('.topup-btn').forEach(b => b.classList.remove('selected'));
-      _pendingTopUp = null;
-    }
+      card.addEventListener('mouseleave',()=>{
+        card.style.transform='perspective(1200px) rotateY(0) rotateX(0) scale(1)';
+        card.style.transition='transform .55s cubic-bezier(.16,1,.3,1)';
+      });
+    })();
 
 
+    // ── PREMIUM TIER REVEAL ───────────────────────────────────
+    const TIER_THEMES = {
+      'tier-bronze': {
+        bar:     'linear-gradient(90deg,#3d1f08,#cd7f32,#f0c070,#e8a96a,#cd7f32,#3d1f08)',
+        accent:  '#cd7f32', bg: '#0f0d0b', btnTxt: '#0f0d0b',
+        glow:    'rgba(205,127,50,.55)',
+        label:   'linear-gradient(90deg,#8b5010,#cd7f32,#f5c060,#cd7f32,#8b5010)',
+        orbs:    ['#cd7f32','#e8a96a','#8b5010'],
+      },
+      'tier-silver': {
+        bar:     'linear-gradient(90deg,#3a3f4a,#c0c0c0,#f0f0f0,#c0c0c0,#3a3f4a)',
+        accent:  '#d1d5db', bg: '#0c0d10', btnTxt: '#0c0d10',
+        glow:    'rgba(192,192,192,.5)',
+        label:   'linear-gradient(90deg,#6b7280,#d1d5db,#ffffff,#d1d5db,#6b7280)',
+        orbs:    ['#c0c0c0','#e8e8e8','#6b7280'],
+      },
+      'tier-gold': {
+        bar:     'linear-gradient(90deg,#5a3a00,#ffd700,#fff4b0,#ffd700,#5a3a00)',
+        accent:  '#ffd700', bg: '#0a0900', btnTxt: '#0a0900',
+        glow:    'rgba(255,215,0,.6)',
+        label:   'linear-gradient(90deg,#92660a,#ffd700,#fff8c0,#ffd700,#92660a)',
+        orbs:    ['#ffd700','#fff4b0','#92660a'],
+      },
+      'tier-platinum': {
+        bar:     'linear-gradient(90deg,#012d50,#7dd3fc,#e0f2fe,#7dd3fc,#012d50)',
+        accent:  '#7dd3fc', bg: '#030710', btnTxt: '#030710',
+        glow:    'rgba(125,211,252,.6)',
+        label:   'linear-gradient(90deg,#0369a1,#7dd3fc,#e0f2fe,#7dd3fc,#0369a1)',
+        orbs:    ['#7dd3fc','#e0f2fe','#0369a1'],
+      },
+    };
 
-    async function topUpCustom() {
-      const amount = parseInt(document.getElementById("customAmountInput").value);
-      if (isNaN(amount) || amount < 10) {
-        showAlert('⚠️ Minimum top up amount is 10 coins', 'info');
-        return;
+    // Animated canvas background (spinning rays)
+    let _bgRAF = null;
+    function startBgCanvas(color) {
+      const canvas = document.getElementById('rvBgCanvas');
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const ctx = canvas.getContext('2d');
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      let angle = 0;
+      const rays = 12;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < rays; i++) {
+          const a = angle + (i / rays) * Math.PI * 2;
+          const len = Math.max(canvas.width, canvas.height) * 1.4;
+          const spread = 0.09;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, len, a - spread, a + spread);
+          ctx.closePath();
+          const alpha = 0.028 + Math.sin(angle * 2 + i) * 0.012;
+          ctx.fillStyle = color.replace('rgba(','').replace(')','').split(',').length === 4
+            ? color.replace(/[\d.]+\)$/, alpha + ')')
+            : `rgba(200,200,200,${alpha})`;
+          ctx.fill();
+        }
+        angle += 0.004;
+        _bgRAF = requestAnimationFrame(draw);
       }
-      const price = (amount * 0.1).toFixed(2);
-      await topUp(amount, price);
+      draw();
+      canvas.classList.add('show');
+    }
+    function stopBgCanvas() {
+      cancelAnimationFrame(_bgRAF);
+      const canvas = document.getElementById('rvBgCanvas');
+      canvas.classList.remove('show');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Close modal when clicking outside
-        // Close modal when clicking outside
-    window.onclick = function(e) {
-      const modal = document.getElementById("topUpModal");
-      if (e.target === modal) closeTopUpModal();
+    // Floating ambient orbs
+    function spawnOrbs(colors) {
+      const container = document.getElementById('rvOrbs');
+      container.innerHTML = '';
+      const count = 5;
+      for (let i = 0; i < count; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'rv-orb';
+        const size = Math.random() * 220 + 120;
+        const color = colors[i % colors.length];
+        const dur   = Math.random() * 8 + 10;
+        const delay = Math.random() * 6;
+        orb.style.cssText = [
+          `width:${size}px`, `height:${size}px`,
+          `left:${Math.random() * 100}%`, `top:${Math.random() * 60 + 20}%`,
+          `background:${color}`,
+          `animation-duration:${dur}s`,
+          `animation-delay:${delay}s`,
+        ].join(';');
+        container.appendChild(orb);
+      }
     }
 
-    formatDate = (d) => new Date(d).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
-    formatTime = (t) => { if(!t) return ''; const [h,m]=t.split(':'); const hr=parseInt(h); return `${hr%12||12}:${m} ${hr>=12?'PM':'AM'}`; };
+    // Burst particles (circles + confetti rectangles)
+    function spawnParticles(color) {
+      const container = document.getElementById('rvParticles');
+      const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+
+      // Circle burst
+      const count = 40;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'rv-particle';
+        const size  = Math.random() * 12 + 3;
+        const angle = (i / count) * Math.PI * 2;
+        const dist  = Math.random() * 280 + 80;
+        const tx    = Math.cos(angle) * dist;
+        const ty    = Math.sin(angle) * dist;
+        const dur   = Math.random() * 700 + 500;
+        const rot   = Math.random() * 360;
+        p.style.cssText = [
+          `width:${size}px`, `height:${size}px`,
+          `border-radius:${Math.random() > .4 ? '50%' : '3px'}`,
+          `left:${cx - size/2}px`, `top:${cy - size/2}px`,
+          `background:${color}`,
+          `--tx:${tx}px`, `--ty:${ty}px`, `--rot:${rot}deg`,
+          `--dur:${dur}ms`,
+          `opacity:0.9`,
+        ].join(';');
+        container.appendChild(p);
+        setTimeout(() => p.remove(), dur + 400);
+      }
+
+      // Confetti rain
+      const confettiColors = [color, '#ffffff', color + 'aa'];
+      for (let i = 0; i < 20; i++) {
+        const c = document.createElement('div');
+        c.className = 'rv-confetti';
+        const cw  = Math.random() * 7 + 4;
+        const ch  = Math.random() * 10 + 6;
+        const dur = Math.random() * 800 + 800;
+        const startX = cx + (Math.random() - .5) * 300;
+        c.style.cssText = [
+          `--cw:${cw}px`, `--ch:${ch}px`,
+          `left:${startX}px`, `top:${cy - 40}px`,
+          `background:${confettiColors[i % confettiColors.length]}`,
+          `--cx:${(Math.random() - .5) * 300}px`,
+          `--cy:${Math.random() * 300 + 80}px`,
+          `--cr:${(Math.random() > .5 ? '' : '-')}${Math.floor(Math.random()*540+180)}deg`,
+          `--cdur:${dur}ms`,
+        ].join(';');
+        container.appendChild(c);
+        setTimeout(() => c.remove(), dur + 300);
+      }
+    }
+
+    // Count-up animation for stat values
+    function countUpEl(el, target, suffix) {
+      const isFloat = String(target).includes('.');
+      const dur = 1000, steps = 36;
+      let step = 0;
+      const t = setInterval(() => {
+        step++;
+        const val = Math.min((target / steps) * step, target);
+        el.textContent = Math.round(val).toLocaleString() + (suffix||'');
+        if (step >= steps) { clearInterval(t); el.textContent = Math.round(target).toLocaleString() + (suffix||''); }
+      }, dur / steps);
+    }
+
+    function showReveal(tier, user, totalSpent, bookings, completed) {
+      const tc   = TIER_THEMES[tier.cls] || TIER_THEMES['tier-bronze'];
+      const name = user.name || user.email.split('@')[0];
+
+      // ── Apply tier colors ─────────────────────────────────
+      const card = document.getElementById('rvCard');
+      card.style.background  = tc.bg;
+      card.style.boxShadow   = `0 0 0 1px rgba(255,255,255,.07), 0 40px 100px rgba(0,0,0,.6)`;
+
+      // CSS var for btn glow
+      card.style.setProperty('--rv-glow', tc.glow);
+
+      document.getElementById('rvTopBar').style.background   = tc.bar;
+      document.getElementById('rvEyebrow').style.color       = tc.accent;
+      document.getElementById('rvAvatar').style.background   = tc.bg;
+      document.getElementById('rvAvatar').style.borderColor  = tc.accent;
+      document.getElementById('rvAvatar').style.boxShadow    = `0 0 0 4px ${tc.glow}, 0 0 20px ${tc.glow}`;
+      document.getElementById('rvLetter').style.color        = tc.accent;
+      document.getElementById('rvLetter').textContent        = name.charAt(0).toUpperCase();
+      document.getElementById('rvName').textContent          = name;
+      document.getElementById('rvBody').style.background     = tc.bg;
+
+      // Shimmer gradient on tier label text
+      const lbl = document.getElementById('rvTierLabel');
+      lbl.textContent = tier.name;
+      lbl.style.backgroundImage = tc.label;
+      lbl.style.webkitTextFillColor = 'transparent';
+      lbl.style.color = tc.accent; // fallback
+
+      document.getElementById('rvTierSub').textContent =
+        'Member since ' + (user.created_at
+          ? new Date(user.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'})
+          : '—');
+
+      // Stat boxes
+      [0,1,2].forEach(i => {
+        const el = document.getElementById('rvStat'+i);
+        el.style.background   = tc.glow.replace(/[\d.]+\)$/, '.07)');
+        el.style.borderColor  = tc.glow.replace(/[\d.]+\)$/, '.25)');
+      });
+
+      // Button
+      const btn = document.getElementById('rvBtn');
+      btn.style.background = tc.accent;
+      btn.style.color      = tc.btnTxt;
+
+      // Glow ring
+      const glow = document.getElementById('rvGlow');
+      glow.style.boxShadow =
+        `0 0 80px 30px ${tc.glow}, 0 0 160px 60px ${tc.glow.replace(/[\d.]+\)$/,'.2)')}`;
+      glow.style.opacity = '1';
+
+      // ── Show overlay ──────────────────────────────────────
+      const overlay = document.getElementById('tierReveal');
+      overlay.style.display  = 'flex';
+      overlay.style.opacity  = '0';
+
+      // Stat placeholders (count up later)
+      document.getElementById('rvSpent').textContent    = '0 coins';
+      document.getElementById('rvBookings').textContent = '0';
+      document.getElementById('rvCompleted').textContent= '0';
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+
+        // Flash
+        const flash = document.getElementById('rvFlash');
+        flash.classList.remove('run');
+        void flash.offsetWidth;
+        flash.classList.add('run');
+
+        // Background rays + orbs
+        startBgCanvas(tc.glow);
+        spawnOrbs(tc.orbs);
+
+        // Card entrance
+        setTimeout(() => {
+          card.classList.add('show');
+
+          // Shine sweep across card
+          setTimeout(() => {
+            const shine = document.getElementById('rvShine');
+            shine.classList.remove('run');
+            void shine.offsetWidth;
+            shine.classList.add('run');
+          }, 400);
+
+          // Particle burst
+          setTimeout(() => spawnParticles(tc.accent), 600);
+
+          // Count-up stats
+          setTimeout(() => {
+            countUpEl(document.getElementById('rvSpent'),    totalSpent, ' coins');
+            countUpEl(document.getElementById('rvBookings'), bookings,   '');
+            countUpEl(document.getElementById('rvCompleted'),completed,  '');
+          }, 900);
+
+          // Show skip
+          setTimeout(() => {
+            document.getElementById('rvSkip').classList.add('show');
+          }, 1200);
+        }, 250);
+      }));
+    }
+
+    function closeReveal() {
+      const overlay = document.getElementById('tierReveal');
+      const card    = document.getElementById('rvCard');
+      overlay.style.opacity = '0';
+      stopBgCanvas();
+      document.getElementById('rvOrbs').innerHTML = '';
+      document.getElementById('rvSkip').classList.remove('show');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        card.classList.remove('show');
+      }, 650);
+    }
+
+
+    // ── Update the tier button gradient to match current tier ─
+    function updateTierRevealBtn(tier) {
+      const btn = document.getElementById('tierRevealBtn');
+      if (!btn) return;
+      const gradients = {
+        'tier-bronze':   { bg:'linear-gradient(135deg,#cd7f32,#e8a96a)', color:'#0f0d0b', shadow:'rgba(205,127,50,.35)' },
+        'tier-silver':   { bg:'linear-gradient(135deg,#9ca3af,#e2e8f0)', color:'#0c0d10', shadow:'rgba(192,192,192,.35)' },
+        'tier-gold':     { bg:'linear-gradient(135deg,#b8860b,#ffd700)',  color:'#0a0900', shadow:'rgba(255,215,0,.4)'   },
+        'tier-platinum': { bg:'linear-gradient(135deg,#0369a1,#7dd3fc)',  color:'#030710', shadow:'rgba(125,211,252,.4)' },
+      };
+      const g = gradients[tier.cls] || gradients['tier-bronze'];
+      btn.style.background  = g.bg;
+      btn.style.color       = g.color;
+      btn.style.boxShadow   = `0 3px 10px ${g.shadow}`;
+    }
+
+    // ── Open the full-page tier reveal ───────────────────────
+    function openTierRevealPage() {
+      const d = window._tierRevealData;
+      if (!d) return;
+
+      // Show the overlay as a full page
+      showReveal(d.tier, d.user, d.totalSpent, d.bookings, d.completed);
+
+      // Swap the "View My Dashboard →" button to a back button
+      const rvBtn = document.getElementById('rvBtn');
+      rvBtn.textContent = '← Back to Dashboard';
+      rvBtn.onclick = closeReveal;
+
+      // Also swap the skip link
+      const skip = document.getElementById('rvSkip');
+      skip.textContent = 'Close';
+    }
 
     loadDashboard();
     loadNotifications();
   </script>
+  <!-- ══ TIER REVEAL OVERLAY ══ -->
+  <div id="tierReveal" style="display:none;position:fixed;inset:0;z-index:99999;background:#000;align-items:center;justify-content:center;flex-direction:column;">
+  <style>
+    /* ── Base overlay ── */
+    #tierReveal { transition: opacity .7s ease; overflow: hidden; }
+
+    /* ── Animated radial bg rays ── */
+    #rvBgCanvas {
+      position: fixed; inset: 0; pointer-events: none;
+      opacity: 0; transition: opacity 1s ease;
+    }
+    #rvBgCanvas.show { opacity: 1; }
+
+    /* ── Floating ambient orbs ── */
+    .rv-orb {
+      position: fixed; border-radius: 50%; pointer-events: none;
+      filter: blur(60px); opacity: 0;
+      animation: rvOrbFloat linear infinite;
+    }
+    @keyframes rvOrbFloat {
+      0%   { transform: translateY(0) scale(1);   opacity: 0; }
+      15%  { opacity: .18; }
+      85%  { opacity: .12; }
+      100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
+    }
+
+    /* ── Card wrapper ── */
+    .rv-card {
+      position: relative;
+      width: min(560px, 92vw);
+      border-radius: 24px; overflow: hidden;
+      transform: scale(0.78) translateY(50px) rotateX(8deg);
+      opacity: 0;
+      transition: transform .9s cubic-bezier(.16,1,.3,1), opacity .7s ease;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+    .rv-card.show {
+      transform: scale(1) translateY(0) rotateX(0);
+      opacity: 1;
+    }
+
+    /* ── Holographic top bar ── */
+    .rv-top {
+      height: 6px;
+      background-size: 300% 100%;
+      animation: rvBarShimmer 2s linear infinite;
+    }
+    @keyframes rvBarShimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+
+    /* ── Shine sweep across card ── */
+    .rv-shine {
+      position: absolute; inset: 0; pointer-events: none; z-index: 10;
+      background: linear-gradient(105deg,
+        transparent 30%,
+        rgba(255,255,255,.13) 50%,
+        transparent 70%);
+      background-size: 250% 100%;
+      background-position: 200% 0;
+      border-radius: 24px;
+      animation: rvShineSweep 1.2s cubic-bezier(.4,0,.2,1) forwards;
+      animation-play-state: paused;
+    }
+    .rv-shine.run { animation-play-state: running; }
+    @keyframes rvShineSweep {
+      0%   { background-position: 200% 0; opacity: 1; }
+      100% { background-position: -80% 0; opacity: 0; }
+    }
+
+    /* ── Body ── */
+    .rv-body { padding: 40px 38px 34px; position: relative; }
+
+    /* ── Eyebrow ── */
+    .rv-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: .66rem; font-weight: 800; letter-spacing: .22em;
+      text-transform: uppercase; margin-bottom: 22px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    .rv-card.show .rv-eyebrow { opacity: .55; transform: translateY(0); transition-delay: .15s; }
+
+    /* ── Avatar ── */
+    .rv-avatar {
+      width: 88px; height: 88px; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      border-width: 2px; border-style: solid; margin-bottom: 18px;
+      opacity: 0; transform: scale(.7) rotate(-6deg);
+      transition: opacity .55s cubic-bezier(.16,1,.3,1), transform .55s cubic-bezier(.16,1,.3,1);
+      box-shadow: 0 0 0 0 transparent;
+    }
+    .rv-card.show .rv-avatar {
+      opacity: 1; transform: scale(1) rotate(0);
+      transition-delay: .28s;
+    }
+    .rv-letter {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 3rem; font-weight: 800; line-height: 1;
+    }
+
+    /* ── Name ── */
+    .rv-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.5rem; font-weight: 700; color: #fff;
+      letter-spacing: .06em; text-transform: uppercase;
+      opacity: 0; transform: translateX(-12px);
+      transition: opacity .45s ease, transform .45s ease;
+    }
+    .rv-card.show .rv-name { opacity: 1; transform: translateX(0); transition-delay: .38s; }
+
+    /* ── Tier label with shimmer text ── */
+    .rv-tier-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 4.8rem; font-weight: 900; letter-spacing: .04em;
+      text-transform: uppercase; line-height: 1; margin-bottom: 4px;
+      opacity: 0; transform: translateX(-16px);
+      transition: opacity .5s ease, transform .5s cubic-bezier(.16,1,.3,1);
+      background-clip: text; -webkit-background-clip: text;
+      background-size: 200% auto;
+      animation: rvLabelShimmer 3s linear infinite;
+      animation-play-state: paused;
+    }
+    .rv-card.show .rv-tier-label {
+      opacity: 1; transform: translateX(0);
+      transition-delay: .42s;
+      animation-play-state: running;
+    }
+    @keyframes rvLabelShimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+
+    /* ── Sub / since ── */
+    .rv-tier-sub {
+      font-size: .88rem; font-weight: 500;
+      color: rgba(255,255,255,.42); margin-bottom: 24px; letter-spacing: .04em;
+      opacity: 0; transition: opacity .4s ease;
+    }
+    .rv-card.show .rv-tier-sub { opacity: 1; transition-delay: .55s; }
+
+    /* ── Animated divider ── */
+    .rv-divider {
+      height: 1px; margin-bottom: 20px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+      background-size: 200% 100%;
+      opacity: 0; transform: scaleX(0);
+      transform-origin: left;
+      transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
+      animation: rvDividerShimmer 3s linear infinite;
+      animation-play-state: paused;
+    }
+    .rv-card.show .rv-divider {
+      opacity: 1; transform: scaleX(1);
+      transition-delay: .6s;
+      animation-play-state: running;
+    }
+    @keyframes rvDividerShimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Stats ── */
+    .rv-stats { display: flex; gap: 8px; margin-bottom: 22px; }
+    .rv-stat {
+      flex: 1; display: flex; flex-direction: column; gap: 5px;
+      padding: 18px 18px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.08);
+      opacity: 0; transform: translateY(14px);
+      transition: opacity .4s ease, transform .5s cubic-bezier(.16,1,.3,1),
+                  box-shadow .3s ease, border-color .3s ease;
+    }
+    .rv-stat:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    .rv-card.show .rv-stat:nth-child(1) { opacity:1; transform:translateY(0); transition-delay:.68s; }
+    .rv-card.show .rv-stat:nth-child(2) { opacity:1; transform:translateY(0); transition-delay:.76s; }
+    .rv-card.show .rv-stat:nth-child(3) { opacity:1; transform:translateY(0); transition-delay:.84s; }
+    .rv-stat-label {
+      font-size: .65rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: rgba(255,255,255,.38);
+    }
+    .rv-stat-val {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.6rem; font-weight: 700; color: #fff; line-height: 1;
+    }
+
+    /* ── Button ── */
+    .rv-btn {
+      width: 100%; padding: 20px; border: none; border-radius: 14px;
+      font-size: .8rem; font-weight: 800; letter-spacing: .1em;
+      text-transform: uppercase; cursor: pointer;
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity .4s ease, transform .4s ease,
+                  box-shadow .3s ease, filter .2s ease;
+    }
+    .rv-card.show .rv-btn { opacity: 1; transform: translateY(0); transition-delay: .95s; }
+    .rv-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
+      background-size: 300% 100%; background-position: 200% 0;
+      transition: background-position .6s ease;
+    }
+    .rv-btn:hover::after { background-position: -100% 0; }
+    .rv-btn:hover { filter: brightness(1.08); box-shadow: 0 10px 32px var(--rv-glow,rgba(255,215,0,.4)); transform: translateY(-2px) !important; }
+    .rv-btn:active { transform: translateY(0) !important; filter: brightness(.95); }
+
+    /* ── Particles ── */
+    .rv-particle {
+      position: fixed; pointer-events: none;
+      animation: rvBurst var(--dur,700ms) cubic-bezier(.2,.8,.4,1) forwards;
+    }
+    @keyframes rvBurst {
+      0%   { transform: translate(0,0) scale(1) rotate(0deg);   opacity: 1; }
+      60%  { opacity: .7; }
+      100% { transform: translate(var(--tx),var(--ty)) scale(0) rotate(var(--rot,180deg)); opacity: 0; }
+    }
+
+    /* ── Confetti pieces (rectangles) ── */
+    .rv-confetti {
+      position: fixed; pointer-events: none;
+      width: var(--cw,6px); height: var(--ch,12px);
+      border-radius: 2px;
+      animation: rvConfettiFall var(--cdur,1200ms) cubic-bezier(.25,.46,.45,.94) forwards;
+    }
+    @keyframes rvConfettiFall {
+      0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity:1; }
+      100% { transform: translate(var(--cx),var(--cy)) rotate(var(--cr,720deg)) scale(.4); opacity:0; }
+    }
+
+    /* ── Glow ring ── */
+    .rv-glow {
+      position: absolute; border-radius: 32px;
+      pointer-events: none;
+      animation: rvGlowPulse 2.5s ease-in-out infinite;
+      opacity: 0; transition: opacity 1s ease;
+    }
+    @keyframes rvGlowPulse {
+      0%,100% { opacity: .25; transform: scale(1); }
+      50%     { opacity: .65; transform: scale(1.025); }
+    }
+
+    /* ── Unlock flash ── */
+    #rvFlash {
+      position: fixed; inset: 0; pointer-events: none; z-index: 99998;
+      background: #fff; opacity: 0;
+      animation: rvFlashAnim .6s ease-out forwards;
+      animation-play-state: paused;
+    }
+    #rvFlash.run { animation-play-state: running; }
+    @keyframes rvFlashAnim {
+      0%   { opacity: 0; }
+      12%  { opacity: .28; }
+      100% { opacity: 0; }
+    }
+
+    /* ── Skip ── */
+    #rvSkip {
+      margin-top: 22px; font-size: .68rem; color: rgba(255,255,255,.18);
+      cursor: pointer; letter-spacing: .1em; text-transform: uppercase;
+      opacity: 0; transition: opacity .4s ease, color .2s;
+      user-select: none;
+    }
+    #rvSkip:hover { color: rgba(255,255,255,.5); }
+    #rvSkip.show  { opacity: 1; }
+
+    /* ── Responsive — Tablet ── */
+    @media (max-width: 600px) {
+      .rv-card { width: min(92vw, 420px); border-radius: 18px; }
+      .rv-body { padding: 26px 22px 22px; }
+      .rv-top  { height: 5px; }
+
+      .rv-eyebrow { font-size: .58rem; margin-bottom: 16px; }
+
+      .rv-avatar {
+        width: 62px !important; height: 62px !important;
+        border-radius: 13px !important; margin-bottom: 12px !important;
+      }
+      .rv-letter { font-size: 2.2rem !important; }
+
+      .rv-name       { font-size: 1.1rem !important; }
+      .rv-tier-label { font-size: 3.4rem !important; margin-bottom: 3px; }
+      .rv-tier-sub   { font-size: .74rem !important; margin-bottom: 18px; }
+
+      .rv-divider { margin-bottom: 14px; }
+
+      .rv-stats { gap: 6px; margin-bottom: 16px; }
+      .rv-stat  { padding: 12px 10px !important; border-radius: 10px !important; }
+      .rv-stat-label { font-size: .52rem !important; }
+      .rv-stat-val   { font-size: 1.2rem !important; }
+
+      .rv-btn { padding: 14px !important; font-size: .75rem !important; border-radius: 11px !important; }
+
+      #rvSkip { margin-top: 14px; font-size: .62rem; }
+    }
+
+    /* ── Responsive — Small phones (≤380px) ── */
+    @media (max-width: 380px) {
+      .rv-card { width: 94vw; border-radius: 16px; }
+      .rv-body { padding: 20px 16px 18px; }
+
+      .rv-avatar {
+        width: 52px !important; height: 52px !important;
+        border-radius: 11px !important; margin-bottom: 10px !important;
+      }
+      .rv-letter { font-size: 1.8rem !important; }
+
+      .rv-name       { font-size: .95rem !important; }
+      .rv-tier-label { font-size: 2.8rem !important; }
+      .rv-tier-sub   { font-size: .68rem !important; margin-bottom: 14px; }
+
+      .rv-stats { gap: 5px; margin-bottom: 14px; }
+      .rv-stat  { padding: 10px 8px !important; }
+      .rv-stat-label { font-size: .48rem !important; letter-spacing: .1em !important; }
+      .rv-stat-val   { font-size: 1.05rem !important; }
+
+      .rv-btn { padding: 13px !important; font-size: .7rem !important; }
+    }
+  </style>
+
+  <!-- Flash layer -->
+  <div id="rvFlash"></div>
+
+  <!-- Animated BG canvas -->
+  <canvas id="rvBgCanvas"></canvas>
+
+  <!-- Ambient orbs (filled by JS) -->
+  <div id="rvOrbs" style="position:fixed;inset:0;pointer-events:none;overflow:hidden;"></div>
+
+  <!-- Particles layer -->
+  <div id="rvParticles" style="position:fixed;inset:0;pointer-events:none;overflow:hidden;"></div>
+
+  <!-- Glow ring (sits behind card, sized by JS) -->
+  <div id="rvGlow" class="rv-glow" style="inset:-24px;"></div>
+
+  <!-- The card -->
+  <div class="rv-card" id="rvCard">
+    <div class="rv-shine" id="rvShine"></div>
+    <div class="rv-top" id="rvTopBar"></div>
+    <div class="rv-body" id="rvBody">
+      <div class="rv-eyebrow" id="rvEyebrow">SportCourt Membership</div>
+      <div class="rv-avatar" id="rvAvatar">
+        <span class="rv-letter" id="rvLetter">U</span>
+      </div>
+      <div class="rv-name"       id="rvName">—</div>
+      <div class="rv-tier-label" id="rvTierLabel">Bronze</div>
+      <div class="rv-tier-sub"   id="rvTierSub">Member since —</div>
+      <div class="rv-divider"    id="rvDivider"></div>
+      <div class="rv-stats">
+        <div class="rv-stat" id="rvStat0">
+          <div class="rv-stat-label">Total Spent</div>
+          <div class="rv-stat-val" id="rvSpent">—</div>
+        </div>
+        <div class="rv-stat" id="rvStat1">
+          <div class="rv-stat-label">Bookings</div>
+          <div class="rv-stat-val" id="rvBookings">—</div>
+        </div>
+        <div class="rv-stat" id="rvStat2">
+          <div class="rv-stat-label">Completed</div>
+          <div class="rv-stat-val" id="rvCompleted">—</div>
+        </div>
+      </div>
+      <button class="rv-btn" id="rvBtn" onclick="closeReveal()">View My Dashboard →</button>
+    </div>
+  </div>
+
+  <p id="rvSkip" onclick="closeReveal()">Close</p>
+  </div>
+
 </body>
 </html>

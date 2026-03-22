@@ -188,7 +188,7 @@
             <div class="contact-icon"></div>
             <div class="contact-details">
               <span class="contact-label">Email</span>
-              <span class="contact-value"><a href="mailto:support@sportcourt.com">support@sportcourt.com</a></span>
+              <span class="contact-value"><a href="/cdn-cgi/l/email-protection#b8cbcdc8c8d7caccf8cbc8d7caccdbd7cdcacc96dbd7d5"><span class="__cf_email__" data-cfemail="84f7f1f4f4ebf6f0c4f7f4ebf6f0e7ebf1f6f0aae7ebe9">[email&#160;protected]</span></a></span>
             </div>
           </div>
           <div class="contact-item">
@@ -225,7 +225,7 @@
     </div>
   </footer>
 
-  <script src="../js/api.js"></script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
   <script>
@@ -297,7 +297,20 @@
         duration = (end - start) / (1000 * 60 * 60);
 
         if (duration <= 0) {
-          showAlert('End time must be after start time', 'warning');
+          document.getElementById("availabilityResult").innerHTML = `
+            <div style="background:#fee2e2; color:#991b1b; padding:12px 15px; border-radius:8px; margin:15px 0;">
+              ❌ <strong>End time must be after start time.</strong>
+            </div>`;
+          document.getElementById("continueBtn").style.display = 'none';
+          return;
+        }
+
+        if (duration < 1) {
+          document.getElementById("availabilityResult").innerHTML = `
+            <div style="background:#fee2e2; color:#991b1b; padding:12px 15px; border-radius:8px; margin:15px 0;">
+              ❌ <strong>Minimum booking duration is 1 hour.</strong>
+              Please select an end time at least 1 hour after the start time.
+            </div>`;
           document.getElementById("continueBtn").style.display = 'none';
           return;
         }
@@ -520,12 +533,12 @@
         updateTotal();
         closeTopUpModal();
       } catch(err) {
-        showAlert(err.message || 'Top up failed. Please try again.', 'error');
+        showAlert('Top up failed', 'error');
       }
     }
 
-    // Init
     loadCourtDetails();
+    loadNotifications();
   </script>
 </body>
 </html>

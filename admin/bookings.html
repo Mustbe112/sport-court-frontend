@@ -274,7 +274,7 @@
         // booking.date from MySQL is DATETIME, split('T')[0] gives UTC date (wrong day)
         const bookingDateLocal = new Date(booking.date).toLocaleDateString('en-CA');
         const bookingEnd = new Date(`${bookingDateLocal}T${booking.end_time}`);
-        const gracePeriodEnd = new Date(bookingEnd.getTime() + 1 * 60000);
+        const gracePeriodEnd = new Date(bookingEnd.getTime() + 10 * 60000);
         const isLate = now > gracePeriodEnd;
 
         const btnClass = isLate ? 'danger' : 'primary';
@@ -349,7 +349,7 @@
         // FIX: same timezone fix for minutes-late calculation
         const bookingDateLocal = new Date(booking.date).toLocaleDateString('en-CA');
         const bookingEnd = new Date(`${bookingDateLocal}T${booking.end_time}`);
-        const gracePeriodEnd = new Date(bookingEnd.getTime() + 1 * 60000);
+        const gracePeriodEnd = new Date(bookingEnd.getTime() + 10 * 60000);
         const minutesLate = Math.floor((now - gracePeriodEnd) / 60000);
 
         confirmMessage = `⚠️ WARNING: User is ${minutesLate} minutes past their booking end time!\n\n`;
