@@ -10,7 +10,15 @@ function authHeader() {
 
 async function apiFetch(url, options = {}) {
   try {
-    const res = await fetch(API_BASE + url, options);
+    // 25-second timeout — gives Render time to respond even when warming up
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+    const res = await fetch(API_BASE + url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
     
     // Handle unauthorized
     if (res.status === 401) {
@@ -21,28 +29,27 @@ async function apiFetch(url, options = {}) {
     
     // Check if response is OK before parsing
     if (!res.ok) {
-      // Try to get error message from response
       let errorMessage = `Request failed with status ${res.status}`;
       try {
         const errorData = await res.json();
         errorMessage = errorData.message || errorData.error || errorMessage;
       } catch (e) {
-        // If JSON parsing fails, try to get text
         try {
           const errorText = await res.text();
           if (errorText) errorMessage = errorText;
-        } catch (e2) {
-          // Use default error message
-        }
+        } catch (e2) {}
       }
       throw new Error(errorMessage);
     }
     
-    // Parse successful response
     const data = await res.json();
     return data;
     
   } catch(err) {
+    // Re-label abort as a friendlier timeout error
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out — server may still be waking up');
+    }
     console.error("API Error:", err);
     throw err;
   }

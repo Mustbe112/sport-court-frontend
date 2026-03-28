@@ -3,562 +3,1030 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Dashboard - Sport Court Booking</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/alerts.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <title>Dashboard — SportCourt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+
   <style>
-    /* Alert Container */
-    .alert-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 400px;
+    /* ════════════════════════════════════════════
+       DESIGN TOKENS
+    ════════════════════════════════════════════ */
+    :root {
+      --ink:          #0f1117;
+      --ink-2:        #1c1f2b;
+      --ink-3:        #2d3142;
+      --mid:          #5c6070;
+      --muted:        #8b909f;
+      --border:       #e9eaf0;
+      --border-2:     #d8dae4;
+      --bg:           #f4f5f9;
+      --bg-2:         #ecedf3;
+      --white:        #ffffff;
+      --accent:       #e5520e;
+      --accent-h:     #d14509;
+      --accent-dim:   rgba(229,82,14,.07);
+      --accent-glow:  rgba(229,82,14,.22);
+      --green:        #12b981;
+      --green-dim:    rgba(18,185,129,.09);
+      --blue:         #3b6ef8;
+      --blue-dim:     rgba(59,110,248,.08);
+      --amber:        #f59e0b;
+      --amber-dim:    rgba(245,158,11,.09);
+      --radius:       16px;
+      --radius-sm:    10px;
+      --radius-xs:    7px;
+      --shadow-xs:    0 1px 2px rgba(0,0,0,.04);
+      --shadow-sm:    0 2px 8px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+      --shadow:       0 4px 20px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg:    0 16px 48px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.04);
+      --shadow-xl:    0 28px 72px rgba(0,0,0,.15);
+      --ease:         cubic-bezier(.22,1,.36,1);
+      --ease-spring:  cubic-bezier(.34,1.56,.64,1);
+      --nav-h:        60px;
     }
 
-    /* Top Up Modal Animations */
-    .modal {
-      animation: fadeIn 0.3s ease-out;
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'DM Sans', sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
     }
 
-    .modal-content {
-      animation: slideUp 0.3s ease-out;
-      position: relative;
-      overflow: hidden;
-    }
+    /* ════════════════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════════════════ */
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+    @keyframes scaleIn  { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+    @keyframes slideDown{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer  { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+    @keyframes spin     { to{transform:rotate(360deg)} }
+    @keyframes popIn    { from{transform:scale(0)} to{transform:scale(1)} }
+    @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.5} }
+    @keyframes floatUp  { 0%{transform:translateY(0);opacity:.7}100%{transform:translateY(-60px);opacity:0} }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    .a1{animation:fadeUp .55s var(--ease) both}
+    .a2{animation:fadeUp .55s .07s var(--ease) both}
+    .a3{animation:fadeUp .55s .14s var(--ease) both}
+    .a4{animation:fadeUp .55s .21s var(--ease) both}
+    .a5{animation:fadeUp .55s .28s var(--ease) both}
 
-    @keyframes fadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
+    /* ════════════════════════════════════════════
+       NAVBAR
+    ════════════════════════════════════════════ */
+    .navbar {
+      position:sticky; top:0; z-index:200;
+      height:var(--nav-h);
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center;
+      padding:0 clamp(16px,4vw,44px);
+      gap:16px;
+      transition:box-shadow .25s;
     }
+    .navbar.scrolled { box-shadow:var(--shadow-sm); }
 
-    @keyframes slideUp {
-      from { 
-        transform: translateY(50px);
-        opacity: 0;
-      }
-      to { 
-        transform: translateY(0);
-        opacity: 1;
-      }
+    /* Brand */
+    .nav-brand {
+      display:flex; align-items:center; gap:9px;
+      text-decoration:none; flex-shrink:0;
     }
-
-    @keyframes slideOut {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-    }
-
-    /* Processing Animation */
-    .processing-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 10001;
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    .processing-content {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      text-align: center;
-      animation: slideUp 0.3s ease-out;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #2563eb;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Coin Balance Animation */
-    .coin-balance-update {
-      animation: pulse 0.6s ease-out;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); color: #10b981; }
-    }
-
-    /* Top Up Button Hover Effects */
-    .topup-btn {
-      transition: all 0.3s ease;
-      cursor: pointer;
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-      color: white;
-      border: none;
-      padding: 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .topup-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
-    }
-
-    .topup-btn:active {
-      transform: translateY(0);
-    }
-
-    /* ── Top-Up Confirm Step ── */
-    .topup-confirm-overlay {
-      position: absolute; inset: 0;
-      background: rgba(255,255,255,0.97);
-      border-radius: 12px;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 32px 28px;
-      opacity: 0; pointer-events: none;
-      transform: scale(0.95) translateY(10px);
-      transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.34,1.4,0.64,1);
-      z-index: 50;
-      text-align: center;
-    }
-    .topup-confirm-overlay.show {
-      opacity: 1; pointer-events: all;
-      transform: scale(1) translateY(0);
-    }
-    .topup-confirm-icon {
-      width: 72px; height: 72px;
-      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 32px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 16px rgba(37,99,235,0.18);
-    }
-    .topup-confirm-overlay h3 {
-      font-size: 1.3rem; font-weight: 700;
-      color: #111; margin-bottom: 6px;
-    }
-    .topup-confirm-overlay .confirm-sub {
-      color: #6b7280; font-size: 0.92rem;
-      margin-bottom: 8px;
-    }
-    .topup-price-tag {
-      display: inline-block;
-      background: #f0fdf4; color: #15803d;
-      font-size: 0.85rem; font-weight: 700;
-      padding: 5px 14px; border-radius: 20px;
-      margin-bottom: 28px;
-      border: 1.5px solid #bbf7d0;
-    }
-    .topup-confirm-actions {
-      display: flex; gap: 12px; width: 100%;
-    }
-    .topup-confirm-actions button {
-      flex: 1; padding: 13px;
-      border-radius: 10px; border: none;
-      font-size: 0.95rem; font-weight: 700;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .btn-topup-cancel {
-      background: #f3f4f6; color: #374151;
-    }
-    .btn-topup-cancel:hover { background: #e5e7eb; }
-    .btn-topup-go {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: white;
-      box-shadow: 0 4px 14px rgba(37,99,235,0.35);
-    }
-    .btn-topup-go:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(37,99,235,0.45);
-    }
-    .topup-btn.selected {
-      outline: 3px solid #fff;
-      box-shadow: 0 0 0 5px rgba(37,99,235,0.45);
-      transform: translateY(-3px) scale(1.04);
-    }
-
-    /* ══════════════════════════════════════════════
-       MEMBER ID CARD — ANIMATED TIER SYSTEM
-    ══════════════════════════════════════════════ */
-    .card-scene { display:flex; justify-content:center; margin-bottom:2rem; }
-
-    .mem-card {
-      width:100%; max-width:800px;
-      border-radius:18px; overflow:hidden;
-      animation:memDrop .65s cubic-bezier(.16,1,.3,1) both;
-      position:relative;
-      transform-style:preserve-3d;
-      will-change:transform;
-      cursor:default;
-    }
-    @keyframes memDrop {
-      from{opacity:0;transform:translateY(-18px) rotateX(4deg);}
-      to{opacity:1;transform:translateY(0) rotateX(0);}
-    }
-
-
-
-    /* Animated bar flow */
-    @keyframes barFlow {
-      0%   { background-position:200% center; }
-      100% { background-position:-200% center; }
-    }
-
-    /* ── BRONZE ── */
-    .tier-bronze {
-      background:#0f0d0b;
-      box-shadow:0 2px 8px rgba(0,0,0,.25),0 16px 48px rgba(180,100,30,.14);
-    }
-    .tier-bronze .mem-top-bar {
-      height:4px;
-      background:linear-gradient(90deg,#6b3a1f,#cd7f32 35%,#e8a96a 50%,#cd7f32 65%,#6b3a1f);
-      background-size:200% 100%;
-      animation:barFlow 3s linear infinite;
-    }
-    .tier-bronze .mem-brand   { color:#cd7f32; }
-    .tier-bronze .mem-tier-name { color:#cd7f32; }
-    .tier-bronze .mem-letter  { color:#cd7f32; }
-    .tier-bronze .mem-avatar  { background:#1a120a; border-color:rgba(205,127,50,.4); }
-    .tier-bronze .mem-sv.green{ color:#e8a96a; }
-    .tier-bronze .mem-sep     { background:rgba(205,127,50,.15); }
-    .tier-bronze .mem-next    { background:rgba(205,127,50,.08); border-color:rgba(205,127,50,.2); }
-    .tier-bronze .mem-next-dot{ background:#cd7f32; }
-    .tier-bronze .mem-next-label{ color:rgba(205,127,50,.7); }
-    .tier-bronze .mem-next-val{ color:#e8b07a; }
-    .tier-bronze .mem-footer  { background:#090704; border-top:1px solid rgba(205,127,50,.08); }
-    .tier-bronze .mem-bars span{ background:rgba(205,127,50,.35); }
-    .tier-bronze .mem-right   { background:#f5f0eb; border-left:1px solid rgba(205,127,50,.15); }
-    .tier-bronze .mem-qr-hint { color:#a0846a; }
-    .tier-bronze .mem-qr-id   { color:#6b4c35; }
-    .tier-bronze .tier-progress-fill { background:linear-gradient(90deg,#cd7f32,#e8a96a); }
-    .tier-bronze .mb-role { background:rgba(205,127,50,.15); color:#cd7f32; }
-
-    /* ── SILVER ── */
-    .tier-silver {
-      background:#0c0d10;
-      box-shadow:0 2px 8px rgba(0,0,0,.25),0 16px 48px rgba(160,170,190,.12);
-    }
-    .tier-silver .mem-top-bar {
-      height:4px;
-      background:linear-gradient(90deg,#6b7280,#c0c0c0 35%,#e8e8e8 50%,#c0c0c0 65%,#6b7280);
-      background-size:200% 100%;
-      animation:barFlow 3.5s linear infinite;
-    }
-    .tier-silver .mem-brand   { color:#d1d5db; }
-    .tier-silver .mem-tier-name { color:#d1d5db; }
-    .tier-silver .mem-letter  { color:#d1d5db; }
-    .tier-silver .mem-avatar  { background:#141618; border-color:rgba(209,213,219,.3); }
-    .tier-silver .mem-sv.green{ color:#d1d5db; }
-    .tier-silver .mem-sep     { background:rgba(209,213,219,.1); }
-    .tier-silver .mem-next    { background:rgba(209,213,219,.06); border-color:rgba(209,213,219,.16); }
-    .tier-silver .mem-next-dot{ background:#c0c0c0; animation:silverPulse 2.5s infinite; }
-    @keyframes silverPulse {
-      0%,100%{ box-shadow:0 0 0 2px rgba(192,192,192,.2); }
-      50%    { box-shadow:0 0 0 5px rgba(192,192,192,.06); }
-    }
-    .tier-silver .mem-next-label{ color:rgba(209,213,219,.55); }
-    .tier-silver .mem-next-val{ color:#e2e8f0; }
-    .tier-silver .mem-footer  { background:#080909; border-top:1px solid rgba(209,213,219,.06); }
-    .tier-silver .mem-bars span{ background:rgba(209,213,219,.3); }
-    .tier-silver .mem-right   { background:#f8f9fa; border-left:1px solid rgba(209,213,219,.15); }
-    .tier-silver .mem-qr-hint { color:#94a3b8; }
-    .tier-silver .mem-qr-id   { color:#334155; }
-    .tier-silver .tier-progress-fill { background:linear-gradient(90deg,#9ca3af,#e2e8f0); }
-    .tier-silver .mb-role { background:rgba(209,213,219,.12); color:#d1d5db; }
-
-    /* ── GOLD ── */
-    .tier-gold {
-      background:#0a0900;
-      animation:memDrop .65s cubic-bezier(.16,1,.3,1) both, goldGlow 3s ease-in-out infinite;
-    }
-    @keyframes goldGlow {
-      0%,100%{ box-shadow:0 2px 8px rgba(0,0,0,.3),0 20px 60px rgba(255,200,0,.18); }
-      50%    { box-shadow:0 2px 8px rgba(0,0,0,.3),0 28px 80px rgba(255,200,0,.3),0 0 120px rgba(255,180,0,.1); }
-    }
-    .tier-gold .mem-top-bar {
-      height:4px;
-      background:linear-gradient(90deg,#92660a,#ffd700 30%,#fff4b0 50%,#ffd700 70%,#92660a);
-      background-size:200% 100%;
-      animation:barFlow 2.5s linear infinite;
-    }
-    .tier-gold .mem-brand   { color:#ffd700; }
-    .tier-gold .mem-tier-name { color:#ffd700; }
-    .tier-gold .mem-letter  { color:#ffd700; }
-    .tier-gold .mem-avatar  { background:#181400; border-color:rgba(255,215,0,.45); }
-    .tier-gold .mem-sv.green{ color:#ffd700; }
-    .tier-gold .mem-sep     { background:rgba(255,215,0,.12); }
-    .tier-gold .mem-next    { background:rgba(255,215,0,.07); border-color:rgba(255,215,0,.22); }
-    .tier-gold .mem-next-dot{ background:#ffd700; animation:goldPulse 2s infinite; }
-    @keyframes goldPulse {
-      0%,100%{ box-shadow:0 0 0 2px rgba(255,215,0,.25); }
-      50%    { box-shadow:0 0 0 6px rgba(255,215,0,.08),0 0 12px rgba(255,215,0,.3); }
-    }
-    .tier-gold .mem-next-label{ color:rgba(255,215,0,.65); }
-    .tier-gold .mem-next-val{ color:#fef3c7; }
-    .tier-gold .mem-footer  { background:#060500; border-top:1px solid rgba(255,215,0,.08); }
-    .tier-gold .mem-bars span{ background:rgba(255,215,0,.4); }
-    .tier-gold .mem-right   { background:#fffbeb; border-left:1px solid rgba(255,215,0,.2); }
-    .tier-gold .mem-qr-hint { color:#a07820; }
-    .tier-gold .mem-qr-id   { color:#78560a; }
-    .tier-gold .tier-progress-fill {
-      background:linear-gradient(90deg,#b8860b,#ffd700,#fff4b0);
-      background-size:200% 100%; animation:barFlow 2s linear infinite;
-    }
-    .tier-gold .mb-role { background:rgba(255,215,0,.12); color:#ffd700; }
-
-    /* ── PLATINUM ── */
-    .tier-platinum {
-      background:#030710;
-      animation:memDrop .65s cubic-bezier(.16,1,.3,1) both, platGlow 4s ease-in-out infinite;
-    }
-    @keyframes platGlow {
-      0%,100%{ box-shadow:0 2px 8px rgba(0,0,0,.4),0 24px 72px rgba(100,200,255,.18); }
-      50%    { box-shadow:0 2px 8px rgba(0,0,0,.4),0 32px 96px rgba(100,200,255,.32),0 0 160px rgba(80,180,255,.14); }
-    }
-    .tier-platinum .mem-top-bar {
-      height:4px;
-      background:linear-gradient(90deg,#0369a1,#7dd3fc 30%,#e0f2fe 50%,#7dd3fc 70%,#0369a1);
-      background-size:200% 100%;
-      animation:barFlow 2s linear infinite;
-    }
-    .tier-platinum .mem-brand   { color:#7dd3fc; }
-    .tier-platinum .mem-tier-name { color:#7dd3fc; }
-    .tier-platinum .mem-letter  { color:#7dd3fc; }
-    .tier-platinum .mem-avatar  { background:#0a1220; border-color:rgba(125,211,252,.45); }
-    .tier-platinum .mem-sv.green{ color:#7dd3fc; }
-    .tier-platinum .mem-sep     { background:rgba(125,211,252,.12); }
-    .tier-platinum .mem-next    { background:rgba(125,211,252,.07); border-color:rgba(125,211,252,.22); }
-    .tier-platinum .mem-next-dot{ background:#7dd3fc; animation:platPulse 1.8s infinite; }
-    @keyframes platPulse {
-      0%,100%{ box-shadow:0 0 0 2px rgba(125,211,252,.25),0 0 6px rgba(125,211,252,.2); }
-      50%    { box-shadow:0 0 0 6px rgba(125,211,252,.08),0 0 20px rgba(125,211,252,.4); }
-    }
-    .tier-platinum .mem-next-label{ color:rgba(125,211,252,.6); }
-    .tier-platinum .mem-next-val{ color:#bae6fd; }
-    .tier-platinum .mem-footer  { background:#020610; border-top:1px solid rgba(125,211,252,.08); }
-    .tier-platinum .mem-bars span{ background:rgba(125,211,252,.4); }
-    .tier-platinum .mem-right   { background:#f0f9ff; border-left:1px solid rgba(125,211,252,.2); }
-    .tier-platinum .mem-qr-hint { color:#0369a1; }
-    .tier-platinum .mem-qr-id   { color:#0c4a6e; }
-    .tier-platinum .tier-progress-fill {
-      background:linear-gradient(90deg,#0369a1,#7dd3fc,#e0f2fe);
-      background-size:200% 100%; animation:barFlow 1.5s linear infinite;
-    }
-    .tier-platinum .mb-role { background:rgba(125,211,252,.12); color:#7dd3fc; }
-    /* Floating particles for platinum */
-    .tier-platinum .mem-left { position:relative; overflow:hidden; }
-    .plat-particle {
-      position:absolute; border-radius:50%;
-      background:rgba(125,211,252,.12);
-      animation:floatUp linear infinite;
-      pointer-events:none; z-index:0;
-    }
-    @keyframes floatUp {
-      0%  { transform:translateY(120%) scale(0); opacity:0; }
-      10% { opacity:1; }
-      90% { opacity:.3; }
-      100%{ transform:translateY(-120%) scale(1); opacity:0; }
-    }
-
-    /* ── Shared card structure ── */
-    .mem-body { display:flex; }
-    .mem-left {
-      flex:1; min-width:0;
-      padding:26px 30px 22px;
-      display:flex; flex-direction:column; gap:16px;
-      border-right:1px solid rgba(255,255,255,.06);
-    }
-    .mem-header { display:flex; align-items:center; justify-content:space-between; }
-    .mem-brand {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:1.2rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
-    }
-    .mem-type-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
-    .mem-type {
-      font-size:.58rem; font-weight:600; letter-spacing:.16em;
-      text-transform:uppercase; color:rgba(255,255,255,.2);
-      border:1px solid rgba(255,255,255,.1); padding:2px 8px; border-radius:4px;
-    }
-    .mem-tier-name {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:.7rem; font-weight:800; letter-spacing:.14em;
-      text-transform:uppercase; text-align:right;
-    }
-    .mem-identity { display:flex; align-items:center; gap:16px; }
-    .mem-avatar {
-      width:64px; height:64px; border-radius:12px; flex-shrink:0;
+    .nav-brand-logo {
+      width:32px; height:32px; border-radius:9px;
+      background:var(--ink);
       display:flex; align-items:center; justify-content:center;
-      border-width:1.5px; border-style:solid;
     }
-    .mem-letter {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:2.3rem; font-weight:800; line-height:1;
+    .nav-brand-logo svg { width:16px; height:16px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-brand-name {
+      font-size:.92rem; font-weight:700; letter-spacing:-.01em;
+      color:var(--ink);
     }
-    .mem-name {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:2rem; font-weight:800;
-      text-transform:uppercase; letter-spacing:.06em;
-      color:#fff; line-height:1; margin-bottom:4px;
+    .nav-brand-name span { color:var(--accent); }
+
+    /* Desktop nav links — center */
+    .nav-links {
+      display:flex; align-items:center; gap:2px;
+      margin:0 auto;
     }
-    .mem-email { font-size:.73rem; color:rgba(255,255,255,.32); margin-bottom:8px; }
-    .mem-badges { display:flex; gap:5px; flex-wrap:wrap; }
-    .mem-badge {
-      font-size:.58rem; font-weight:700;
-      letter-spacing:.12em; text-transform:uppercase;
-      padding:2px 8px; border-radius:4px;
+    .nav-links a {
+      font-size:.82rem; font-weight:500; color:var(--mid);
+      text-decoration:none; padding:7px 13px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
+      white-space:nowrap;
     }
-    .mb-active  { background:rgba(74,222,128,.1); color:#4ade80; }
-    .mb-id      { background:rgba(255,255,255,.06); color:rgba(255,255,255,.36); font-family:monospace; letter-spacing:.06em; }
-    .mb-penalty { background:rgba(239,68,68,.15); color:#f87171; }
-    .mem-sep { height:1px; }
-    .mem-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
-    .mem-sl {
-      font-size:.58rem; font-weight:500; letter-spacing:.12em;
-      text-transform:uppercase; color:rgba(255,255,255,.26); margin-bottom:5px;
+    .nav-links a:hover { color:var(--ink); background:var(--bg); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
+
+    /* Right side actions */
+    .nav-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+
+    .nav-icon-btn {
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      color:var(--mid); display:flex; align-items:center; justify-content:center;
+      position:relative; transition:background .18s, color .18s;
     }
-    .mem-sv {
-      font-family:'Barlow Condensed',sans-serif;
-      font-size:1.25rem; font-weight:700; color:#fff; line-height:1;
+    .nav-icon-btn:hover { background:var(--bg); color:var(--ink); }
+    .nav-icon-btn svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .notif-badge {
+      position:absolute; top:4px; right:4px;
+      min-width:15px; height:15px; border-radius:999px;
+      background:var(--accent); color:#fff;
+      font-size:.5rem; font-weight:800;
+      display:none; align-items:center; justify-content:center; padding:0 3px;
+      border:2px solid var(--white);
+      animation:popIn .3s var(--ease-spring) both;
     }
-    .mem-sv.red { color:#f87171; }
-    .mem-next {
-      display:flex; align-items:center; gap:8px;
-      border-radius:8px; padding:9px 12px;
+    .notif-badge.visible { display:flex; }
+    #notifBadge { /* alias */ }
+
+    .nav-logout {
+      font-size:.8rem; font-weight:600; color:var(--muted);
+      text-decoration:none; padding:7px 12px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
     }
-    .mem-next-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-    .mem-next-label { font-size:.58rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; }
-    .mem-next-val { font-size:.78rem; font-weight:600; margin-left:auto; }
-    .mem-next-none { color:rgba(255,255,255,.22); }
-    .mem-right {
-      width:188px; flex-shrink:0;
+    .nav-logout:hover { color:var(--ink); background:var(--bg); }
+
+    /* Hamburger (mobile only) */
+    .hamburger {
+      display:none;
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      align-items:center; justify-content:center; flex-direction:column;
+      gap:5px; padding:8px;
+      order:-1; /* will be moved left on mobile via media query */
+    }
+    .hamburger span {
+      display:block; width:100%; height:1.5px;
+      background:var(--ink); border-radius:999px;
+      transition:transform .25s var(--ease), opacity .2s;
+    }
+    .hamburger.open span:nth-child(1) { transform:translateY(6.5px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
+
+    /* Mobile menu drawer */
+    .mobile-menu {
+      position:fixed; top:var(--nav-h); left:0; right:0;
+      background:var(--white); border-bottom:1px solid var(--border);
+      box-shadow:var(--shadow-lg);
+      z-index:190;
+      padding:12px 16px 16px;
+      transform:translateY(-8px);
+      opacity:0; pointer-events:none;
+      transition:transform .28s var(--ease), opacity .22s;
+    }
+    .mobile-menu.open { transform:translateY(0); opacity:1; pointer-events:all; }
+    .mobile-menu a {
+      display:block; padding:12px 14px;
+      font-size:.9rem; font-weight:500; color:var(--mid);
+      text-decoration:none; border-radius:var(--radius-xs);
+      transition:background .15s, color .15s;
+    }
+    .mobile-menu a.active { color:var(--accent); font-weight:600; background:var(--accent-dim); }
+    .mobile-menu a:hover { color:var(--ink); background:var(--bg); }
+    .mobile-menu-divider { height:1px; background:var(--border); margin:8px 0; }
+
+    /* ════════════════════════════════════════════
+       NOTIFICATION PANEL
+    ════════════════════════════════════════════ */
+    .notification-panel {
+      position:fixed; top:var(--nav-h); right:0;
+      width:min(380px, 100vw);
+      background:var(--white);
+      border-left:1px solid var(--border);
+      box-shadow:var(--shadow-xl);
+      z-index:300;
+      transform:translateX(110%);
+      transition:transform .32s var(--ease);
+      max-height:calc(100vh - var(--nav-h));
       display:flex; flex-direction:column;
-      align-items:center; justify-content:center;
-      gap:10px; padding:22px 18px;
+      overflow:hidden;
     }
-    .mem-qr-box {
-      width:142px; height:142px;
+    .notification-panel.open { transform:translateX(0); }
+
+    .notif-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px 14px;
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+    }
+    .notif-header h3 { font-size:.92rem; font-weight:700; letter-spacing:-.01em; }
+    .notif-close-btn {
+      width:28px; height:28px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      color:var(--mid); cursor:pointer; font-size:15px;
       display:flex; align-items:center; justify-content:center;
-      border-radius:8px; overflow:hidden; background:#fff;
+      transition:all .15s;
     }
-    .mem-qr-box canvas, .mem-qr-box img { width:138px!important; height:138px!important; }
-    .mem-qr-hint { font-size:.58rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; text-align:center; }
-    .mem-qr-id   { font-size:.65rem; font-weight:600; letter-spacing:.08em; text-align:center; font-family:monospace; }
-    .tier-progress-wrap { display:flex; align-items:center; gap:10px; }
-    .tier-progress-bar {
-      flex:1; height:3px; background:rgba(255,255,255,.07); border-radius:2px; overflow:hidden;
+    .notif-close-btn:hover { color:var(--ink); background:var(--bg-2); }
+
+    .notif-summary-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 20px; background:var(--bg);
+      border-bottom:1px solid var(--border); flex-shrink:0;
     }
-    .tier-progress-fill { height:100%; border-radius:2px; transition:width 1.2s cubic-bezier(.16,1,.3,1); }
-    .tier-progress-label { font-size:.58rem; color:rgba(255,255,255,.25); white-space:nowrap; letter-spacing:.04em; }
+    .notif-summary-text { font-size:.72rem; color:var(--muted); font-weight:500; }
+    .notif-mark-all-btn {
+      font-size:.68rem; font-weight:700; letter-spacing:.04em;
+      color:var(--accent); background:none; border:none; cursor:pointer;
+      transition:color .15s;
+    }
+    .notif-mark-all-btn:hover { color:var(--accent-h); }
+
+    #notificationList { overflow-y:auto; flex:1; }
+    #notificationList::-webkit-scrollbar { width:3px; }
+    #notificationList::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:3px; }
+
+    .notif-item {
+      display:flex; align-items:flex-start; gap:12px;
+      padding:14px 20px; border-bottom:1px solid var(--border);
+      cursor:pointer; transition:background .15s; position:relative;
+    }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item:hover { background:var(--bg); }
+    .notif-item.unread { background:rgba(229,82,14,.022); }
+    .notif-item.unread:hover { background:rgba(229,82,14,.048); }
+
+    .notif-icon-wrap {
+      width:35px; height:35px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--bg); border:1px solid var(--border);
+    }
+    .notif-icon-wrap svg { width:14px; height:14px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .notif-item.unread .notif-icon-wrap { background:var(--accent-dim); border-color:rgba(229,82,14,.18); }
+    .notif-item.unread .notif-icon-wrap svg { stroke:var(--accent); }
+
+    .notif-body { flex:1; min-width:0; }
+    .notif-msg { font-size:.8rem; line-height:1.45; color:var(--mid); word-break:break-word; }
+    .notif-item.unread .notif-msg { color:var(--ink); font-weight:500; }
+    .notif-time { font-size:.66rem; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:3px; }
+    .notif-time svg { width:10px; height:10px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; }
+    .notif-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:7px; }
+    .notif-item.read .notif-dot { visibility:hidden; }
+    .notif-empty { padding:48px 20px; text-align:center; color:var(--muted); }
+    .notif-empty svg { width:36px; height:36px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 12px; }
+    .notif-empty p { font-size:.82rem; }
+
+    /* ════════════════════════════════════════════
+       ALERTS
+    ════════════════════════════════════════════ */
+    .alert-container {
+      position:fixed; top:calc(var(--nav-h) + 12px); right:20px;
+      z-index:9999; display:flex; flex-direction:column; gap:8px;
+      max-width:300px;
+    }
+    .alert {
+      padding:12px 15px; border-radius:var(--radius-sm);
+      font-size:.8rem; font-weight:500;
+      box-shadow:var(--shadow-lg);
+      animation:slideDown .35s var(--ease-spring) both;
+      display:flex; align-items:center; gap:9px;
+    }
+    .alert-icon { width:16px; height:16px; flex-shrink:0; }
+    .alert-success { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+    .alert-error   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+    .alert-info    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+
+    /* ════════════════════════════════════════════
+       PROCESSING OVERLAY
+    ════════════════════════════════════════════ */
+    .proc-overlay {
+      position:fixed; inset:0; z-index:10001;
+      background:rgba(15,17,23,.45); backdrop-filter:blur(6px);
+      display:none; align-items:center; justify-content:center;
+    }
+    .proc-box {
+      background:var(--white); border-radius:var(--radius);
+      padding:40px 52px; text-align:center; box-shadow:var(--shadow-xl);
+      animation:scaleIn .3s var(--ease-spring) both;
+    }
+    .proc-spinner {
+      width:34px; height:34px; margin:0 auto 18px;
+      border:2.5px solid var(--border); border-top-color:var(--accent);
+      border-radius:50%; animation:spin .85s linear infinite;
+    }
+    .proc-box h3 { font-size:.95rem; font-weight:700; margin-bottom:3px; }
+    .proc-box p  { font-size:.78rem; color:var(--muted); }
+
+    /* ════════════════════════════════════════════
+       PAGE LAYOUT
+    ════════════════════════════════════════════ */
+    .page {
+      max-width:1120px; margin:0 auto;
+      padding:clamp(24px,3vw,40px) clamp(16px,3.5vw,40px);
+      display:flex; flex-direction:column; gap:20px;
+    }
+
+    /* ════════════════════════════════════════════
+       PAGE HEADER
+    ════════════════════════════════════════════ */
+    .page-header {
+      display:flex; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap; gap:14px;
+    }
+    .page-header-greeting { font-size:clamp(1.5rem,3.8vw,2rem); font-weight:700; letter-spacing:-.025em; line-height:1.15; }
+    .page-header-greeting em { color:var(--accent); font-style:normal; }
+    .page-header-sub { font-size:.84rem; color:var(--muted); margin-top:4px; font-weight:400; }
+    .page-date-chip {
+      display:flex; align-items:center; gap:7px;
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:9px 14px;
+      font-size:.72rem; font-weight:600; color:var(--muted);
+      box-shadow:var(--shadow-xs); white-space:nowrap;
+    }
+    .page-date-chip svg { width:13px; height:13px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    /* ════════════════════════════════════════════
+       STATS GRID
+    ════════════════════════════════════════════ */
+    .stats-grid {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    .stat-card {
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:22px;
+      box-shadow:var(--shadow-xs);
+      position:relative; overflow:hidden;
+      transition:box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s;
+    }
+    .stat-card:hover {
+      box-shadow:var(--shadow);
+      transform:translateY(-2px);
+      border-color:var(--border-2);
+    }
+    .stat-card::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(135deg, transparent 60%, rgba(229,82,14,.025) 100%);
+      opacity:0; transition:opacity .3s; pointer-events:none;
+    }
+    .stat-card:hover::before { opacity:1; }
+
+    .stat-card.featured {
+      background:var(--ink);
+      border-color:var(--ink-2);
+    }
+    .stat-card.featured::before { background:linear-gradient(135deg, transparent 40%, rgba(229,82,14,.18) 100%); opacity:1; pointer-events:none; }
+    .stat-card.featured:hover { box-shadow:0 8px 32px rgba(15,17,23,.25); }
+
+    .stat-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .stat-icon {
+      width:34px; height:34px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      transition:background .2s, border-color .2s;
+    }
+    .stat-icon svg { width:15px; height:15px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .stat-card.featured .stat-icon { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.1); }
+    .stat-card.featured .stat-icon svg { stroke:rgba(255,255,255,.6); }
+    .stat-card:not(.featured):hover .stat-icon { background:var(--accent-dim); border-color:rgba(229,82,14,.18); }
+    .stat-card:not(.featured):hover .stat-icon svg { stroke:var(--accent); }
+
+    .stat-tag {
+      font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      padding:3px 9px; border-radius:999px;
+      background:var(--bg); color:var(--muted); border:1px solid var(--border);
+    }
+    .stat-card.featured .stat-tag { background:rgba(255,255,255,.07); color:rgba(255,255,255,.4); border-color:rgba(255,255,255,.08); }
+
+    .stat-value {
+      font-size:clamp(1.6rem,3vw,2.2rem); font-weight:700;
+      letter-spacing:-.03em; line-height:1; margin-bottom:4px;
+    }
+    .stat-card.featured .stat-value { color:#fff; }
+
+    .stat-label { font-size:.82rem; font-weight:600; color:var(--ink); }
+    .stat-card.featured .stat-label { color:rgba(255,255,255,.75); }
+    .stat-sub { font-size:.7rem; color:var(--muted); margin-top:2px; }
+    .stat-card.featured .stat-sub { color:rgba(255,255,255,.3); }
+
+    .topup-btn {
+      display:inline-flex; align-items:center; gap:6px;
+      margin-top:14px; padding:8px 16px;
+      border-radius:var(--radius-xs);
+      background:var(--accent); color:#fff;
+      border:none; cursor:pointer;
+      font-family:inherit; font-size:.76rem; font-weight:700;
+      letter-spacing:.02em;
+      transition:background .18s, transform .18s, box-shadow .18s;
+      box-shadow:0 3px 10px rgba(229,82,14,.3);
+    }
+    .topup-btn:hover { background:var(--accent-h); transform:translateY(-1px); box-shadow:0 5px 16px rgba(229,82,14,.4); }
+    .topup-btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; }
+
+    /* ════════════════════════════════════════════
+       MAIN CONTENT ROW (Member Card + Quick Actions)
+    ════════════════════════════════════════════ */
+    .content-row {
+      display:grid;
+      grid-template-columns:1fr 260px;
+      gap:14px;
+    }
+
+    /* ════════════════════════════════════════════
+       MEMBER CARD
+    ════════════════════════════════════════════ */
+    .mem-card {
+      border-radius:var(--radius);
+      overflow:hidden;
+      position:relative;
+      box-shadow:var(--shadow-lg);
+    }
+
+    /* tier backgrounds */
+    .tier-bronze   { background:linear-gradient(145deg,#1a1208 0%,#2c1f0e 50%,#1f1710 100%); }
+    .tier-silver   { background:linear-gradient(145deg,#0e1118 0%,#1d2230 50%,#141720 100%); }
+    .tier-gold     { background:linear-gradient(145deg,#1a1200 0%,#2e2000 50%,#1e1800 100%); }
+    .tier-platinum { background:linear-gradient(145deg,#020812 0%,#08132a 50%,#04091a 100%); }
+
+    /* shimmer */
+    .mem-shimmer {
+      position:absolute; inset:0; pointer-events:none; overflow:hidden;
+    }
+    .mem-shimmer::after {
+      content:''; position:absolute; top:0; left:-100%; width:60%; height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);
+      animation:shimmer 3.5s var(--ease) infinite;
+    }
+
+    /* top accent bar */
+    .mem-top-bar { height:3px; position:relative; }
+    .tier-bronze   .mem-top-bar { background:linear-gradient(90deg,#cd7f32,#e8a96a,#cd7f32); }
+    .tier-silver   .mem-top-bar { background:linear-gradient(90deg,#8a9ab0,#d4dce8,#8a9ab0); }
+    .tier-gold     .mem-top-bar { background:linear-gradient(90deg,#b8860b,#ffd700,#b8860b); }
+    .tier-platinum { }
+    .tier-platinum .mem-top-bar { background:linear-gradient(90deg,#0369a1,#7dd3fc,#0369a1); }
+
+    /* body grid */
+    .mem-body { display:grid; grid-template-columns:1fr 160px; }
+
+    /* left */
+    .mem-left { padding:16px 20px; display:flex; flex-direction:column; gap:10px; }
+
+    .mem-brand-row { display:flex; align-items:center; justify-content:space-between; }
+    .mem-brand { font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.35); }
+    .mem-tier-badge {
+      font-size:.58rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+      padding:2px 9px; border-radius:999px;
+    }
+    .tier-bronze   .mem-tier-badge { background:rgba(205,127,50,.18); color:#e8a96a; border:1px solid rgba(205,127,50,.25); }
+    .tier-silver   .mem-tier-badge { background:rgba(200,215,235,.08); color:#c8d7eb; border:1px solid rgba(200,215,235,.15); }
+    .tier-gold     .mem-tier-badge { background:rgba(255,215,0,.12); color:#ffd700; border:1px solid rgba(255,215,0,.2); }
+    .tier-platinum .mem-tier-badge { background:rgba(125,211,252,.1); color:#7dd3fc; border:1px solid rgba(125,211,252,.18); }
+
+    .mem-identity { display:flex; align-items:center; gap:12px; }
+    .mem-avatar {
+      width:38px; height:38px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.95rem; font-weight:700; color:rgba(255,255,255,.9);
+    }
+    .tier-bronze   .mem-avatar { background:linear-gradient(135deg,#cd7f32,#a0621f); box-shadow:0 3px 12px rgba(205,127,50,.3); }
+    .tier-silver   .mem-avatar { background:linear-gradient(135deg,#7f8fa6,#556070); box-shadow:0 3px 12px rgba(127,143,166,.25); }
+    .tier-gold     .mem-avatar { background:linear-gradient(135deg,#b8860b,#8a6400); box-shadow:0 3px 12px rgba(184,134,11,.3); }
+    .tier-platinum .mem-avatar { background:linear-gradient(135deg,#0369a1,#024f7a); box-shadow:0 3px 12px rgba(3,105,161,.3); }
+
+    .mem-name { font-size:.95rem; font-weight:700; color:rgba(255,255,255,.92); letter-spacing:-.01em; }
+    .mem-email { font-size:.7rem; color:rgba(255,255,255,.35); margin-top:1px; }
+    .mem-badges { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-top:5px; }
+    .mem-badge {
+      font-size:.52rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+      padding:2px 7px; border-radius:4px;
+    }
+    .mb-role    { background:rgba(255,255,255,.06); color:rgba(255,255,255,.35); border:1px solid rgba(255,255,255,.07); }
+    .mb-active  { background:rgba(18,185,129,.14); color:#4ade80; border:1px solid rgba(74,222,128,.18); }
+    .mb-id      { background:rgba(255,255,255,.05); color:rgba(255,255,255,.28); border:1px solid rgba(255,255,255,.07); font-family:'DM Mono',monospace; letter-spacing:.08em; }
+    .mb-penalty { background:rgba(239,68,68,.15); color:#f87171; border:1px solid rgba(248,113,113,.18); }
+
+    .mem-sep { height:1px; background:rgba(255,255,255,.06); }
+
+    .mem-stats-row { display:flex; gap:18px; }
+    .mem-stat-item { display:flex; flex-direction:column; gap:2px; }
+    .mem-stat-lbl { font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.28); }
+    .mem-stat-val { font-size:.86rem; font-weight:700; color:rgba(255,255,255,.82); }
+    .tier-bronze   .mem-stat-val.hi { color:#e8a96a; }
+    .tier-silver   .mem-stat-val.hi { color:#c8d7eb; }
+    .tier-gold     .mem-stat-val.hi { color:#ffd700; }
+    .tier-platinum .mem-stat-val.hi { color:#7dd3fc; }
+
+    .mem-prog-wrap { display:flex; flex-direction:column; gap:5px; }
+    .mem-prog-track { height:3px; background:rgba(255,255,255,.07); border-radius:2px; overflow:hidden; }
+    .mem-prog-fill  { height:100%; border-radius:2px; transition:width 1.2s var(--ease); }
+    .tier-bronze   .mem-prog-fill { background:linear-gradient(90deg,#cd7f32,#e8a96a); }
+    .tier-silver   .mem-prog-fill { background:linear-gradient(90deg,#7f8fa6,#c8d7eb); }
+    .tier-gold     .mem-prog-fill { background:linear-gradient(90deg,#b8860b,#ffd700); }
+    .tier-platinum .mem-prog-fill { background:linear-gradient(90deg,#0369a1,#7dd3fc); }
+    .mem-prog-lbl  { font-size:.6rem; color:rgba(255,255,255,.28); font-weight:500; }
+
+    .mem-next-row {
+      display:flex; align-items:center; gap:8px;
+      padding:6px 10px; background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06); border-radius:var(--radius-xs);
+    }
+    .mem-next-dot {
+      width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0;
+      box-shadow:0 0 6px rgba(74,222,128,.5);
+      animation:pulse 2s ease infinite;
+    }
+    .mem-next-label { font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.28); flex-shrink:0; }
+    .mem-next-val   { font-size:.68rem; color:rgba(255,255,255,.6); font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mem-next-none  { color:rgba(255,255,255,.22); }
+
+    /* Right side */
+    .mem-right {
+      padding:16px 14px;
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+      border-left:1px solid rgba(255,255,255,.05);
+    }
+    .mem-qr-wrap {
+      width:120px; height:120px; border-radius:8px; overflow:hidden;
+      box-shadow:0 0 0 4px rgba(255,255,255,.08);
+    }
+    .mem-qr-wrap canvas, .mem-qr-wrap img { width:120px!important; height:120px!important; display:block!important; }
+    .mem-qr-hint { font-size:.56rem; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.22); font-weight:700; text-align:center; }
+    .mem-qr-code { font-family:'DM Mono',monospace; font-size:.66rem; color:rgba(255,255,255,.45); text-align:center; letter-spacing:.06em; }
+    .mem-tier-btn {
+      border:none; border-radius:var(--radius-xs);
+      font-family:inherit; font-size:.62rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+      padding:7px 13px; cursor:pointer;
+      transition:transform .2s var(--ease-spring), opacity .2s;
+    }
+    .mem-tier-btn:hover { transform:scale(1.05); opacity:.9; }
+    .tier-bronze   .mem-tier-btn { background:linear-gradient(135deg,#cd7f32,#e8a96a); color:#180e04; }
+    .tier-silver   .mem-tier-btn { background:linear-gradient(135deg,#7f8fa6,#c8d7eb); color:#0c1118; }
+    .tier-gold     .mem-tier-btn { background:linear-gradient(135deg,#b8860b,#ffd700); color:#100a00; }
+    .tier-platinum .mem-tier-btn { background:linear-gradient(135deg,#0369a1,#7dd3fc); color:#020710; }
+
+    /* Footer */
     .mem-footer {
-      padding:10px 30px; display:flex; align-items:center; gap:14px;
+      padding:7px 18px; display:flex; align-items:center; gap:10px;
+      border-top:1px solid rgba(255,255,255,.04);
     }
     .mem-bars { display:flex; gap:1.5px; align-items:center; }
     .mem-bars span { display:block; width:1.5px; border-radius:1px; }
-    .mem-bc  { font-family:monospace; font-size:.56rem; color:rgba(255,255,255,.15); letter-spacing:.07em; }
-    .mem-iss { margin-left:auto; font-size:.56rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.15); }
-    @media(max-width:600px){
-      .mem-body{flex-direction:column;}
-      .mem-right{width:100%;flex-direction:row;justify-content:flex-start;padding:14px 20px;gap:14px;}
-      .mem-stats{grid-template-columns:repeat(3,1fr);}
+    .tier-bronze   .mem-bars span { background:rgba(205,127,50,.28); }
+    .tier-silver   .mem-bars span { background:rgba(200,215,235,.18); }
+    .tier-gold     .mem-bars span { background:rgba(255,215,0,.25); }
+    .tier-platinum .mem-bars span { background:rgba(125,211,252,.22); }
+    .mem-bc  { font-family:'DM Mono',monospace; font-size:.5rem; color:rgba(255,255,255,.1); letter-spacing:.07em; }
+    .mem-iss { margin-left:auto; font-size:.5rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.1); }
+
+    /* Platinum particles */
+    .tier-platinum .mem-left { position:relative; overflow:hidden; }
+    .plat-particle { position:absolute; border-radius:50%; background:rgba(125,211,252,.07); animation:floatUp linear infinite; pointer-events:none; z-index:0; }
+    .mem-left > * { position:relative; z-index:1; }
+
+    /* ════════════════════════════════════════════
+       QUICK ACTIONS
+    ════════════════════════════════════════════ */
+    .quick-panel { display:flex; flex-direction:column; gap:6px; }
+    .quick-label {
+      font-size:.66rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.1em; color:var(--muted); margin-bottom:2px; padding:0 2px;
     }
-    /* ═════════════════════════════════════════ */
+    .qa-item {
+      display:flex; align-items:center; gap:11px;
+      padding:12px 13px; border-radius:var(--radius-sm);
+      background:var(--white); border:1px solid var(--border);
+      text-decoration:none; color:var(--ink);
+      box-shadow:var(--shadow-xs);
+      transition:border-color .2s, background .2s, transform .2s var(--ease), box-shadow .2s;
+    }
+    .qa-item:hover {
+      border-color:rgba(229,82,14,.35);
+      background:rgba(229,82,14,.025);
+      transform:translateX(3px);
+      box-shadow:var(--shadow-sm);
+    }
+    .qa-icon {
+      width:30px; height:30px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      transition:background .2s, border-color .2s;
+    }
+    .qa-icon svg { width:13px; height:13px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; transition:stroke .2s; }
+    .qa-item:hover .qa-icon { background:var(--accent); border-color:var(--accent); }
+    .qa-item:hover .qa-icon svg { stroke:#fff; }
+    .qa-text { flex:1; min-width:0; }
+    .qa-name { font-size:.8rem; font-weight:600; }
+    .qa-sub  { font-size:.66rem; color:var(--muted); margin-top:1px; }
+    .qa-arr  { color:var(--border-2); font-size:.8rem; transition:color .2s, transform .2s; }
+    .qa-item:hover .qa-arr { color:var(--accent); transform:translateX(2px); }
+
+    /* ════════════════════════════════════════════
+       SECTION CARD (Upcoming Bookings)
+    ════════════════════════════════════════════ */
+    .section-card {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); overflow:hidden;
+      box-shadow:var(--shadow-xs);
+    }
+    .section-head {
+      padding:16px 22px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .section-title {
+      font-size:.88rem; font-weight:700; letter-spacing:-.01em;
+      display:flex; align-items:center; gap:8px;
+    }
+    .section-title svg { width:15px; height:15px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+    .section-view-all {
+      font-size:.72rem; font-weight:700; letter-spacing:.03em;
+      color:var(--accent); text-decoration:none;
+      display:flex; align-items:center; gap:3px;
+      transition:gap .2s var(--ease), color .15s;
+    }
+    .section-view-all:hover { color:var(--accent-h); gap:7px; }
+
+    .booking-list { display:flex; flex-direction:column; }
+    .booking-row {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 22px; border-bottom:1px solid var(--border);
+      transition:background .15s;
+      animation:fadeIn .4s var(--ease) both;
+    }
+    .booking-row:last-child { border-bottom:none; }
+    .booking-row:hover { background:var(--bg); }
+
+    .booking-sport-icon {
+      width:38px; height:38px; border-radius:10px; flex-shrink:0;
+      background:var(--accent-dim); border:1px solid rgba(229,82,14,.14);
+      display:flex; align-items:center; justify-content:center;
+      transition:background .2s;
+    }
+    .booking-row:hover .booking-sport-icon { background:rgba(229,82,14,.12); }
+    .booking-sport-icon svg { width:16px; height:16px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; }
+
+    .booking-info { flex:1; min-width:0; }
+    .booking-name { font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
+    .booking-meta { display:flex; gap:10px; flex-wrap:wrap; }
+    .booking-meta-item { display:flex; align-items:center; gap:4px; font-size:.7rem; color:var(--muted); }
+    .booking-meta-item svg { width:10px; height:10px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; }
+
+    .booking-status {
+      font-size:.59rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+      padding:3px 10px; border-radius:999px; flex-shrink:0;
+    }
+    .s-confirmed { background:var(--green-dim); color:#059669; border:1px solid rgba(18,185,129,.18); }
+    .s-pending   { background:var(--amber-dim);  color:#b45309; border:1px solid rgba(245,158,11,.2); }
+
+    .booking-empty {
+      padding:36px 22px; text-align:center; color:var(--muted); font-size:.82rem;
+    }
+    .booking-empty svg { width:34px; height:34px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 10px; }
+    .booking-empty a { color:var(--accent); font-weight:600; text-decoration:none; }
+
+    /* ════════════════════════════════════════════
+       TOP UP MODAL
+    ════════════════════════════════════════════ */
+    .modal-overlay {
+      position:fixed; inset:0; z-index:999;
+      background:rgba(15,17,23,.45); backdrop-filter:blur(6px);
+      display:none; align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal-box {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); width:100%; max-width:440px;
+      box-shadow:var(--shadow-xl);
+      animation:scaleIn .32s var(--ease-spring) both;
+      position:relative; overflow:hidden;
+    }
+    .modal-head {
+      padding:20px 22px 16px; border-bottom:1px solid var(--border);
+      display:flex; align-items:flex-start; justify-content:space-between;
+    }
+    .modal-title { font-size:1.05rem; font-weight:700; letter-spacing:-.015em; margin-bottom:2px; }
+    .modal-sub   { font-size:.76rem; color:var(--muted); }
+    .modal-close-btn {
+      width:28px; height:28px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      color:var(--mid); cursor:pointer; font-size:15px;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .15s;
+    }
+    .modal-close-btn:hover { color:var(--ink); background:var(--bg-2); }
+    .modal-body { padding:20px 22px 22px; }
+
+    .topup-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:15px; }
+    .topup-opt {
+      padding:16px 12px; border-radius:var(--radius-sm);
+      background:var(--bg); border:1.5px solid var(--border);
+      cursor:pointer; text-align:center;
+      transition:all .22s var(--ease);
+    }
+    .topup-opt:hover    { border-color:var(--accent); background:var(--accent-dim); transform:translateY(-1px); }
+    .topup-opt.selected { border-color:var(--accent); background:var(--accent-dim); box-shadow:0 0 0 3px rgba(229,82,14,.09); transform:translateY(-2px); }
+    .topup-coins {
+      font-size:1.35rem; font-weight:700; letter-spacing:-.02em;
+      color:var(--ink); line-height:1;
+    }
+    .topup-opt:hover .topup-coins, .topup-opt.selected .topup-coins { color:var(--accent); }
+    .topup-price { font-size:.72rem; color:var(--muted); margin-top:3px; }
+    .topup-save {
+      display:inline-block; font-size:.57rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+      padding:2px 8px; border-radius:999px;
+      background:var(--green-dim); color:#059669;
+      border:1px solid rgba(18,185,129,.18); margin-top:6px;
+    }
+    .topup-divider {
+      display:flex; align-items:center; gap:10px;
+      margin-bottom:13px; color:var(--muted); font-size:.71rem; font-weight:600;
+    }
+    .topup-divider::before, .topup-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+    .topup-row { display:flex; gap:8px; }
+    .topup-input {
+      flex:1; padding:10px 13px; background:var(--bg);
+      border:1.5px solid var(--border); border-radius:var(--radius-sm);
+      color:var(--ink); font-family:inherit; font-size:.85rem; outline:none;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .topup-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(229,82,14,.09); }
+    .topup-input::placeholder { color:var(--muted); }
+    .topup-go {
+      padding:10px 17px; border:none; border-radius:var(--radius-sm);
+      background:var(--ink); color:#fff;
+      font-family:inherit; font-size:.76rem; font-weight:700; cursor:pointer;
+      transition:background .15s, transform .15s; white-space:nowrap;
+    }
+    .topup-go:hover { background:var(--ink-3); transform:translateY(-1px); }
+
+    /* Confirm overlay */
+    .topup-confirm {
+      position:absolute; inset:0; background:rgba(255,255,255,.98);
+      border-radius:var(--radius);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:32px 28px; text-align:center;
+      opacity:0; pointer-events:none;
+      transform:scale(.96) translateY(8px);
+      transition:opacity .25s, transform .28s var(--ease-spring);
+      z-index:10;
+    }
+    .topup-confirm.show { opacity:1; pointer-events:all; transform:scale(1) translateY(0); }
+    .confirm-icon {
+      width:60px; height:60px; border-radius:15px;
+      background:var(--accent-dim); border:1px solid rgba(229,82,14,.18);
+      display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    }
+    .confirm-icon svg { width:26px; height:26px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; }
+    .confirm-title { font-size:1.15rem; font-weight:700; letter-spacing:-.015em; margin-bottom:4px; }
+    .confirm-sub   { font-size:.78rem; color:var(--muted); margin-bottom:7px; }
+    .confirm-price {
+      display:inline-block; background:var(--green-dim); color:#059669;
+      font-size:.79rem; font-weight:700; padding:4px 15px;
+      border-radius:999px; margin-bottom:24px; border:1px solid rgba(18,185,129,.18);
+    }
+    .confirm-actions { display:flex; gap:9px; width:100%; }
+    .confirm-actions button {
+      flex:1; padding:12px; border-radius:var(--radius-sm); border:none;
+      font-family:inherit; font-size:.83rem; font-weight:700; cursor:pointer;
+      transition:all .2s var(--ease);
+    }
+    .btn-cancel { background:var(--bg); color:var(--muted); border:1px solid var(--border)!important; }
+    .btn-cancel:hover { color:var(--ink); background:var(--bg-2); }
+    .btn-go     { background:var(--accent); color:#fff; box-shadow:0 4px 12px rgba(229,82,14,.3); }
+    .btn-go:hover { background:var(--accent-h); transform:translateY(-1px); box-shadow:0 6px 18px rgba(229,82,14,.38); }
+
+    /* ════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════ */
+    @media (max-width:1024px) {
+      .stats-grid   { grid-template-columns:repeat(2,1fr); }
+      .content-row  { grid-template-columns:1fr; }
+      .quick-panel  { flex-direction:row; flex-wrap:wrap; }
+      .qa-item      { flex:1; min-width:200px; }
+    }
+
+    @media (max-width:768px) {
+      .nav-links, .nav-logout { display:none; }
+
+      .hamburger { display:flex; }
+
+      .stats-grid { grid-template-columns:repeat(2,1fr); }
+
+      /* Compact member ID card */
+      .mem-body   { grid-template-columns:1fr 90px; }
+      .mem-left   { padding:14px 16px; gap:10px; }
+      .mem-avatar { width:34px; height:34px; font-size:.88rem; border-radius:9px; }
+      .mem-name   { font-size:.82rem; }
+      .mem-email  { font-size:.62rem; }
+      .mem-stat-val { font-size:.76rem; }
+      .mem-stats-row { gap:12px; }
+      .mem-next-row { padding:6px 10px; }
+      .mem-right  {
+        padding:14px 10px; gap:8px;
+        border-left:1px solid rgba(255,255,255,.05);
+      }
+      .mem-qr-wrap { width:68px!important; height:68px!important; }
+      .mem-qr-wrap canvas, .mem-qr-wrap img { width:68px!important; height:68px!important; }
+      .mem-tier-btn { font-size:.55rem; padding:5px 9px; }
+      .mem-qr-hint, .mem-qr-code { font-size:.5rem; }
+      .mem-footer { padding:7px 16px; }
+    }
+
+    @media (max-width:480px) {
+      .stats-grid { grid-template-columns:1fr; }
+      .topup-grid { grid-template-columns:1fr; }
+      .alert-container { right:12px; max-width:calc(100vw - 24px); }
+
+      /* Even more compact ID card on small phones */
+      .mem-body        { grid-template-columns:1fr 80px; }
+      .mem-left        { padding:12px 14px; gap:8px; }
+      .mem-right       { padding:12px 8px; gap:6px; }
+      .mem-avatar      { width:30px; height:30px; font-size:.78rem; }
+      .mem-name        { font-size:.78rem; }
+      .mem-email       { font-size:.58rem; }
+      .mem-stats-row   { gap:10px; }
+      .mem-stat-lbl    { font-size:.52rem; }
+      .mem-stat-val    { font-size:.7rem; }
+      .mem-prog-lbl    { font-size:.54rem; }
+      .mem-next-row    { padding:5px 8px; }
+      .mem-next-label,
+      .mem-next-val    { font-size:.56rem; }
+      .mem-qr-wrap     { width:58px!important; height:58px!important; }
+      .mem-qr-wrap canvas,
+      .mem-qr-wrap img { width:58px!important; height:58px!important; }
+      .mem-tier-btn    { font-size:.52rem; padding:4px 7px; }
+      .mem-footer      { padding:6px 14px; }
+      .mem-brand       { font-size:.62rem; }
+      .mem-tier-badge  { font-size:.5rem; padding:2px 7px; }
+    }
   </style>
 </head>
 <body>
-  <!-- Alert Container -->
+
   <div class="alert-container" id="alertContainer"></div>
 
-  <!-- Processing Overlay -->
-  <div class="processing-overlay" id="processingOverlay">
-    <div class="processing-content">
-      <div class="spinner"></div>
-      <h3>Processing Payment...</h3>
-      <p>Please wait while we add coins to your account</p>
+  <div class="proc-overlay" id="processingOverlay" style="display:none">
+    <div class="proc-box">
+      <div class="proc-spinner"></div>
+      <h3>Processing Payment</h3>
+      <p>Adding coins to your account…</p>
     </div>
   </div>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-brand">SportCourt</div>
-    <div class="navbar-links">
-      <a href="dashboard.html">Dashboard</a>
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar" id="mainNav">
+    <a href="dashboard.html" class="nav-brand">
+      <div class="nav-brand-logo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M4 12a8 8 0 0 1 8-8M12 20a8 8 0 0 1-8-8M20 12a8 8 0 0 1-8 8M12 4a8 8 0 0 1 8 8"/></svg>
+      </div>
+      <span class="nav-brand-name">Sport<span>Court</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="nav-links">
+      <a href="dashboard.html" class="active">Dashboard</a>
       <a href="courts.html">Book Courts</a>
       <a href="bookings.html">My Bookings</a>
-      <a href="favorites.html">Favorites</a>
+      <a href="favorites.html">Favourites</a>
       <a href="profile.html">Profile</a>
-      <div class="notification-badge">
-        <button class="notif-btn" onclick="toggleNotifications(); return false;" aria-label="Notifications">
-          <svg class="notif-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span id="notifBadge" class="notif-count" style="display:none;">0</span>
-        </button>
-      </div>
-      <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <!-- Right actions -->
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <a href="#" onclick="logout();return false;" class="nav-logout">Logout</a>
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
-  <!-- Notification Panel -->
-  <div id="notificationPanel" class="notification-panel">
-    <div class="notification-header">
-      <h3>Notifications</h3>
-      <span class="close" onclick="toggleNotifications()">&times;</span>
-    </div>
-    <div id="notificationList"></div>
+  <!-- Mobile menu drawer -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="courts.html">Book Courts</a>
+    <a href="bookings.html">My Bookings</a>
+    <a href="favorites.html">Favourites</a>
+    <a href="profile.html">Profile</a>
+    <div class="mobile-menu-divider"></div>
+    <a href="#" onclick="logout();return false;">Logout</a>
   </div>
 
-  <div class="dashboard-container">
-    <div class="dashboard-header">
-      <h2>Welcome back, <span id="userName"></span>!</h2>
-      <p>Manage your court bookings and view your account</p>
+  <!-- ── NOTIFICATION PANEL ── -->
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notif-header">
+      <h3>Notifications</h3>
+      <button class="notif-close-btn" onclick="toggleNotifications()">&#x2715;</button>
+    </div>
+    <div id="notifSummaryBar" style="display:none" class="notif-summary-bar">
+      <span class="notif-summary-text" id="notifSummaryText"></span>
+      <button class="notif-mark-all-btn" onclick="markAllAsRead()">Mark all read</button>
+    </div>
+    <div id="notificationList">
+      <div class="notif-empty">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <p>No notifications yet</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE ── -->
+  <div class="page">
+
+    <!-- Header -->
+    <div class="page-header a1">
+      <div>
+        <div class="page-header-greeting">Hello, <em id="userName">—</em></div>
+        <div class="page-header-sub">Here's what's happening with your account today</div>
+      </div>
+      <div class="page-date-chip" id="pageDate">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        —
+      </div>
     </div>
 
-    <!-- ══ MEMBER ID CARD ══ -->
-    <div class="card-scene">
+    <!-- Stats -->
+    <div class="stats-grid a2">
+
+      <!-- Coin balance (featured) -->
+      <div class="stat-card featured">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2M15 10a3 3 0 0 0-6 0c0 1.7 1.3 2.5 3 3s3 1.3 3 3a3 3 0 0 1-6 0"/></svg>
+          </div>
+          <span class="stat-tag">Balance</span>
+        </div>
+        <div class="stat-value" id="coinBalance">—</div>
+        <div class="stat-label">Coin Balance</div>
+        <div class="stat-sub">Available to spend</div>
+        <button class="topup-btn" onclick="showTopUpModal()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Top Up
+        </button>
+      </div>
+
+      <!-- Active bookings -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <span class="stat-tag">Live</span>
+        </div>
+        <div class="stat-value" id="activeBookings">—</div>
+        <div class="stat-label">Active Bookings</div>
+        <div class="stat-sub">Upcoming sessions</div>
+      </div>
+
+      <!-- Favourites -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+        </div>
+        <div class="stat-value" id="favoriteCourts">—</div>
+        <div class="stat-label">Favourites</div>
+        <div class="stat-sub">Saved courts</div>
+      </div>
+
+      <!-- Total bookings -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+        </div>
+        <div class="stat-value" id="totalBookings">—</div>
+        <div class="stat-label">Total Bookings</div>
+        <div class="stat-sub">All time</div>
+      </div>
+
+    </div>
+
+    <!-- Content row -->
+    <div class="content-row a3">
+
+      <!-- Member Card -->
       <div class="mem-card tier-bronze" id="memCard">
+        <div class="mem-shimmer"></div>
         <div class="mem-top-bar"></div>
         <div class="mem-body">
-
-          <!-- Left -->
           <div class="mem-left">
-            <div class="mem-header">
+            <div class="mem-brand-row">
               <span class="mem-brand">SportCourt</span>
-              <div class="mem-type-wrap">
-                <span class="mem-type">Member Card</span>
-                <span class="mem-tier-name" id="mcTierName">Bronze</span>
-              </div>
+              <span class="mem-tier-badge" id="mcTierName">Bronze</span>
             </div>
-
             <div class="mem-identity">
-              <div class="mem-avatar"><span class="mem-letter" id="mcLetter">U</span></div>
+              <div class="mem-avatar"><span id="mcLetter">U</span></div>
               <div>
                 <div class="mem-name" id="mcName">—</div>
                 <div class="mem-email" id="mcEmail">—</div>
@@ -566,1147 +1034,586 @@
                   <span class="mem-badge mb-role">Member</span>
                   <span class="mem-badge mb-active">Active</span>
                   <span class="mem-badge mb-id" id="mcId">ID #—</span>
-                  <span class="mem-badge" id="mcTierBadge" style="display:none;"></span>
-                  <span class="mem-badge mb-penalty" id="mcPenaltyBadge" style="display:none;">⚠ Penalty</span>
+                  <span class="mem-badge mb-penalty" id="mcPenaltyBadge" style="display:none">Penalty</span>
                 </div>
               </div>
             </div>
-
             <div class="mem-sep"></div>
-
-            <div class="mem-stats">
-              <div>
-                <div class="mem-sl">Spent</div>
-                <div class="mem-sv green" id="mcSpent">—</div>
+            <div class="mem-stats-row">
+              <div class="mem-stat-item">
+                <div class="mem-stat-lbl">Spent</div>
+                <div class="mem-stat-val hi" id="mcSpent">—</div>
               </div>
-              <div>
-                <div class="mem-sl">Balance</div>
-                <div class="mem-sv" id="mcBalance">—</div>
+              <div class="mem-stat-item">
+                <div class="mem-stat-lbl">Balance</div>
+                <div class="mem-stat-val" id="mcBalance">—</div>
               </div>
-              <div>
-                <div class="mem-sl">Bookings</div>
-                <div class="mem-sv" id="mcBookings">—</div>
+              <div class="mem-stat-item">
+                <div class="mem-stat-lbl">Bookings</div>
+                <div class="mem-stat-val" id="mcBookings">—</div>
               </div>
-              <div>
-                <div class="mem-sl">No-shows</div>
-                <div class="mem-sv" id="mcNoshow">—</div>
-              </div>
-              <div>
-                <div class="mem-sl">Since</div>
-                <div class="mem-sv" id="mcSince">—</div>
+              <div class="mem-stat-item" style="margin-left:auto;text-align:right">
+                <div class="mem-stat-lbl">Since</div>
+                <div class="mem-stat-val" id="mcSince" style="font-size:.7rem">—</div>
               </div>
             </div>
-
-            <!-- Tier progress -->
-            <div class="tier-progress-wrap">
-              <div class="tier-progress-bar">
-                <div class="tier-progress-fill" id="mcProgressFill" style="width:0%"></div>
-              </div>
-              <span class="tier-progress-label" id="mcProgressLabel">Loading…</span>
+            <div class="mem-prog-wrap">
+              <div class="mem-prog-track"><div class="mem-prog-fill" id="mcProgressFill" style="width:0%"></div></div>
+              <span class="mem-prog-lbl" id="mcProgressLabel">Loading…</span>
             </div>
-            <!-- Next booking -->
-            <div class="mem-next" id="mcNext">
+            <div class="mem-next-row" id="mcNext">
               <div class="mem-next-dot"></div>
-              <span class="mem-next-label">Next booking</span>
-              <span class="mem-next-val" id="mcNextVal"><span class="mem-next-none">None upcoming</span></span>
+              <span class="mem-next-label">Next</span>
+              <span class="mem-next-val" id="mcNextVal"><span class="mem-next-none">No upcoming bookings</span></span>
             </div>
           </div>
-
-          <!-- Right — QR -->
           <div class="mem-right">
-            <div class="mem-qr-box" id="mcQrBox"></div>
-            <div class="mem-qr-hint">Scan to verify</div>
-            <div class="mem-qr-id" id="mcQrId">SC-———</div>
-            <button id="tierRevealBtn" onclick="openTierRevealPage()" style="
-              margin-top:12px;
-              width:100%;
-              padding:10px 0;
-              border:none;
-              border-radius:8px;
-              font-size:.7rem;
-              font-weight:800;
-              letter-spacing:.1em;
-              text-transform:uppercase;
-              cursor:pointer;
-              background:linear-gradient(135deg,#cd7f32,#e8a96a);
-              color:#0f0d0b;
-              box-shadow:0 3px 10px rgba(205,127,50,.35);
-              transition:opacity .2s, transform .2s;
-            " onmouseover="this.style.opacity='.85';this.style.transform='translateY(-1px)'"
-               onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
-              ✦ My Tier Card
-            </button>
+            <div class="mem-qr-wrap" id="mcQrBox"></div>
+            <div style="text-align:center;display:flex;flex-direction:column;gap:5px;align-items:center">
+              <div class="mem-qr-hint">Scan to verify</div>
+              <div class="mem-qr-code" id="mcQrId">SC-———</div>
+              <button class="mem-tier-btn" onclick="openTierRevealPage()">My Tier Card</button>
+            </div>
           </div>
-
         </div>
         <div class="mem-footer">
           <div class="mem-bars" id="mcBars"></div>
           <span class="mem-bc" id="mcBc">SC-0000000</span>
-          <span class="mem-iss" id="mcIss">Issued 2026</span>
+          <span class="mem-iss" id="mcIss">2026</span>
         </div>
       </div>
-    </div>
 
-        <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Coin Balance</h3>
-        <div class="stat-value" id="coinBalance">0</div>
-        <div class="stat-label">Available coins</div>
-        <button onclick="showTopUpModal()" style="margin-top: 15px; background: rgba(255,255,255,0.2);">Top Up</button>
+      <!-- Quick Actions -->
+      <div class="quick-panel">
+        <div class="quick-label">Quick Actions</div>
+        <a href="courts.html" class="qa-item">
+          <div class="qa-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7m-3.5-3.5v7"/></svg></div>
+          <div class="qa-text"><div class="qa-name">Book a Court</div><div class="qa-sub">Browse slots</div></div>
+          <div class="qa-arr">›</div>
+        </a>
+        <a href="bookings.html" class="qa-item">
+          <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div class="qa-text"><div class="qa-name">My Bookings</div><div class="qa-sub">History &amp; upcoming</div></div>
+          <div class="qa-arr">›</div>
+        </a>
+        <a href="favorites.html" class="qa-item">
+          <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+          <div class="qa-text"><div class="qa-name">Favourites</div><div class="qa-sub">Saved courts</div></div>
+          <div class="qa-arr">›</div>
+        </a>
+        <a href="profile.html" class="qa-item">
+          <div class="qa-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="qa-text"><div class="qa-name">Edit Profile</div><div class="qa-sub">Update details</div></div>
+          <div class="qa-arr">›</div>
+        </a>
       </div>
-      
-      <div class="stat-card">
-        <h3>Active Bookings</h3>
-        <div class="stat-value" id="activeBookings">0</div>
-        <div class="stat-label">Upcoming sessions</div>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Favorite Courts</h3>
-        <div class="stat-value" id="favoriteCourts">0</div>
-        <div class="stat-label">Quick access courts</div>
-      </div>
-      
-      <div class="stat-card">
-        <h3>Total Bookings</h3>
-        <div class="stat-value" id="totalBookings">0</div>
-        <div class="stat-label">All time</div>
-      </div>
-    </div>
 
-    <!-- Quick Actions -->
-    <div class="card">
-      <h3>Quick Actions</h3>
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <button onclick="location.href='courts.html'">Book a Court</button>
-        <button onclick="location.href='bookings.html'" class="secondary">View My Bookings</button>
-        <button onclick="location.href='favorites.html'" class="secondary">Favorite Courts</button>
-      </div>
     </div>
 
     <!-- Upcoming Bookings -->
-    <div class="card">
-      <h3>Upcoming Bookings</h3>
-      <div id="upcomingBookings">Loading...</div>
+    <div class="section-card a4">
+      <div class="section-head">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Upcoming Bookings
+        </div>
+        <a href="bookings.html" class="section-view-all">View all →</a>
+      </div>
+      <div class="booking-list" id="upcomingBookings">
+        <div class="booking-empty">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Loading your bookings…
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+
+  <!-- ── TOP UP MODAL ── -->
+  <div class="modal-overlay" id="topUpModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Top Up Coins</div>
+          <div class="modal-sub">Select a package or enter a custom amount</div>
+        </div>
+        <button class="modal-close-btn" onclick="closeTopUpModal()">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <div class="topup-grid">
+          <div class="topup-opt" onclick="topUpPreset(100,10,this)">
+            <div class="topup-coins">100</div>
+            <div class="topup-price">$10.00</div>
+          </div>
+          <div class="topup-opt" onclick="topUpPreset(500,45,this)">
+            <div class="topup-coins">500</div>
+            <div class="topup-price">$45.00</div>
+            <div class="topup-save">10% off</div>
+          </div>
+          <div class="topup-opt" onclick="topUpPreset(1000,80,this)">
+            <div class="topup-coins">1,000</div>
+            <div class="topup-price">$80.00</div>
+            <div class="topup-save">20% off</div>
+          </div>
+          <div class="topup-opt" onclick="topUpPreset(5000,350,this)">
+            <div class="topup-coins">5,000</div>
+            <div class="topup-price">$350.00</div>
+            <div class="topup-save">30% off</div>
+          </div>
+        </div>
+        <div class="topup-divider">or custom amount</div>
+        <div class="topup-row">
+          <input type="number" class="topup-input" id="customAmountInput" placeholder="e.g. 250 coins…" min="10">
+          <button class="topup-go" onclick="topUpCustom()">Top Up</button>
+        </div>
+      </div>
+      <div id="topupConfirmOverlay" class="topup-confirm">
+        <div class="confirm-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2M15 10a3 3 0 0 0-6 0c0 1.7 1.3 2.5 3 3s3 1.3 3 3a3 3 0 0 1-6 0"/></svg>
+        </div>
+        <div class="confirm-title" id="confirmTitle">Confirm Top Up</div>
+        <div class="confirm-sub" id="confirmSub">You are about to purchase</div>
+        <div class="confirm-price" id="confirmPriceTag"></div>
+        <div class="confirm-actions">
+          <button class="btn-cancel" onclick="closeTopUpConfirm()">Cancel</button>
+          <button class="btn-go" id="confirmGoBtn">Confirm &amp; Pay</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Top Up Modal -->
-  <div id="topUpModal" class="modal">
-    <div class="modal-content">
-      <h2>Top Up Coins</h2>
-      <p>Add coins to your account for booking courts</p>
+  <!-- ── Top Up modal functions — loaded BEFORE api.js/auth.js so the button always works ── -->
+  <script>
+    function showTopUpModal() {
+      document.getElementById('topUpModal').classList.add('show');
+      document.querySelectorAll('.topup-opt').forEach(o=>o.classList.remove('selected'));
+      if (typeof closeTopUpConfirm==='function') closeTopUpConfirm();
+    }
+    function closeTopUpModal() {
+      document.getElementById('topUpModal').classList.remove('show');
+      if (typeof closeTopUpConfirm==='function') closeTopUpConfirm();
+      document.querySelectorAll('.topup-opt').forEach(o=>o.classList.remove('selected'));
+      const ci = document.getElementById('customAmountInput');
+      if (ci) ci.value='';
+    }
+    function closeTopUpConfirm() {
+      document.getElementById('topupConfirmOverlay').classList.remove('show');
+    }
+    function topUpPreset(coins, price, el) {
+      document.querySelectorAll('.topup-opt').forEach(o=>o.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+      document.getElementById('confirmTitle').textContent    = 'Add '+coins.toLocaleString()+' Coins';
+      document.getElementById('confirmSub').textContent      = 'You are about to purchase';
+      document.getElementById('confirmPriceTag').textContent = coins.toLocaleString()+' coins for $'+price;
+      document.getElementById('confirmGoBtn').onclick        = ()=>{ closeTopUpModal(); if(typeof performTopUp==='function') performTopUp(coins); };
+      document.getElementById('topupConfirmOverlay').classList.add('show');
+    }
+    function topUpCustom() {
+      const amt = parseInt(document.getElementById('customAmountInput').value);
+      if (!amt||amt<10){ if(typeof showAlert==='function') showAlert('Minimum amount is 10 coins','error'); return; }
+      const price = Math.ceil(amt*0.1);
+      document.getElementById('confirmTitle').textContent    = 'Add '+amt.toLocaleString()+' Coins';
+      document.getElementById('confirmSub').textContent      = 'Custom top up';
+      document.getElementById('confirmPriceTag').textContent = amt.toLocaleString()+' coins for ~$'+price;
+      document.getElementById('confirmGoBtn').onclick        = ()=>{ closeTopUpModal(); if(typeof performTopUp==='function') performTopUp(amt); };
+      document.getElementById('topupConfirmOverlay').classList.add('show');
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      var modal = document.getElementById('topUpModal');
+      if (modal) modal.addEventListener('click', function(e){ if(e.target===this) closeTopUpModal(); });
+    });
+  </script>
 
-      <!-- Preset buttons -->
-      <div class="preset-buttons" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
-        <button class="topup-btn" onclick="topUpPreset(100, 10)">
-          +100 coins<br>$10
-        </button>
-
-        <button class="topup-btn" onclick="topUpPreset(500, 45)">
-          +500 coins<br>$45
-        </button>
-
-        <button class="topup-btn" onclick="topUpPreset(1000, 80)">
-          +1000 coins<br>$80
-        </button>
-
-        <button class="topup-btn" onclick="topUpPreset(5000, 350)">
-          +5000 coins<br>$350
-        </button>
-      </div>
-
-      <!-- Custom amount -->
-      <div class="form-group">
-        <input type="number" id="customAmountInput" placeholder="Enter amount" min="10">
-        <button onclick="topUpCustom()">Top Up Custom Amount</button>
-      </div>
-
-
-      <!-- Confirm Step Overlay -->
-      <div id="topupConfirmOverlay" class="topup-confirm-overlay">
-        <div class="topup-confirm-icon">🪙</div>
-        <h3 id="confirmTitle">Confirm Top Up</h3>
-        <p class="confirm-sub" id="confirmSub">You are about to purchase</p>
-        <div class="topup-price-tag" id="confirmPriceTag"></div>
-        <div class="topup-confirm-actions">
-          <button class="btn-topup-cancel" onclick="closeTopUpConfirm()">Cancel</button>
-          <button class="btn-topup-go" id="confirmGoBtn">Confirm &amp; Pay</button>
-        </div>
-      </div>
-
-      <!-- Close button -->
-      <div style="text-align: right; margin-top: 10px;">
-        <button onclick="closeTopUpModal()">×</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <!-- Brand Section -->
-      <div class="footer-section footer-brand">
-        <div class="footer-logo">
-          <div class="footer-logo-mark"></div>
-          <div class="footer-logo-text">SportCourt</div>
-        </div>
-        <p class="footer-description">
-          Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.
-        </p>
-        <span class="footer-tagline">
-          <span class="dot-live"></span>
-          Book Smart, Play Hard
-        </span>
-      </div>
-
-      <!-- Quick Links -->
-      <div class="footer-section">
-        <h3>Quick Links</h3>
-        <div class="footer-links">
-          <a href="dashboard.html" class="footer-link">Dashboard</a>
-          <a href="courts.html" class="footer-link">Browse Courts</a>
-          <a href="bookings.html" class="footer-link">My Bookings</a>
-          <a href="favorites.html" class="footer-link">Favorites</a>
-          <a href="profile.html" class="footer-link">Profile</a>
-        </div>
-      </div>
-
-      <!-- Resources -->
-      <div class="footer-section">
-        <h3>Resources</h3>
-        <div class="footer-links">
-          <a href="#" class="footer-link">FAQs</a>
-          <a href="#" class="footer-link">How It Works</a>
-          <a href="#" class="footer-link">Pricing</a>
-          <a href="#" class="footer-link">Safety Guidelines</a>
-          <a href="#" class="footer-link">Court Rules</a>
-        </div>
-      </div>
-
-      <!-- Contact Information -->
-      <div class="footer-section">
-        <h3>Contact Us</h3>
-        <div class="footer-contact-info">
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Email</span>
-              <span class="contact-value">
-                <a href="/cdn-cgi/l/email-protection#c5afaaadab85b1a0b6b1eba6aaa8"><span class="__cf_email__" data-cfemail="f2989d9a9cb286978186dc919d9f">[email&#160;protected]</span></a>
-              </span>
-            </div>
-          </div>
-          
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Phone</span>
-              <span class="contact-value">
-                <a href="tel:+91234565">+91234565</a>
-              </span>
-            </div>
-          </div>
-          
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Support</span>
-              <span class="contact-value">Customer Service</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Social Media Links -->
-        <div class="footer-social">
-          <a href="#" class="social-link" title="Facebook"></a>
-          <a href="#" class="social-link" title="Twitter"></a>
-          <a href="#" class="social-link" title="Instagram"></a>
-          <a href="#" class="social-link" title="LinkedIn"></a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer Bottom -->
-    <div class="footer-bottom">
-      <div class="footer-copyright">
-        © 2026 SportCourt. All rights reserved. Made with <span class="heart"></span>
-      </div>
-      <div class="footer-legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Refund Policy</a>
-        <a href="#">Accessibility</a>
-      </div>
-    </div>
-  </footer>
-
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../js/api.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
-  <script src="../js/topup.js"></script>
+  <!-- topup.js is NOT loaded — all top-up logic is handled inline -->
+
   <script>
-    checkAuth();
+    /* ── Navbar scroll ── */
+    window.addEventListener('scroll', () => {
+      document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 4);
+    });
 
-    // ── Tier config ─────────────────────────────────────────
-    const TIERS = [
-      { name:'Platinum', cls:'tier-platinum', min:50000, next:null,  color:'#7dd3fc' },
-      { name:'Gold',     cls:'tier-gold',     min:20000, next:50000, color:'#ffd700' },
-      { name:'Silver',   cls:'tier-silver',   min:5000,  next:20000, color:'#d1d5db' },
-      { name:'Bronze',   cls:'tier-bronze',   min:0,     next:5000,  color:'#cd7f32' },
-    ];
-    function getTier(spent) { return TIERS.find(t => spent >= t.min) || TIERS[TIERS.length-1]; }
+    /* ── Mobile menu ── */
+    function toggleMobileMenu() {
+      const ham  = document.getElementById('hamburger');
+      const menu = document.getElementById('mobileMenu');
+      ham.classList.toggle('open');
+      menu.classList.toggle('open');
+    }
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', e => {
+      const ham  = document.getElementById('hamburger');
+      const menu = document.getElementById('mobileMenu');
+      if (!ham.contains(e.target) && !menu.contains(e.target)) {
+        ham.classList.remove('open');
+        menu.classList.remove('open');
+      }
+    });
 
-    // ── Count-up animation ───────────────────────────────────
-    function countUp(elId, target, formatter) {
-      const el = document.getElementById(elId);
+    /* ── Date chip ── */
+    (function() {
+      const d  = new Date();
+      const el = document.getElementById('pageDate');
+      el.innerHTML =
+        `<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
+        + d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+    })();
+
+    /* ── Notification panel ── */
+    function toggleNotifications() {
+      const panel  = document.getElementById('notificationPanel');
+      const isOpen = panel.classList.toggle('open');
+      if (isOpen && typeof loadNotifications === 'function') loadNotifications();
+    }
+    window.toggleNotifications = toggleNotifications;
+
+    /* ── Alert system ── */
+    function showAlert(msg, type='info') {
+      const c = document.getElementById('alertContainer');
+      const a = document.createElement('div');
+      a.className = 'alert alert-' + type;
+      const icons = {
+        success:`<svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+        error  :`<svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+        info   :`<svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+      };
+      a.innerHTML = (icons[type]||'') + `<span>${msg}</span>`;
+      c.appendChild(a);
+      setTimeout(() => {
+        a.style.transition = 'opacity .3s, transform .3s';
+        a.style.opacity    = '0';
+        a.style.transform  = 'translateX(16px)';
+        setTimeout(() => a.remove(), 300);
+      }, 3800);
+    }
+    window.showAlert = showAlert;
+
+    /* ── Count-up ── */
+    function countUp(id, target, fmt) {
+      const el  = document.getElementById(id);
       if (!el) return;
-      const dur=1000, steps=40, inc=target/steps;
-      let cur=0, step=0;
-      const fn = formatter || (v => Math.round(v).toLocaleString());
-      const t = setInterval(() => {
-        step++; cur = Math.min(inc*step, target);
-        el.textContent = fn(cur);
-        if (step>=steps) { clearInterval(t); el.textContent = fn(target); }
-      }, dur/steps);
+      const dur = 900, start = Date.now();
+      const tick = () => {
+        const t = Math.min((Date.now()-start)/dur, 1);
+        const ease = 1 - Math.pow(1-t, 3);
+        el.textContent = fmt ? fmt(ease*target) : Math.round(ease*target);
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    /* ── Upcoming bookings render ── */
+    function renderUpcoming(bookings) {
+      const list = document.getElementById('upcomingBookings');
+      if (!bookings || !bookings.length) {
+        list.innerHTML = `
+          <div class="booking-empty">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            No upcoming bookings. <a href="courts.html">Book a court</a>
+          </div>`;
+        return;
+      }
+      const fmtT = t => {
+        let h, m;
+        if (typeof t==='number'){ h=Math.floor(t/3600); m=Math.floor((t%3600)/60); }
+        else { [h,m]=String(t).split(':').map(Number); }
+        return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+      };
+      list.innerHTML = bookings.slice(0,5).map(b => {
+        const ds   = new Date(b.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+        const stat = b.status==='confirmed'||b.status==='booked' ? 's-confirmed':'s-pending';
+        const slbl = b.status==='confirmed'||b.status==='booked' ? 'Confirmed':'Pending';
+        return `
+          <div class="booking-row">
+            <div class="booking-sport-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14M12 2a10 10 0 0 1 7.07 17.07"/></svg>
+            </div>
+            <div class="booking-info">
+              <div class="booking-name">${b.court_name||'Court'}</div>
+              <div class="booking-meta">
+                <div class="booking-meta-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${ds}</div>
+                <div class="booking-meta-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${fmtT(b.start_time)}</div>
+              </div>
+            </div>
+            <span class="booking-status ${stat}">${slbl}</span>
+          </div>`;
+      }).join('');
+    }
+
+    /* ── Tier config ── */
+    const TIERS = [
+      {min:0,    next:1000,  name:'Bronze',   cls:'tier-bronze',   color:'#e8a96a'},
+      {min:1000, next:5000,  name:'Silver',   cls:'tier-silver',   color:'#c8d7eb'},
+      {min:5000, next:20000, name:'Gold',     cls:'tier-gold',     color:'#ffd700'},
+      {min:20000,next:null,  name:'Platinum', cls:'tier-platinum', color:'#7dd3fc'},
+    ];
+    function getTier(s) { return [...TIERS].reverse().find(t=>s>=t.min)||TIERS[0]; }
+
+    /* ── performTopUp (inline, tries multiple endpoint variants) ── */
+    async function performTopUp(amount) {
+      const overlay = document.getElementById('processingOverlay');
+      overlay.style.display = 'flex';
+      const topupEndpoints = ['/users/topup', '/topup', '/users/me/topup', '/wallet/topup', '/coins/topup'];
+      let data = null;
+      let lastErr = null;
+      for (const ep of topupEndpoints) {
+        try {
+          data = await apiFetch(ep, {
+            method: 'POST',
+            headers: authHeader(),
+            body: JSON.stringify({ amount })
+          });
+          lastErr = null;
+          break;
+        } catch(err) { lastErr = err; }
+      }
+      overlay.style.display = 'none';
+      if (lastErr) {
+        showAlert(lastErr.message || 'Top up failed. Please try again.', 'error');
+        return;
+      }
+      showAlert(`Successfully added ${amount.toLocaleString()} coins!`, 'success');
+      if (data && data.coin_balance !== undefined) {
+        countUp('coinBalance', data.coin_balance, v => Math.round(v).toLocaleString());
+        const mcBal = document.getElementById('mcBalance');
+        if (mcBal) countUp('mcBalance', data.coin_balance, v => Math.round(v).toLocaleString());
+      }
+      // Reload full dashboard to reflect new balance
+      setTimeout(loadDashboard, 800);
+    }
+    window.performTopUp = performTopUp;
+
+    /* ── Auto-retry on cold start (Render free tier wakes up in ~30-60s) ── */
+    let _dashRetryCount = 0;
+    let _dashRetryTimer = null;
+    const _DASH_MAX_RETRIES = 6;
+    // Total wait: 6+10+14+18+22 = ~70s — enough for Render cold start
+    const _DASH_RETRY_DELAYS = [6000, 10000, 14000, 18000, 22000, 25000];
+
+    function showWakeUpBanner(attempt) {
+      const pct = Math.round((attempt / _DASH_MAX_RETRIES) * 100);
+      const msgs = [
+        'Server is waking up — this takes ~30 seconds on first visit…',
+        'Still starting, please hang on…',
+        'Server is loading, almost there…',
+        'Nearly ready…',
+        'Almost done…',
+        'Last attempt…'
+      ];
+      document.getElementById('upcomingBookings').innerHTML = `
+        <div class="booking-empty" style="padding:40px 22px">
+          <svg viewBox="0 0 24 24" style="animation:spin 1.2s linear infinite;stroke:var(--accent)" width="32" height="32"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.07-4.02"/></svg>
+          <div style="margin-top:10px;font-size:.84rem;color:var(--ink)">${msgs[attempt-1] || 'Retrying…'}</div>
+          <div style="margin-top:12px;width:200px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;display:inline-block">
+            <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:2px;transition:width .6s var(--ease)"></div>
+          </div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:6px">Attempt ${attempt} of ${_DASH_MAX_RETRIES}</div>
+        </div>`;
+    }
+
+    /* Try multiple endpoint variants, return [] on all failures */
+    async function tryFetch(endpoints) {
+      for (const ep of endpoints) {
+        try {
+          const r = await apiFetch(ep, {headers:authHeader()});
+          if (Array.isArray(r)) return r;
+          if (r && Array.isArray(r.data)) return r.data;
+          if (r && Array.isArray(r.bookings)) return r.bookings;
+          if (r && Array.isArray(r.results)) return r.results;
+          return r;
+        } catch(e) {
+          console.warn(`[tryFetch] ${ep} failed:`, e.message);
+        }
+      }
+      console.warn('[tryFetch] All endpoints failed for:', endpoints);
+      return [];
     }
 
     async function loadDashboard() {
       try {
-        const user    = await apiFetch('/users/me', { headers: authHeader() });
-        const name    = user.name || user.email.split('@')[0];
-        const email   = user.email || '';
-        const uid     = user.id   || 0;
-        const balance = user.coin_balance || 0;
-        const penalty = user.penalty || 0;
+        // Backend routes confirmed:
+        //   bookings: GET /api/bookings/my-bookings  (bookingRoutes.js line 36)
+        //   favourites: no endpoint — fallback to empty array
+        //   /users/me returns: id, name, email, coin_balance, penalty, created_at
+        const [user, bookings, favs] = await Promise.all([
+          apiFetch('/users/me', {headers:authHeader()}),
+          apiFetch('/bookings/my-bookings', {headers:authHeader()}),
+          Promise.resolve(JSON.parse(localStorage.getItem('favorites') || '[]')),
+        ]);
 
-        document.getElementById('userName').textContent    = name;
-        document.getElementById('coinBalance').textContent = balance;
+        const {id:uid, name, email, coin_balance:balance=0, penalty=0} = user;
+        document.getElementById('userName').textContent = name.split(' ')[0];
 
-        // ── Bookings ────────────────────────────────────────
-        const bookings = await apiFetch('/bookings/my-bookings', { headers: authHeader() });
-        const now = new Date(); now.setHours(0,0,0,0);
-        const active = bookings.filter(b => {
-          const bd = new Date(b.date); bd.setHours(0,0,0,0);
+        // Favorites — no backend endpoint yet, stays 0 until you add one
+        const favsCount = JSON.parse(localStorage.getItem('favorites') || '[]').length;
+        document.getElementById('favoriteCourts').textContent = favsCount;
+
+        const now    = new Date(); now.setHours(0,0,0,0);
+        const active = Array.isArray(bookings) ? bookings.filter(b=>{
+          const bd=new Date(b.date); bd.setHours(0,0,0,0);
           return (b.status==='confirmed'||b.status==='booked') && bd>=now;
-        });
-        const completed = bookings.filter(b => b.status==='completed');
-        const noShows   = bookings.filter(b => b.status==='no_show').length;
-        const totalSpent = completed.reduce((s,b) => s+(b.total_price||0), 0);
+        }) : [];
+        const completed = Array.isArray(bookings) ? bookings.filter(b=>b.status==='completed') : [];
 
-        document.getElementById('activeBookings').textContent = active.length;
-        document.getElementById('totalBookings').textContent  = bookings.length;
+        // totalSpent: sum total_price across all bookings (DB column: total_price)
+        const totalSpent = Array.isArray(bookings)
+          ? bookings.reduce((s,b)=>s+(b.total_price||0),0)
+          : 0;
 
-        // ── Apply tier ───────────────────────────────────────
+        // Counts derived from bookings list
+        const totalBookingsCount  = Array.isArray(bookings) ? bookings.length : 0;
+        const activeBookingsCount = active.length;
+
         const tier = getTier(totalSpent);
-        const card = document.getElementById('memCard');
-        card.className = 'mem-card ' + tier.cls;
+        document.getElementById('memCard').className = 'mem-card '+tier.cls;
+        window._tierRevealData = {tier, user, totalSpent, bookings:totalBookingsCount, completed:completed.length};
 
-        // ── One-time reveal — store data, don't auto-show ────
-        window._tierRevealData = { tier, user, totalSpent, bookings: bookings.length, completed: completed.length };
-        // Update the tier reveal button color to match tier
-        updateTierRevealBtn(tier);
+        document.getElementById('activeBookings').textContent = activeBookingsCount;
+        document.getElementById('totalBookings').textContent  = totalBookingsCount;
 
-        // ── ID Card static fields ────────────────────────────
         const memberId = String(uid).padStart(7,'0');
-        const scCode   = 'SC-' + memberId;
+        const scCode   = 'SC-'+memberId;
         document.getElementById('mcLetter').textContent   = name.charAt(0).toUpperCase();
         document.getElementById('mcName').textContent     = name.toUpperCase();
         document.getElementById('mcEmail').textContent    = email;
-        document.getElementById('mcId').textContent       = 'ID #' + memberId;
+        document.getElementById('mcId').textContent       = 'ID #'+memberId;
         document.getElementById('mcTierName').textContent = tier.name;
         document.getElementById('mcQrId').textContent     = scCode;
         document.getElementById('mcBc').textContent       = scCode;
-        if (penalty > 0) document.getElementById('mcPenaltyBadge').style.display='';
-        if (user.created_at) {
-          const d = new Date(user.created_at);
-          document.getElementById('mcSince').textContent = d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
-          document.getElementById('mcIss').textContent   = 'Issued '+d.getFullYear();
-        }
-        const noShowEl = document.getElementById('mcNoshow');
-        noShowEl.className = 'mem-sv'+(noShows>0?' red':'');
 
-        // ── Tier progress bar ────────────────────────────────
-        const fill  = document.getElementById('mcProgressFill');
-        const label = document.getElementById('mcProgressLabel');
-        if (tier.next === null) {
-          setTimeout(() => { fill.style.width='100%'; fill.style.background=tier.color; }, 400);
-          label.textContent = '★ Maximum tier reached';
-          label.style.color = tier.color;
+        if (penalty>0) document.getElementById('mcPenaltyBadge').style.display='';
+        if (user.created_at) {
+          const d=new Date(user.created_at);
+          document.getElementById('mcSince').textContent = d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+          document.getElementById('mcIss').textContent   = d.getFullYear();
+        }
+
+        /* Progress */
+        const fill = document.getElementById('mcProgressFill');
+        const lbl  = document.getElementById('mcProgressLabel');
+        if (tier.next===null) {
+          setTimeout(()=>{ fill.style.width='100%'; }, 400);
+          lbl.textContent   = 'Maximum tier reached';
+          lbl.style.color   = tier.color;
         } else {
           const pct = Math.min(100,((totalSpent-tier.min)/(tier.next-tier.min))*100);
-          setTimeout(() => { fill.style.width=pct+'%'; fill.style.background=tier.color; }, 400);
-          const nextTier = TIERS.find(t=>t.min===tier.next);
-          label.textContent = (tier.next-totalSpent).toLocaleString()+' coins to '+(nextTier?nextTier.name:'next tier');
+          setTimeout(()=>{ fill.style.width=pct+'%'; }, 400);
+          const nt = TIERS.find(t=>t.min===tier.next);
+          lbl.textContent = (tier.next-totalSpent).toLocaleString()+' coins to '+(nt?nt.name:'next tier');
         }
 
-        // ── QR code ──────────────────────────────────────────
-        document.getElementById('mcQrBox').innerHTML='';
-        if (typeof QRCode !== 'undefined') {
-          new QRCode(document.getElementById('mcQrBox'),{
-            text:'SPORTCOURT:MEMBER:'+scCode+':'+email,
-            width:138,height:138,colorDark:'#0a0f14',colorLight:'#ffffff',
-            correctLevel:QRCode.CorrectLevel.M
-          });
-        }
+        /* QR — Google Charts API, always works */
+        const qrSize = window.innerWidth<=640 ? 90 : 120;
+        const qrBox = document.getElementById('mcQrBox');
+        qrBox.innerHTML = '';
+        const qrData = encodeURIComponent('SPORTCOURT:MEMBER:' + scCode + ':' + email);
+        const qrImg = document.createElement('img');
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qrSize + 'x' + qrSize + '&data=' + qrData + '&color=0a0f14&bgcolor=ffffff&margin=4&ecc=M';
+        qrImg.width = qrSize;
+        qrImg.height = qrSize;
+        qrImg.style.cssText = 'display:block;border-radius:4px;';
+        qrImg.alt = 'Member QR Code';
+        qrBox.appendChild(qrImg);
 
-        // ── Barcode bars ─────────────────────────────────────
+        /* Barcode */
         const bars=document.getElementById('mcBars');
         if (bars) {
           const h=[18,26,14,22,30,16,24,12,20,28,18,30,14,22,20,16,28];
           bars.innerHTML=h.map((v,i)=>`<span style="height:${v+(uid*3+i*7)%10}px"></span>`).join('');
         }
 
-        // ── Count-up animations (delayed so card is visible) ─
-        setTimeout(() => {
-          countUp('mcSpent',   totalSpent, v => Math.round(v).toLocaleString()+' coins');
-          countUp('mcBalance', balance,    v => Math.round(v).toLocaleString());
-          countUp('mcBookings',bookings.length);
-          countUp('mcNoshow',  noShows);
-        }, 350);
+        /* Count-up */
+        setTimeout(()=>{
+          countUp('coinBalance',  balance,          v=>Math.round(v).toLocaleString());
+          countUp('mcSpent',      totalSpent,       v=>Math.round(v).toLocaleString()+' coins');
+          countUp('mcBalance',    balance,          v=>Math.round(v).toLocaleString());
+          countUp('mcBookings',   totalBookingsCount);
+        }, 300);
 
-        // ── Next booking ─────────────────────────────────────
+        /* Next booking */
         active.sort((a,b)=>new Date(a.date)-new Date(b.date));
-        const nextEl=document.getElementById('mcNextVal');
         if (active.length>0) {
           const nb=active[0];
-          const fmt=t=>{let h,m;if(typeof t==='number'){h=Math.floor(t/3600);m=Math.floor((t%3600)/60);}else{[h,m]=String(t).split(':').map(Number);}return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;};
+          const fmtT=t=>{
+            let h,m;
+            if (typeof t==='number'){ h=Math.floor(t/3600); m=Math.floor((t%3600)/60); }
+            else { [h,m]=String(t).split(':').map(Number); }
+            return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+          };
           const ds=new Date(nb.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-          nextEl.textContent=ds+' · '+fmt(nb.start_time)+' · '+(nb.court_name||'Court');
-          nextEl.className='mem-next-val';
+          document.getElementById('mcNextVal').textContent = ds+' · '+fmtT(nb.start_time)+' · '+(nb.court_name||'Court');
         }
 
-        // ── Platinum particles ───────────────────────────────
+        /* Platinum particles */
         if (tier.cls==='tier-platinum') {
-          const leftPanel=document.querySelector('.tier-platinum .mem-left');
-          if (leftPanel) {
-            for(let i=0;i<8;i++) {
-              const p=document.createElement('div');
-              p.className='plat-particle';
+          const lp=document.querySelector('.tier-platinum .mem-left');
+          if (lp) {
+            for (let i=0;i<8;i++) {
+              const p=document.createElement('div'); p.className='plat-particle';
               const sz=Math.random()*5+3;
               p.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*85+5}%;bottom:${Math.random()*20}%;animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*4}s`;
-              leftPanel.appendChild(p);
+              lp.appendChild(p);
             }
           }
         }
 
-        displayUpcomingBookings(active.slice(0,5));
-        const favorites=JSON.parse(localStorage.getItem('favorites')||'[]');
-        document.getElementById('favoriteCourts').textContent=favorites.length;
+        renderUpcoming(active);
 
-      } catch(err) { console.error('Dashboard error:',err); }
+      } catch(e){
+        console.error('Dashboard load error:', e);
+
+        // Auth error — no point retrying
+        if (e.message && (e.message.includes('401') || e.message.includes('403'))) {
+          showAlert('Session expired. Please log in again.', 'error');
+          return;
+        }
+
+        // Multi-retry for cold start (Render free tier takes up to ~60s)
+        if (_dashRetryCount < _DASH_MAX_RETRIES) {
+          _dashRetryCount++;
+          const delay = _DASH_RETRY_DELAYS[_dashRetryCount - 1];
+          showWakeUpBanner(_dashRetryCount);
+          if (_dashRetryCount === 1) {
+            showAlert('Server is waking up — please wait a moment…', 'info');
+          }
+          if (_dashRetryTimer) clearTimeout(_dashRetryTimer);
+          _dashRetryTimer = setTimeout(loadDashboard, delay);
+          return;
+        }
+
+        // All retries exhausted — show final error
+        showAlert('Server unavailable. Please try refreshing the page.', 'error');
+        document.getElementById('upcomingBookings').innerHTML = `
+          <div class="booking-empty">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div style="margin-top:6px">Could not reach the server.</div>
+            <a href="javascript:void(0)" onclick="_dashRetryCount=0;loadDashboard()" style="display:inline-block;margin-top:10px;color:var(--accent);font-weight:600;text-decoration:none;font-size:.8rem">↺ Try again</a>
+          </div>`;
+      }
+    }
+    window.loadDashboard = loadDashboard;
+
+    function openTierRevealPage(){
+      if (typeof window._openTierRevealPage==='function') window._openTierRevealPage();
     }
 
-    // ── 3D hover tilt ────────────────────────────────────────
-    (function(){
-      const card=document.getElementById('memCard');
-      if(!card) return;
-      const MAX=5;
-      card.addEventListener('mousemove',e=>{
-        const r=card.getBoundingClientRect();
-        const x=(e.clientX-r.left)/r.width-.5;
-        const y=(e.clientY-r.top)/r.height-.5;
-        card.style.transform=`perspective(1200px) rotateY(${x*MAX}deg) rotateX(${-y*MAX}deg) scale(1.015)`;
-        card.style.transition='transform .08s ease-out';
-      });
-      card.addEventListener('mouseleave',()=>{
-        card.style.transform='perspective(1200px) rotateY(0) rotateX(0) scale(1)';
-        card.style.transition='transform .55s cubic-bezier(.16,1,.3,1)';
-      });
+    // ── Auth guard — redirect if not logged in ──
+    checkAuth();
+
+    // ── Show name from localStorage immediately (before API responds) ──
+    (function() {
+      const cached = localStorage.getItem('userName') || localStorage.getItem('user');
+      if (cached) {
+        try {
+          const name = localStorage.getItem('userName') || JSON.parse(cached).name;
+          if (name) document.getElementById('userName').textContent = name.split(' ')[0];
+        } catch(e) {}
+      }
     })();
 
-
-    // ── PREMIUM TIER REVEAL ───────────────────────────────────
-    const TIER_THEMES = {
-      'tier-bronze': {
-        bar:     'linear-gradient(90deg,#3d1f08,#cd7f32,#f0c070,#e8a96a,#cd7f32,#3d1f08)',
-        accent:  '#cd7f32', bg: '#0f0d0b', btnTxt: '#0f0d0b',
-        glow:    'rgba(205,127,50,.55)',
-        label:   'linear-gradient(90deg,#8b5010,#cd7f32,#f5c060,#cd7f32,#8b5010)',
-        orbs:    ['#cd7f32','#e8a96a','#8b5010'],
-      },
-      'tier-silver': {
-        bar:     'linear-gradient(90deg,#3a3f4a,#c0c0c0,#f0f0f0,#c0c0c0,#3a3f4a)',
-        accent:  '#d1d5db', bg: '#0c0d10', btnTxt: '#0c0d10',
-        glow:    'rgba(192,192,192,.5)',
-        label:   'linear-gradient(90deg,#6b7280,#d1d5db,#ffffff,#d1d5db,#6b7280)',
-        orbs:    ['#c0c0c0','#e8e8e8','#6b7280'],
-      },
-      'tier-gold': {
-        bar:     'linear-gradient(90deg,#5a3a00,#ffd700,#fff4b0,#ffd700,#5a3a00)',
-        accent:  '#ffd700', bg: '#0a0900', btnTxt: '#0a0900',
-        glow:    'rgba(255,215,0,.6)',
-        label:   'linear-gradient(90deg,#92660a,#ffd700,#fff8c0,#ffd700,#92660a)',
-        orbs:    ['#ffd700','#fff4b0','#92660a'],
-      },
-      'tier-platinum': {
-        bar:     'linear-gradient(90deg,#012d50,#7dd3fc,#e0f2fe,#7dd3fc,#012d50)',
-        accent:  '#7dd3fc', bg: '#030710', btnTxt: '#030710',
-        glow:    'rgba(125,211,252,.6)',
-        label:   'linear-gradient(90deg,#0369a1,#7dd3fc,#e0f2fe,#7dd3fc,#0369a1)',
-        orbs:    ['#7dd3fc','#e0f2fe','#0369a1'],
-      },
-    };
-
-    // Animated canvas background (spinning rays)
-    let _bgRAF = null;
-    function startBgCanvas(color) {
-      const canvas = document.getElementById('rvBgCanvas');
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
-      const ctx = canvas.getContext('2d');
-      const cx = canvas.width / 2, cy = canvas.height / 2;
-      let angle = 0;
-      const rays = 12;
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < rays; i++) {
-          const a = angle + (i / rays) * Math.PI * 2;
-          const len = Math.max(canvas.width, canvas.height) * 1.4;
-          const spread = 0.09;
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.arc(cx, cy, len, a - spread, a + spread);
-          ctx.closePath();
-          const alpha = 0.028 + Math.sin(angle * 2 + i) * 0.012;
-          ctx.fillStyle = color.replace('rgba(','').replace(')','').split(',').length === 4
-            ? color.replace(/[\d.]+\)$/, alpha + ')')
-            : `rgba(200,200,200,${alpha})`;
-          ctx.fill();
-        }
-        angle += 0.004;
-        _bgRAF = requestAnimationFrame(draw);
-      }
-      draw();
-      canvas.classList.add('show');
-    }
-    function stopBgCanvas() {
-      cancelAnimationFrame(_bgRAF);
-      const canvas = document.getElementById('rvBgCanvas');
-      canvas.classList.remove('show');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    // Floating ambient orbs
-    function spawnOrbs(colors) {
-      const container = document.getElementById('rvOrbs');
-      container.innerHTML = '';
-      const count = 5;
-      for (let i = 0; i < count; i++) {
-        const orb = document.createElement('div');
-        orb.className = 'rv-orb';
-        const size = Math.random() * 220 + 120;
-        const color = colors[i % colors.length];
-        const dur   = Math.random() * 8 + 10;
-        const delay = Math.random() * 6;
-        orb.style.cssText = [
-          `width:${size}px`, `height:${size}px`,
-          `left:${Math.random() * 100}%`, `top:${Math.random() * 60 + 20}%`,
-          `background:${color}`,
-          `animation-duration:${dur}s`,
-          `animation-delay:${delay}s`,
-        ].join(';');
-        container.appendChild(orb);
-      }
-    }
-
-    // Burst particles (circles + confetti rectangles)
-    function spawnParticles(color) {
-      const container = document.getElementById('rvParticles');
-      const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-
-      // Circle burst
-      const count = 40;
-      for (let i = 0; i < count; i++) {
-        const p = document.createElement('div');
-        p.className = 'rv-particle';
-        const size  = Math.random() * 12 + 3;
-        const angle = (i / count) * Math.PI * 2;
-        const dist  = Math.random() * 280 + 80;
-        const tx    = Math.cos(angle) * dist;
-        const ty    = Math.sin(angle) * dist;
-        const dur   = Math.random() * 700 + 500;
-        const rot   = Math.random() * 360;
-        p.style.cssText = [
-          `width:${size}px`, `height:${size}px`,
-          `border-radius:${Math.random() > .4 ? '50%' : '3px'}`,
-          `left:${cx - size/2}px`, `top:${cy - size/2}px`,
-          `background:${color}`,
-          `--tx:${tx}px`, `--ty:${ty}px`, `--rot:${rot}deg`,
-          `--dur:${dur}ms`,
-          `opacity:0.9`,
-        ].join(';');
-        container.appendChild(p);
-        setTimeout(() => p.remove(), dur + 400);
-      }
-
-      // Confetti rain
-      const confettiColors = [color, '#ffffff', color + 'aa'];
-      for (let i = 0; i < 20; i++) {
-        const c = document.createElement('div');
-        c.className = 'rv-confetti';
-        const cw  = Math.random() * 7 + 4;
-        const ch  = Math.random() * 10 + 6;
-        const dur = Math.random() * 800 + 800;
-        const startX = cx + (Math.random() - .5) * 300;
-        c.style.cssText = [
-          `--cw:${cw}px`, `--ch:${ch}px`,
-          `left:${startX}px`, `top:${cy - 40}px`,
-          `background:${confettiColors[i % confettiColors.length]}`,
-          `--cx:${(Math.random() - .5) * 300}px`,
-          `--cy:${Math.random() * 300 + 80}px`,
-          `--cr:${(Math.random() > .5 ? '' : '-')}${Math.floor(Math.random()*540+180)}deg`,
-          `--cdur:${dur}ms`,
-        ].join(';');
-        container.appendChild(c);
-        setTimeout(() => c.remove(), dur + 300);
-      }
-    }
-
-    // Count-up animation for stat values
-    function countUpEl(el, target, suffix) {
-      const isFloat = String(target).includes('.');
-      const dur = 1000, steps = 36;
-      let step = 0;
-      const t = setInterval(() => {
-        step++;
-        const val = Math.min((target / steps) * step, target);
-        el.textContent = Math.round(val).toLocaleString() + (suffix||'');
-        if (step >= steps) { clearInterval(t); el.textContent = Math.round(target).toLocaleString() + (suffix||''); }
-      }, dur / steps);
-    }
-
-    function showReveal(tier, user, totalSpent, bookings, completed) {
-      const tc   = TIER_THEMES[tier.cls] || TIER_THEMES['tier-bronze'];
-      const name = user.name || user.email.split('@')[0];
-
-      // ── Apply tier colors ─────────────────────────────────
-      const card = document.getElementById('rvCard');
-      card.style.background  = tc.bg;
-      card.style.boxShadow   = `0 0 0 1px rgba(255,255,255,.07), 0 40px 100px rgba(0,0,0,.6)`;
-
-      // CSS var for btn glow
-      card.style.setProperty('--rv-glow', tc.glow);
-
-      document.getElementById('rvTopBar').style.background   = tc.bar;
-      document.getElementById('rvEyebrow').style.color       = tc.accent;
-      document.getElementById('rvAvatar').style.background   = tc.bg;
-      document.getElementById('rvAvatar').style.borderColor  = tc.accent;
-      document.getElementById('rvAvatar').style.boxShadow    = `0 0 0 4px ${tc.glow}, 0 0 20px ${tc.glow}`;
-      document.getElementById('rvLetter').style.color        = tc.accent;
-      document.getElementById('rvLetter').textContent        = name.charAt(0).toUpperCase();
-      document.getElementById('rvName').textContent          = name;
-      document.getElementById('rvBody').style.background     = tc.bg;
-
-      // Shimmer gradient on tier label text
-      const lbl = document.getElementById('rvTierLabel');
-      lbl.textContent = tier.name;
-      lbl.style.backgroundImage = tc.label;
-      lbl.style.webkitTextFillColor = 'transparent';
-      lbl.style.color = tc.accent; // fallback
-
-      document.getElementById('rvTierSub').textContent =
-        'Member since ' + (user.created_at
-          ? new Date(user.created_at).toLocaleDateString('en-US',{month:'long',year:'numeric'})
-          : '—');
-
-      // Stat boxes
-      [0,1,2].forEach(i => {
-        const el = document.getElementById('rvStat'+i);
-        el.style.background   = tc.glow.replace(/[\d.]+\)$/, '.07)');
-        el.style.borderColor  = tc.glow.replace(/[\d.]+\)$/, '.25)');
-      });
-
-      // Button
-      const btn = document.getElementById('rvBtn');
-      btn.style.background = tc.accent;
-      btn.style.color      = tc.btnTxt;
-
-      // Glow ring
-      const glow = document.getElementById('rvGlow');
-      glow.style.boxShadow =
-        `0 0 80px 30px ${tc.glow}, 0 0 160px 60px ${tc.glow.replace(/[\d.]+\)$/,'.2)')}`;
-      glow.style.opacity = '1';
-
-      // ── Show overlay ──────────────────────────────────────
-      const overlay = document.getElementById('tierReveal');
-      overlay.style.display  = 'flex';
-      overlay.style.opacity  = '0';
-
-      // Stat placeholders (count up later)
-      document.getElementById('rvSpent').textContent    = '0 coins';
-      document.getElementById('rvBookings').textContent = '0';
-      document.getElementById('rvCompleted').textContent= '0';
-
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        overlay.style.opacity = '1';
-
-        // Flash
-        const flash = document.getElementById('rvFlash');
-        flash.classList.remove('run');
-        void flash.offsetWidth;
-        flash.classList.add('run');
-
-        // Background rays + orbs
-        startBgCanvas(tc.glow);
-        spawnOrbs(tc.orbs);
-
-        // Card entrance
-        setTimeout(() => {
-          card.classList.add('show');
-
-          // Shine sweep across card
-          setTimeout(() => {
-            const shine = document.getElementById('rvShine');
-            shine.classList.remove('run');
-            void shine.offsetWidth;
-            shine.classList.add('run');
-          }, 400);
-
-          // Particle burst
-          setTimeout(() => spawnParticles(tc.accent), 600);
-
-          // Count-up stats
-          setTimeout(() => {
-            countUpEl(document.getElementById('rvSpent'),    totalSpent, ' coins');
-            countUpEl(document.getElementById('rvBookings'), bookings,   '');
-            countUpEl(document.getElementById('rvCompleted'),completed,  '');
-          }, 900);
-
-          // Show skip
-          setTimeout(() => {
-            document.getElementById('rvSkip').classList.add('show');
-          }, 1200);
-        }, 250);
-      }));
-    }
-
-    function closeReveal() {
-      const overlay = document.getElementById('tierReveal');
-      const card    = document.getElementById('rvCard');
-      overlay.style.opacity = '0';
-      stopBgCanvas();
-      document.getElementById('rvOrbs').innerHTML = '';
-      document.getElementById('rvSkip').classList.remove('show');
-      setTimeout(() => {
-        overlay.style.display = 'none';
-        card.classList.remove('show');
-      }, 650);
-    }
-
-
-    // ── Update the tier button gradient to match current tier ─
-    function updateTierRevealBtn(tier) {
-      const btn = document.getElementById('tierRevealBtn');
-      if (!btn) return;
-      const gradients = {
-        'tier-bronze':   { bg:'linear-gradient(135deg,#cd7f32,#e8a96a)', color:'#0f0d0b', shadow:'rgba(205,127,50,.35)' },
-        'tier-silver':   { bg:'linear-gradient(135deg,#9ca3af,#e2e8f0)', color:'#0c0d10', shadow:'rgba(192,192,192,.35)' },
-        'tier-gold':     { bg:'linear-gradient(135deg,#b8860b,#ffd700)',  color:'#0a0900', shadow:'rgba(255,215,0,.4)'   },
-        'tier-platinum': { bg:'linear-gradient(135deg,#0369a1,#7dd3fc)',  color:'#030710', shadow:'rgba(125,211,252,.4)' },
-      };
-      const g = gradients[tier.cls] || gradients['tier-bronze'];
-      btn.style.background  = g.bg;
-      btn.style.color       = g.color;
-      btn.style.boxShadow   = `0 3px 10px ${g.shadow}`;
-    }
-
-    // ── Open the full-page tier reveal ───────────────────────
-    function openTierRevealPage() {
-      const d = window._tierRevealData;
-      if (!d) return;
-
-      // Show the overlay as a full page
-      showReveal(d.tier, d.user, d.totalSpent, d.bookings, d.completed);
-
-      // Swap the "View My Dashboard →" button to a back button
-      const rvBtn = document.getElementById('rvBtn');
-      rvBtn.textContent = '← Back to Dashboard';
-      rvBtn.onclick = closeReveal;
-
-      // Also swap the skip link
-      const skip = document.getElementById('rvSkip');
-      skip.textContent = 'Close';
-    }
-
     loadDashboard();
-    loadNotifications();
   </script>
-  <!-- ══ TIER REVEAL OVERLAY ══ -->
-  <div id="tierReveal" style="display:none;position:fixed;inset:0;z-index:99999;background:#000;align-items:center;justify-content:center;flex-direction:column;">
-  <style>
-    /* ── Base overlay ── */
-    #tierReveal { transition: opacity .7s ease; overflow: hidden; }
-
-    /* ── Animated radial bg rays ── */
-    #rvBgCanvas {
-      position: fixed; inset: 0; pointer-events: none;
-      opacity: 0; transition: opacity 1s ease;
-    }
-    #rvBgCanvas.show { opacity: 1; }
-
-    /* ── Floating ambient orbs ── */
-    .rv-orb {
-      position: fixed; border-radius: 50%; pointer-events: none;
-      filter: blur(60px); opacity: 0;
-      animation: rvOrbFloat linear infinite;
-    }
-    @keyframes rvOrbFloat {
-      0%   { transform: translateY(0) scale(1);   opacity: 0; }
-      15%  { opacity: .18; }
-      85%  { opacity: .12; }
-      100% { transform: translateY(-120px) scale(1.1); opacity: 0; }
-    }
-
-    /* ── Card wrapper ── */
-    .rv-card {
-      position: relative;
-      width: min(560px, 92vw);
-      border-radius: 24px; overflow: hidden;
-      transform: scale(0.78) translateY(50px) rotateX(8deg);
-      opacity: 0;
-      transition: transform .9s cubic-bezier(.16,1,.3,1), opacity .7s ease;
-      transform-style: preserve-3d;
-      will-change: transform;
-    }
-    .rv-card.show {
-      transform: scale(1) translateY(0) rotateX(0);
-      opacity: 1;
-    }
-
-    /* ── Holographic top bar ── */
-    .rv-top {
-      height: 6px;
-      background-size: 300% 100%;
-      animation: rvBarShimmer 2s linear infinite;
-    }
-    @keyframes rvBarShimmer {
-      0%   { background-position: 200% center; }
-      100% { background-position: -200% center; }
-    }
-
-    /* ── Shine sweep across card ── */
-    .rv-shine {
-      position: absolute; inset: 0; pointer-events: none; z-index: 10;
-      background: linear-gradient(105deg,
-        transparent 30%,
-        rgba(255,255,255,.13) 50%,
-        transparent 70%);
-      background-size: 250% 100%;
-      background-position: 200% 0;
-      border-radius: 24px;
-      animation: rvShineSweep 1.2s cubic-bezier(.4,0,.2,1) forwards;
-      animation-play-state: paused;
-    }
-    .rv-shine.run { animation-play-state: running; }
-    @keyframes rvShineSweep {
-      0%   { background-position: 200% 0; opacity: 1; }
-      100% { background-position: -80% 0; opacity: 0; }
-    }
-
-    /* ── Body ── */
-    .rv-body { padding: 40px 38px 34px; position: relative; }
-
-    /* ── Eyebrow ── */
-    .rv-eyebrow {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: .66rem; font-weight: 800; letter-spacing: .22em;
-      text-transform: uppercase; margin-bottom: 22px;
-      opacity: 0; transform: translateY(8px);
-      transition: opacity .5s ease, transform .5s ease;
-    }
-    .rv-card.show .rv-eyebrow { opacity: .55; transform: translateY(0); transition-delay: .15s; }
-
-    /* ── Avatar ── */
-    .rv-avatar {
-      width: 88px; height: 88px; border-radius: 18px;
-      display: flex; align-items: center; justify-content: center;
-      border-width: 2px; border-style: solid; margin-bottom: 18px;
-      opacity: 0; transform: scale(.7) rotate(-6deg);
-      transition: opacity .55s cubic-bezier(.16,1,.3,1), transform .55s cubic-bezier(.16,1,.3,1);
-      box-shadow: 0 0 0 0 transparent;
-    }
-    .rv-card.show .rv-avatar {
-      opacity: 1; transform: scale(1) rotate(0);
-      transition-delay: .28s;
-    }
-    .rv-letter {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 3rem; font-weight: 800; line-height: 1;
-    }
-
-    /* ── Name ── */
-    .rv-name {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.5rem; font-weight: 700; color: #fff;
-      letter-spacing: .06em; text-transform: uppercase;
-      opacity: 0; transform: translateX(-12px);
-      transition: opacity .45s ease, transform .45s ease;
-    }
-    .rv-card.show .rv-name { opacity: 1; transform: translateX(0); transition-delay: .38s; }
-
-    /* ── Tier label with shimmer text ── */
-    .rv-tier-label {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 4.8rem; font-weight: 900; letter-spacing: .04em;
-      text-transform: uppercase; line-height: 1; margin-bottom: 4px;
-      opacity: 0; transform: translateX(-16px);
-      transition: opacity .5s ease, transform .5s cubic-bezier(.16,1,.3,1);
-      background-clip: text; -webkit-background-clip: text;
-      background-size: 200% auto;
-      animation: rvLabelShimmer 3s linear infinite;
-      animation-play-state: paused;
-    }
-    .rv-card.show .rv-tier-label {
-      opacity: 1; transform: translateX(0);
-      transition-delay: .42s;
-      animation-play-state: running;
-    }
-    @keyframes rvLabelShimmer {
-      0%   { background-position: 200% center; }
-      100% { background-position: -200% center; }
-    }
-
-    /* ── Sub / since ── */
-    .rv-tier-sub {
-      font-size: .88rem; font-weight: 500;
-      color: rgba(255,255,255,.42); margin-bottom: 24px; letter-spacing: .04em;
-      opacity: 0; transition: opacity .4s ease;
-    }
-    .rv-card.show .rv-tier-sub { opacity: 1; transition-delay: .55s; }
-
-    /* ── Animated divider ── */
-    .rv-divider {
-      height: 1px; margin-bottom: 20px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
-      background-size: 200% 100%;
-      opacity: 0; transform: scaleX(0);
-      transform-origin: left;
-      transition: opacity .4s ease, transform .6s cubic-bezier(.16,1,.3,1);
-      animation: rvDividerShimmer 3s linear infinite;
-      animation-play-state: paused;
-    }
-    .rv-card.show .rv-divider {
-      opacity: 1; transform: scaleX(1);
-      transition-delay: .6s;
-      animation-play-state: running;
-    }
-    @keyframes rvDividerShimmer {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ── Stats ── */
-    .rv-stats { display: flex; gap: 8px; margin-bottom: 22px; }
-    .rv-stat {
-      flex: 1; display: flex; flex-direction: column; gap: 5px;
-      padding: 18px 18px; border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.08);
-      opacity: 0; transform: translateY(14px);
-      transition: opacity .4s ease, transform .5s cubic-bezier(.16,1,.3,1),
-                  box-shadow .3s ease, border-color .3s ease;
-    }
-    .rv-stat:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 8px 24px rgba(0,0,0,.4);
-    }
-    .rv-card.show .rv-stat:nth-child(1) { opacity:1; transform:translateY(0); transition-delay:.68s; }
-    .rv-card.show .rv-stat:nth-child(2) { opacity:1; transform:translateY(0); transition-delay:.76s; }
-    .rv-card.show .rv-stat:nth-child(3) { opacity:1; transform:translateY(0); transition-delay:.84s; }
-    .rv-stat-label {
-      font-size: .65rem; font-weight: 700; letter-spacing: .14em;
-      text-transform: uppercase; color: rgba(255,255,255,.38);
-    }
-    .rv-stat-val {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.6rem; font-weight: 700; color: #fff; line-height: 1;
-    }
-
-    /* ── Button ── */
-    .rv-btn {
-      width: 100%; padding: 20px; border: none; border-radius: 14px;
-      font-size: .8rem; font-weight: 800; letter-spacing: .1em;
-      text-transform: uppercase; cursor: pointer;
-      position: relative; overflow: hidden;
-      opacity: 0; transform: translateY(10px);
-      transition: opacity .4s ease, transform .4s ease,
-                  box-shadow .3s ease, filter .2s ease;
-    }
-    .rv-card.show .rv-btn { opacity: 1; transform: translateY(0); transition-delay: .95s; }
-    .rv-btn::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%);
-      background-size: 300% 100%; background-position: 200% 0;
-      transition: background-position .6s ease;
-    }
-    .rv-btn:hover::after { background-position: -100% 0; }
-    .rv-btn:hover { filter: brightness(1.08); box-shadow: 0 10px 32px var(--rv-glow,rgba(255,215,0,.4)); transform: translateY(-2px) !important; }
-    .rv-btn:active { transform: translateY(0) !important; filter: brightness(.95); }
-
-    /* ── Particles ── */
-    .rv-particle {
-      position: fixed; pointer-events: none;
-      animation: rvBurst var(--dur,700ms) cubic-bezier(.2,.8,.4,1) forwards;
-    }
-    @keyframes rvBurst {
-      0%   { transform: translate(0,0) scale(1) rotate(0deg);   opacity: 1; }
-      60%  { opacity: .7; }
-      100% { transform: translate(var(--tx),var(--ty)) scale(0) rotate(var(--rot,180deg)); opacity: 0; }
-    }
-
-    /* ── Confetti pieces (rectangles) ── */
-    .rv-confetti {
-      position: fixed; pointer-events: none;
-      width: var(--cw,6px); height: var(--ch,12px);
-      border-radius: 2px;
-      animation: rvConfettiFall var(--cdur,1200ms) cubic-bezier(.25,.46,.45,.94) forwards;
-    }
-    @keyframes rvConfettiFall {
-      0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity:1; }
-      100% { transform: translate(var(--cx),var(--cy)) rotate(var(--cr,720deg)) scale(.4); opacity:0; }
-    }
-
-    /* ── Glow ring ── */
-    .rv-glow {
-      position: absolute; border-radius: 32px;
-      pointer-events: none;
-      animation: rvGlowPulse 2.5s ease-in-out infinite;
-      opacity: 0; transition: opacity 1s ease;
-    }
-    @keyframes rvGlowPulse {
-      0%,100% { opacity: .25; transform: scale(1); }
-      50%     { opacity: .65; transform: scale(1.025); }
-    }
-
-    /* ── Unlock flash ── */
-    #rvFlash {
-      position: fixed; inset: 0; pointer-events: none; z-index: 99998;
-      background: #fff; opacity: 0;
-      animation: rvFlashAnim .6s ease-out forwards;
-      animation-play-state: paused;
-    }
-    #rvFlash.run { animation-play-state: running; }
-    @keyframes rvFlashAnim {
-      0%   { opacity: 0; }
-      12%  { opacity: .28; }
-      100% { opacity: 0; }
-    }
-
-    /* ── Skip ── */
-    #rvSkip {
-      margin-top: 22px; font-size: .68rem; color: rgba(255,255,255,.18);
-      cursor: pointer; letter-spacing: .1em; text-transform: uppercase;
-      opacity: 0; transition: opacity .4s ease, color .2s;
-      user-select: none;
-    }
-    #rvSkip:hover { color: rgba(255,255,255,.5); }
-    #rvSkip.show  { opacity: 1; }
-
-    /* ── Responsive — Tablet ── */
-    @media (max-width: 600px) {
-      .rv-card { width: min(92vw, 420px); border-radius: 18px; }
-      .rv-body { padding: 26px 22px 22px; }
-      .rv-top  { height: 5px; }
-
-      .rv-eyebrow { font-size: .58rem; margin-bottom: 16px; }
-
-      .rv-avatar {
-        width: 62px !important; height: 62px !important;
-        border-radius: 13px !important; margin-bottom: 12px !important;
-      }
-      .rv-letter { font-size: 2.2rem !important; }
-
-      .rv-name       { font-size: 1.1rem !important; }
-      .rv-tier-label { font-size: 3.4rem !important; margin-bottom: 3px; }
-      .rv-tier-sub   { font-size: .74rem !important; margin-bottom: 18px; }
-
-      .rv-divider { margin-bottom: 14px; }
-
-      .rv-stats { gap: 6px; margin-bottom: 16px; }
-      .rv-stat  { padding: 12px 10px !important; border-radius: 10px !important; }
-      .rv-stat-label { font-size: .52rem !important; }
-      .rv-stat-val   { font-size: 1.2rem !important; }
-
-      .rv-btn { padding: 14px !important; font-size: .75rem !important; border-radius: 11px !important; }
-
-      #rvSkip { margin-top: 14px; font-size: .62rem; }
-    }
-
-    /* ── Responsive — Small phones (≤380px) ── */
-    @media (max-width: 380px) {
-      .rv-card { width: 94vw; border-radius: 16px; }
-      .rv-body { padding: 20px 16px 18px; }
-
-      .rv-avatar {
-        width: 52px !important; height: 52px !important;
-        border-radius: 11px !important; margin-bottom: 10px !important;
-      }
-      .rv-letter { font-size: 1.8rem !important; }
-
-      .rv-name       { font-size: .95rem !important; }
-      .rv-tier-label { font-size: 2.8rem !important; }
-      .rv-tier-sub   { font-size: .68rem !important; margin-bottom: 14px; }
-
-      .rv-stats { gap: 5px; margin-bottom: 14px; }
-      .rv-stat  { padding: 10px 8px !important; }
-      .rv-stat-label { font-size: .48rem !important; letter-spacing: .1em !important; }
-      .rv-stat-val   { font-size: 1.05rem !important; }
-
-      .rv-btn { padding: 13px !important; font-size: .7rem !important; }
-    }
-  </style>
-
-  <!-- Flash layer -->
-  <div id="rvFlash"></div>
-
-  <!-- Animated BG canvas -->
-  <canvas id="rvBgCanvas"></canvas>
-
-  <!-- Ambient orbs (filled by JS) -->
-  <div id="rvOrbs" style="position:fixed;inset:0;pointer-events:none;overflow:hidden;"></div>
-
-  <!-- Particles layer -->
-  <div id="rvParticles" style="position:fixed;inset:0;pointer-events:none;overflow:hidden;"></div>
-
-  <!-- Glow ring (sits behind card, sized by JS) -->
-  <div id="rvGlow" class="rv-glow" style="inset:-24px;"></div>
-
-  <!-- The card -->
-  <div class="rv-card" id="rvCard">
-    <div class="rv-shine" id="rvShine"></div>
-    <div class="rv-top" id="rvTopBar"></div>
-    <div class="rv-body" id="rvBody">
-      <div class="rv-eyebrow" id="rvEyebrow">SportCourt Membership</div>
-      <div class="rv-avatar" id="rvAvatar">
-        <span class="rv-letter" id="rvLetter">U</span>
-      </div>
-      <div class="rv-name"       id="rvName">—</div>
-      <div class="rv-tier-label" id="rvTierLabel">Bronze</div>
-      <div class="rv-tier-sub"   id="rvTierSub">Member since —</div>
-      <div class="rv-divider"    id="rvDivider"></div>
-      <div class="rv-stats">
-        <div class="rv-stat" id="rvStat0">
-          <div class="rv-stat-label">Total Spent</div>
-          <div class="rv-stat-val" id="rvSpent">—</div>
-        </div>
-        <div class="rv-stat" id="rvStat1">
-          <div class="rv-stat-label">Bookings</div>
-          <div class="rv-stat-val" id="rvBookings">—</div>
-        </div>
-        <div class="rv-stat" id="rvStat2">
-          <div class="rv-stat-label">Completed</div>
-          <div class="rv-stat-val" id="rvCompleted">—</div>
-        </div>
-      </div>
-      <button class="rv-btn" id="rvBtn" onclick="closeReveal()">View My Dashboard →</button>
-    </div>
-  </div>
-
-  <p id="rvSkip" onclick="closeReveal()">Close</p>
-  </div>
-
 </body>
 </html>

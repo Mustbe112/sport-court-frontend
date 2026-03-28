@@ -2,97 +2,109 @@
 
 let notificationInterval = null;
 
+/* ── Load & poll ─────────────────────────────────────────────────────────── */
+
 async function loadNotifications() {
   try {
     const notifications = await apiFetch("/notifications", {
       headers: authHeader()
     });
 
-    displayNotifications(notifications);
+    renderNotifications(notifications);
     updateNotificationBadge(notifications);
 
-    // Poll for new notifications every 30 seconds
+    // Poll every 30 s — start only once
     if (!notificationInterval) {
       notificationInterval = setInterval(loadNotifications, 30000);
     }
-  } catch(err) {
+  } catch (err) {
     console.error("Error loading notifications:", err);
   }
 }
 
-function displayNotifications(notifications) {
-  const container = document.getElementById("notificationList");
-  
-  if (!container) return;
-
-  if (notifications.length === 0) {
-    container.innerHTML = '<div style="padding: 20px; text-align: center; color: #94a3b8;">No notifications</div>';
-    return;
-  }
-
-  // Add "Mark all as read" button at the top if there are unread notifications
-  const unreadCount = notifications.filter(n => !n.is_read).length;
-  let headerHTML = '';
-  
-  if (unreadCount > 0) {
-    headerHTML = `
-      <div style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 14px; color: #64748b;">${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}</span>
-        <button onclick="markAllAsRead()" style="background: #3b82f6; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
-          Mark all as read
-        </button>
-      </div>
-    `;
-  }
-
-  container.innerHTML = headerHTML + notifications.map(notif => `
-    <div class="notification-item ${notif.is_read ? 'read' : 'unread'}" onclick="markAsRead(${notif.id})" style="cursor: pointer;">
-      <div style="font-weight: ${notif.is_read ? 'normal' : 'bold'}; color: ${notif.is_read ? '#64748b' : '#1e293b'};">
-        ${getNotificationIcon(notif.type)} ${notif.message}
-      </div>
-      <div style="font-size: 12px; color: #64748b; margin-top: 5px;">
-        ${formatDate(notif.created_at)}
-      </div>
-      ${!notif.is_read ? '<div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></div>' : ''}
-    </div>
-  `).join('');
-}
+/* ── Badge (uses .visible class to match dashboard CSS) ──────────────────── */
 
 function updateNotificationBadge(notifications) {
   const badge = document.getElementById("notifBadge");
   if (!badge) return;
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
-  
-  if (unreadCount > 0) {
-    badge.textContent = unreadCount;
-    badge.style.display = 'block';
+  const unread = notifications.filter(n => !n.is_read).length;
+
+  if (unread > 0) {
+    badge.textContent = unread > 99 ? "99+" : unread;
+    badge.classList.add("visible");
   } else {
-    badge.style.display = 'none';
+    badge.classList.remove("visible");
   }
 }
 
-function getNotificationIcon(type) {
+/* ── Render panel ────────────────────────────────────────────────────────── */
+
+function renderNotifications(notifications) {
+  const list    = document.getElementById("notificationList");
+  const summary = document.getElementById("notifSummaryBar");
+  const sumText = document.getElementById("notifSummaryText");
+  if (!list) return;
+
+  const unread = notifications.filter(n => !n.is_read).length;
+
+  // Summary bar
+  if (summary) {
+    if (unread > 0) {
+      summary.style.display = "flex";
+      if (sumText) sumText.textContent = `${unread} unread notification${unread !== 1 ? "s" : ""}`;
+    } else {
+      summary.style.display = "none";
+    }
+  }
+
+  // Empty state
+  if (!notifications.length) {
+    list.innerHTML = `
+      <div class="notif-empty">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <p>No notifications yet</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.is_read ? "read" : "unread"}"
+         onclick="markAsRead(${n.id})">
+      <div class="notif-icon-wrap">
+        ${getNotificationSvg(n.type)}
+      </div>
+      <div class="notif-body">
+        <div class="notif-msg">${escapeHtml(n.message)}</div>
+        <div class="notif-time">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${formatTimeAgo(n.created_at)}
+        </div>
+      </div>
+      <div class="notif-dot"></div>
+    </div>
+  `).join("");
+}
+
+/* ── SVG icons per notification type ─────────────────────────────────────── */
+
+function getNotificationSvg(type) {
   const icons = {
-    'booking_confirmed': '✅',
-    'booking_cancelled': '❌',
-    'booking_reminder': '⏰',
-    'payment_received': '💰',
-    'check_in_reminder': '📍',
-    'admin_message': '📢'
+    booking_confirmed: `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    booking_cancelled: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    booking_reminder:  `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    payment_received:  `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2"/><path d="M15 10a3 3 0 0 0-6 0c0 1.7 1.3 2.5 3 3s3 1.3 3 3a3 3 0 0 1-6 0"/></svg>`,
+    check_in_reminder: `<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+    admin_message:     `<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.35 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg>`,
   };
-  return icons[type] || '🔔';
+  return icons[type] || `<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
 }
 
-function toggleNotifications() {
-  const panel = document.getElementById("notificationPanel");
-  if (panel.classList.contains('open')) {
-    panel.classList.remove('open');
-  } else {
-    panel.classList.add('open');
-    loadNotifications();
-  }
-}
+/* ── Toggle panel — driven by dashboard's toggleNotifications() ──────────── */
+// dashboard.html defines toggleNotifications() which calls loadNotifications()
+// when the panel opens. No duplicate definition here.
+
+/* ── Mark as read ────────────────────────────────────────────────────────── */
 
 async function markAsRead(notifId) {
   try {
@@ -100,44 +112,57 @@ async function markAsRead(notifId) {
       method: "PUT",
       headers: authHeader()
     });
-    // Reload notifications to update the UI
     await loadNotifications();
-  } catch(err) {
+  } catch (err) {
     console.error("Error marking notification as read:", err);
   }
 }
 
 async function markAllAsRead() {
   try {
-    await apiFetch('/notifications/read-all', {
+    await apiFetch("/notifications/read-all", {
       method: "PUT",
       headers: authHeader()
     });
-    // Reload notifications to update the UI
     await loadNotifications();
-  } catch(err) {
-    console.error("Error marking all notifications as read:", err);
-    showAlert("Failed to mark notifications as read. Please try again.", "error");
+  } catch (err) {
+    console.error("Error marking all as read:", err);
+    if (typeof showAlert === "function") {
+      showAlert("Failed to mark notifications as read.", "error");
+    }
   }
 }
 
-// Simulate notifications for demo (remove in production)
-function simulateNotification(message, type = 'info') {
-  const notification = {
-    id: Date.now(),
-    message: message,
-    type: type,
-    is_read: false,
-    created_at: new Date().toISOString()
-  };
-  
-  // Show browser notification if permitted
-  if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("SportCourt", { body: message });
-  }
+/* ── Helpers ─────────────────────────────────────────────────────────────── */
+
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return "";
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (diff < 60)   return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-// Request notification permission
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/* ── Browser push notifications (optional) ───────────────────────────────── */
+
 if ("Notification" in window && Notification.permission === "default") {
   Notification.requestPermission();
+}
+
+/* ── Initial load on page ready ──────────────────────────────────────────── */
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", loadNotifications);
+} else {
+  loadNotifications();
 }

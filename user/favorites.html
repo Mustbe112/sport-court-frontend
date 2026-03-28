@@ -3,243 +3,725 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Favorite Courts - Sport Court Booking</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/alerts.css">
+  <title>Favourites — SportCourt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
-    .alert-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 400px;
+    /* ════════════════════════════════════════════
+       DESIGN TOKENS — matches dashboard.html
+    ════════════════════════════════════════════ */
+    :root {
+      --ink:          #0f1117;
+      --ink-2:        #1c1f2b;
+      --ink-3:        #2d3142;
+      --mid:          #5c6070;
+      --muted:        #8b909f;
+      --border:       #e9eaf0;
+      --border-2:     #d8dae4;
+      --bg:           #f4f5f9;
+      --bg-2:         #ecedf3;
+      --white:        #ffffff;
+      --accent:       #e5520e;
+      --accent-h:     #d14509;
+      --accent-dim:   rgba(229,82,14,.07);
+      --accent-glow:  rgba(229,82,14,.22);
+      --green:        #12b981;
+      --green-dim:    rgba(18,185,129,.09);
+      --blue:         #3b6ef8;
+      --blue-dim:     rgba(59,110,248,.08);
+      --amber:        #f59e0b;
+      --amber-dim:    rgba(245,158,11,.09);
+      --radius:       16px;
+      --radius-sm:    10px;
+      --radius-xs:    7px;
+      --shadow-xs:    0 1px 2px rgba(0,0,0,.04);
+      --shadow-sm:    0 2px 8px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+      --shadow:       0 4px 20px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg:    0 16px 48px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.04);
+      --shadow-xl:    0 28px 72px rgba(0,0,0,.15);
+      --ease:         cubic-bezier(.22,1,.36,1);
+      --ease-spring:  cubic-bezier(.34,1.56,.64,1);
+      --nav-h:        60px;
     }
-    @keyframes slideOut {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'DM Sans', sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
+
+    /* ════════════════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════════════════ */
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+    @keyframes scaleIn  { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+    @keyframes slideDown{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer  { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+    @keyframes spin     { to{transform:rotate(360deg)} }
+    @keyframes popIn    { from{transform:scale(0)} to{transform:scale(1)} }
+    @keyframes cardIn   { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    .a1{animation:fadeUp .55s var(--ease) both}
+    .a2{animation:fadeUp .55s .07s var(--ease) both}
+    .a3{animation:fadeUp .55s .14s var(--ease) both}
+
+    /* ════════════════════════════════════════════
+       NAVBAR
+    ════════════════════════════════════════════ */
+    .navbar {
+      position:sticky; top:0; z-index:200;
+      height:var(--nav-h);
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center;
+      padding:0 clamp(16px,4vw,44px);
+      gap:16px;
+      transition:box-shadow .25s;
+    }
+    .navbar.scrolled { box-shadow:var(--shadow-sm); }
+
+    /* Brand */
+    .nav-brand {
+      display:flex; align-items:center; gap:9px;
+      text-decoration:none; flex-shrink:0;
+    }
+    .nav-brand-logo {
+      width:32px; height:32px; border-radius:9px;
+      background:var(--ink);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .nav-brand-logo svg { width:16px; height:16px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-brand-name {
+      font-size:.92rem; font-weight:700; letter-spacing:-.01em;
+      color:var(--ink);
+    }
+    .nav-brand-name span { color:var(--accent); }
+
+    /* Desktop nav links */
+    .nav-links {
+      display:flex; align-items:center; gap:2px;
+      margin:0 auto;
+    }
+    .nav-links a {
+      font-size:.82rem; font-weight:500; color:var(--mid);
+      text-decoration:none; padding:7px 13px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
+      white-space:nowrap;
+    }
+    .nav-links a:hover { color:var(--ink); background:var(--bg); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
+
+    /* Right side actions */
+    .nav-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+
+    .nav-icon-btn {
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      color:var(--mid); display:flex; align-items:center; justify-content:center;
+      position:relative; transition:background .18s, color .18s;
+    }
+    .nav-icon-btn:hover { background:var(--bg); color:var(--ink); }
+    .nav-icon-btn svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .notif-badge {
+      position:absolute; top:4px; right:4px;
+      min-width:15px; height:15px; border-radius:999px;
+      background:var(--accent); color:#fff;
+      font-size:.5rem; font-weight:800;
+      display:none; align-items:center; justify-content:center; padding:0 3px;
+      border:2px solid var(--white);
+      animation:popIn .3s var(--ease-spring) both;
+    }
+    .notif-badge.visible { display:flex; }
+
+    .nav-logout {
+      font-size:.8rem; font-weight:600; color:var(--muted);
+      text-decoration:none; padding:7px 12px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
+    }
+    .nav-logout:hover { color:var(--ink); background:var(--bg); }
+
+    /* Hamburger (mobile only) */
+    .hamburger {
+      display:none;
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      align-items:center; justify-content:center; flex-direction:column;
+      gap:5px; padding:8px;
+    }
+    .hamburger span {
+      display:block; width:100%; height:1.5px;
+      background:var(--ink); border-radius:999px;
+      transition:transform .25s var(--ease), opacity .2s;
+    }
+    .hamburger.open span:nth-child(1) { transform:translateY(6.5px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
+
+    /* Mobile menu drawer */
+    .mobile-menu {
+      position:fixed; top:var(--nav-h); left:0; right:0;
+      background:var(--white); border-bottom:1px solid var(--border);
+      box-shadow:var(--shadow-lg);
+      z-index:190;
+      padding:12px 16px 16px;
+      transform:translateY(-8px);
+      opacity:0; pointer-events:none;
+      transition:transform .28s var(--ease), opacity .22s;
+    }
+    .mobile-menu.open { transform:translateY(0); opacity:1; pointer-events:all; }
+    .mobile-menu a {
+      display:block; padding:12px 14px;
+      font-size:.9rem; font-weight:500; color:var(--mid);
+      text-decoration:none; border-radius:var(--radius-xs);
+      transition:background .15s, color .15s;
+    }
+    .mobile-menu a.active { color:var(--accent); font-weight:600; background:var(--accent-dim); }
+    .mobile-menu a:hover { color:var(--ink); background:var(--bg); }
+    .mobile-menu-divider { height:1px; background:var(--border); margin:8px 0; }
+
+    /* ════════════════════════════════════════════
+       NOTIFICATION PANEL
+    ════════════════════════════════════════════ */
+    .notification-panel {
+      position:fixed; top:var(--nav-h); right:0;
+      width:min(380px, 100vw);
+      background:var(--white);
+      border-left:1px solid var(--border);
+      box-shadow:var(--shadow-xl);
+      z-index:300;
+      transform:translateX(110%);
+      transition:transform .32s var(--ease);
+      max-height:calc(100vh - var(--nav-h));
+      display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .notification-panel.open { transform:translateX(0); }
+
+    .notif-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px 14px;
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+    }
+    .notif-header h3 { font-size:.92rem; font-weight:700; letter-spacing:-.01em; }
+    .notif-close-btn {
+      width:28px; height:28px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      color:var(--mid); cursor:pointer; font-size:15px;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .15s;
+    }
+    .notif-close-btn:hover { color:var(--ink); background:var(--bg-2); }
+
+    .notif-summary-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 20px; background:var(--bg);
+      border-bottom:1px solid var(--border); flex-shrink:0;
+    }
+    .notif-summary-text { font-size:.72rem; color:var(--muted); font-weight:500; }
+    .notif-mark-all-btn {
+      font-size:.68rem; font-weight:700; letter-spacing:.04em;
+      color:var(--accent); background:none; border:none; cursor:pointer;
+      transition:color .15s;
+    }
+    .notif-mark-all-btn:hover { color:var(--accent-h); }
+
+    #notificationList { overflow-y:auto; flex:1; }
+    #notificationList::-webkit-scrollbar { width:3px; }
+    #notificationList::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:3px; }
+
+    .notif-item {
+      display:flex; align-items:flex-start; gap:12px;
+      padding:14px 20px; border-bottom:1px solid var(--border);
+      cursor:pointer; transition:background .15s; position:relative;
+    }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item:hover { background:var(--bg); }
+    .notif-item.unread { background:rgba(229,82,14,.022); }
+    .notif-item.unread:hover { background:rgba(229,82,14,.048); }
+
+    .notif-icon-wrap {
+      width:35px; height:35px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--bg); border:1px solid var(--border);
+    }
+    .notif-icon-wrap svg { width:14px; height:14px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .notif-item.unread .notif-icon-wrap { background:var(--accent-dim); border-color:rgba(229,82,14,.18); }
+    .notif-item.unread .notif-icon-wrap svg { stroke:var(--accent); }
+
+    .notif-body { flex:1; min-width:0; }
+    .notif-msg { font-size:.8rem; line-height:1.45; color:var(--mid); word-break:break-word; }
+    .notif-item.unread .notif-msg { color:var(--ink); font-weight:500; }
+    .notif-time { font-size:.66rem; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:3px; }
+    .notif-time svg { width:10px; height:10px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; }
+    .notif-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:7px; }
+    .notif-item.read .notif-dot { visibility:hidden; }
+    .notif-empty { padding:48px 20px; text-align:center; color:var(--muted); }
+    .notif-empty svg { width:36px; height:36px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 12px; }
+    .notif-empty p { font-size:.82rem; }
+
+    /* ════════════════════════════════════════════
+       ALERTS
+    ════════════════════════════════════════════ */
+    .alert-container {
+      position:fixed; top:calc(var(--nav-h) + 12px); right:20px;
+      z-index:9999; display:flex; flex-direction:column; gap:8px;
+      max-width:300px;
+    }
+    .alert {
+      padding:12px 15px; border-radius:var(--radius-sm);
+      font-size:.8rem; font-weight:500;
+      box-shadow:var(--shadow-lg);
+      animation:slideDown .35s var(--ease-spring) both;
+      display:flex; align-items:center; gap:9px;
+    }
+    .alert-success { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+    .alert-error   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+    .alert-info    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+    @keyframes slideOut { from{transform:translateX(0);opacity:1;} to{transform:translateX(100%);opacity:0;} }
+
+    /* ════════════════════════════════════════════
+       PAGE LAYOUT
+    ════════════════════════════════════════════ */
+    .page {
+      max-width:1120px; margin:0 auto;
+      padding:clamp(24px,3vw,40px) clamp(16px,3.5vw,40px);
+      display:flex; flex-direction:column; gap:24px;
+    }
+
+    /* ════════════════════════════════════════════
+       PAGE HEADER
+    ════════════════════════════════════════════ */
+    .page-header {
+      display:flex; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap; gap:14px;
+    }
+    .page-header-title {
+      font-size:clamp(1.5rem,3.8vw,2rem); font-weight:700;
+      letter-spacing:-.025em; line-height:1.15;
+    }
+    .page-header-title em { color:var(--accent); font-style:normal; }
+    .page-header-sub { font-size:.84rem; color:var(--muted); margin-top:4px; font-weight:400; }
+
+    /* Count badge */
+    .header-count {
+      display:flex; align-items:center; gap:7px;
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:9px 14px;
+      font-size:.72rem; font-weight:600; color:var(--muted);
+      box-shadow:var(--shadow-xs); white-space:nowrap;
+    }
+    .header-count svg { width:13px; height:13px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .header-count strong { color:var(--ink); font-weight:700; }
+
+    /* ════════════════════════════════════════════
+       FAVOURITES GRID
+    ════════════════════════════════════════════ */
+    .favorites-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+      gap:14px;
+    }
+
+    /* Court card */
+    .court-card {
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow-xs);
+      transition:box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s;
+      animation:cardIn .32s var(--ease) both;
+      display:flex; flex-direction:column;
+    }
+    .court-card:hover {
+      box-shadow:var(--shadow);
+      transform:translateY(-3px);
+      border-color:var(--border-2);
+    }
+
+    /* Card top strip */
+    .court-card-top {
+      background:var(--accent-dim);
+      border-bottom:1px solid rgba(229,82,14,.10);
+      padding:20px 20px 16px;
+      display:flex; align-items:flex-start; justify-content:space-between;
+      position:relative;
+    }
+    .court-emoji {
+      font-size:2.2rem; line-height:1;
+    }
+
+    /* Remove button */
+    .fav-remove-btn {
+      background:none; border:none; cursor:pointer;
+      width:30px; height:30px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:var(--radius-xs); color:var(--muted);
+      transition:background .15s, color .15s;
+      flex-shrink:0;
+    }
+    .fav-remove-btn:hover { background:#fef2f2; color:#ef4444; }
+    .fav-remove-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    /* Card body */
+    .court-card-body {
+      padding:16px 18px 18px;
+      flex:1; display:flex; flex-direction:column; gap:10px;
+    }
+
+    .court-name {
+      font-size:1rem; font-weight:700;
+      letter-spacing:-.01em; line-height:1.2;
+      color:var(--ink);
+    }
+
+    .court-chips {
+      display:flex; gap:6px; flex-wrap:wrap;
+    }
+    .court-chip {
+      display:inline-flex; align-items:center; gap:4px;
+      font-size:.68rem; font-weight:600; letter-spacing:.04em;
+      text-transform:uppercase;
+      background:var(--bg); border:1px solid var(--border);
+      padding:3px 9px; border-radius:999px; color:var(--mid);
+    }
+    .court-chip.price {
+      background:var(--accent-dim); border-color:rgba(229,82,14,.18);
+      color:var(--accent);
+    }
+
+    /* Book button */
+    .btn-book {
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      width:100%;
+      font-size:.8rem; font-weight:600; letter-spacing:-.01em;
+      background:var(--ink); color:#fff;
+      border:none; border-radius:var(--radius-sm);
+      padding:11px 16px; cursor:pointer;
+      transition:background .18s, transform .18s, box-shadow .18s;
+      margin-top:auto;
+    }
+    .btn-book svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+    .btn-book:hover { background:var(--accent); transform:translateY(-1px); box-shadow:0 4px 16px var(--accent-glow); }
+
+    /* ════════════════════════════════════════════
+       EMPTY / LOADING STATES
+    ════════════════════════════════════════════ */
+    .state-box {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:60px 24px; text-align:center; color:var(--muted);
+      grid-column:1 / -1;
+      box-shadow:var(--shadow-xs);
+    }
+    .state-box svg {
+      width:40px; height:40px; stroke:var(--border-2); fill:none;
+      stroke-width:1.5; stroke-linecap:round; display:block;
+      margin:0 auto 16px;
+    }
+    .state-box p { font-size:.85rem; margin-bottom:18px; line-height:1.6; color:var(--muted); }
+    .state-box a {
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:.8rem; font-weight:600;
+      color:var(--accent); text-decoration:none;
+      padding:10px 20px; border:1.5px solid rgba(229,82,14,.28);
+      border-radius:var(--radius-sm); background:var(--accent-dim);
+      transition:all .18s var(--ease);
+    }
+    .state-box a svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; }
+    .state-box a:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+    .spinner-wrap {
+      display:flex; justify-content:center; align-items:center;
+      padding:60px; grid-column:1 / -1;
+    }
+    .spinner {
+      width:28px; height:28px; border:2.5px solid var(--border);
+      border-top-color:var(--accent); border-radius:50%;
+      animation:spin .85s linear infinite;
+    }
+
+    /* ════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════ */
+    @media (max-width:768px) {
+      .nav-links { display:none; }
+      .nav-logout { display:none; }
+      .hamburger { display:flex; }
+    }
+    @media (max-width:640px) {
+      .favorites-grid { grid-template-columns:1fr; }
+      .alert-container { right:12px; max-width:calc(100vw - 24px); }
+    }
+    @media (max-width:480px) {
+      .header-count { display:none; }
     }
   </style>
 </head>
 <body>
-  <!-- Alert Container -->
+
   <div class="alert-container" id="alertContainer"></div>
-  <nav class="navbar">
-    <div class="navbar-brand">SportCourt</div>
-    <div class="navbar-links">
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar" id="mainNav">
+    <a href="dashboard.html" class="nav-brand">
+      <div class="nav-brand-logo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M4 12a8 8 0 0 1 8-8M12 20a8 8 0 0 1-8-8M20 12a8 8 0 0 1-8 8M12 4a8 8 0 0 1 8 8"/></svg>
+      </div>
+      <span class="nav-brand-name">Sport<span>Court</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="nav-links">
       <a href="dashboard.html">Dashboard</a>
       <a href="courts.html">Book Courts</a>
       <a href="bookings.html">My Bookings</a>
-      <a href="favorites.html">Favorites</a>
+      <a href="favorites.html" class="active">Favourites</a>
       <a href="profile.html">Profile</a>
-      <div class="notification-badge">
-        <button class="notif-btn" onclick="toggleNotifications(); return false;" aria-label="Notifications">
-          <svg class="notif-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span id="notifBadge" class="notif-count" style="display:none;">0</span>
-        </button>
-      </div>
-      <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <!-- Right actions -->
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <a href="#" onclick="logout();return false;" class="nav-logout">Logout</a>
+
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
+  <!-- Mobile menu drawer -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="courts.html">Book Courts</a>
+    <a href="bookings.html">My Bookings</a>
+    <a href="favorites.html" class="active">Favourites</a>
+    <a href="profile.html">Profile</a>
+    <div class="mobile-menu-divider"></div>
+    <a href="#" onclick="logout();return false;">Logout</a>
+  </div>
+
+  <!-- ── NOTIFICATION PANEL ── -->
   <div id="notificationPanel" class="notification-panel">
-    <div class="notification-header">
+    <div class="notif-header">
       <h3>Notifications</h3>
-      <span class="close" onclick="toggleNotifications()">&times;</span>
+      <button class="notif-close-btn" onclick="toggleNotifications()">&#x2715;</button>
     </div>
-    <div id="notificationList"></div>
-  </div>
-
-  <div class="dashboard-container">
-    <div class="dashboard-header">
-      <h2>Favorite Courts</h2>
-      <p>Quick access to your favorite courts</p>
+    <div id="notifSummaryBar" style="display:none" class="notif-summary-bar">
+      <span class="notif-summary-text" id="notifSummaryText"></span>
+      <button class="notif-mark-all-btn" onclick="markAllAsRead()">Mark all read</button>
     </div>
-
-    <div id="favoritesGrid" class="courts-grid">
-      <div class="spinner"></div>
+    <div id="notificationList">
+      <div class="notif-empty">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <p>No notifications yet</p>
+      </div>
     </div>
   </div>
 
-    <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <!-- Brand Section -->
-      <div class="footer-section footer-brand">
-        <div class="footer-logo">
-          <div class="footer-logo-mark"></div>
-          <div class="footer-logo-text">SportCourt</div>
-        </div>
-        <p class="footer-description">
-          Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.
-        </p>
-        <span class="footer-tagline">
-          <span class="dot-live"></span>
-          Book Smart, Play Hard
-        </span>
+  <!-- ── PAGE ── -->
+  <div class="page">
+
+    <!-- Page Header -->
+    <div class="page-header a1">
+      <div>
+        <div class="page-header-title">My <em>Favourites</em></div>
+        <div class="page-header-sub">Quick access to your saved courts</div>
       </div>
-
-      <!-- Quick Links -->
-      <div class="footer-section">
-        <h3>Quick Links</h3>
-        <div class="footer-links">
-          <a href="dashboard.html" class="footer-link">Dashboard</a>
-          <a href="courts.html" class="footer-link">Browse Courts</a>
-          <a href="bookings.html" class="footer-link">My Bookings</a>
-          <a href="favorites.html" class="footer-link">Favorites</a>
-          <a href="profile.html" class="footer-link">Profile</a>
-        </div>
-      </div>
-
-      <!-- Resources -->
-      <div class="footer-section">
-        <h3>Resources</h3>
-        <div class="footer-links">
-          <a href="#" class="footer-link">FAQs</a>
-          <a href="#" class="footer-link">How It Works</a>
-          <a href="#" class="footer-link">Pricing</a>
-          <a href="#" class="footer-link">Safety Guidelines</a>
-          <a href="#" class="footer-link">Court Rules</a>
-        </div>
-      </div>
-
-      <!-- Contact Information -->
-      <div class="footer-section">
-        <h3>Contact Us</h3>
-        <div class="footer-contact-info">
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Email</span>
-              <span class="contact-value">
-                <a href="/cdn-cgi/l/email-protection#3f555057517f4b5a4c4b115c5052"><span class="__cf_email__" data-cfemail="3e545156507e4a5b4d4a105d5153">[email&#160;protected]</span></a>
-              </span>
-            </div>
-          </div>
-          
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Phone</span>
-              <span class="contact-value">
-                <a href="tel:+91234565">+91234565</a>
-              </span>
-            </div>
-          </div>
-          
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Support</span>
-              <span class="contact-value">Customer Service</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Social Media Links -->
-        <div class="footer-social">
-          <a href="#" class="social-link" title="Facebook"></a>
-          <a href="#" class="social-link" title="Twitter"></a>
-          <a href="#" class="social-link" title="Instagram"></a>
-          <a href="#" class="social-link" title="LinkedIn"></a>
-        </div>
+      <div class="header-count" id="favCount" style="display:none;">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <strong id="favCountNum">0</strong> saved
       </div>
     </div>
 
-    <!-- Footer Bottom -->
-    <div class="footer-bottom">
-      <div class="footer-copyright">
-        © 2026 SportCourt. All rights reserved. Made with <span class="heart"></span>
-      </div>
-      <div class="footer-legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Refund Policy</a>
-        <a href="#">Accessibility</a>
-      </div>
+    <!-- Favourites Grid -->
+    <div class="favorites-grid a2" id="favoritesGrid">
+      <div class="spinner-wrap"><div class="spinner"></div></div>
     </div>
-  </footer>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../js/api.js"></script>
+  </div>
+
+  <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
   <script>
+    /* ── Navbar scroll shadow ── */
+    window.addEventListener('scroll', () => {
+      document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 4);
+    });
+
+    /* ── Hamburger / mobile menu ── */
+    function toggleMobileMenu() {
+      const btn  = document.getElementById('hamburger');
+      const menu = document.getElementById('mobileMenu');
+      const open = menu.classList.toggle('open');
+      btn.classList.toggle('open', open);
+    }
+    document.addEventListener('click', e => {
+      const menu = document.getElementById('mobileMenu');
+      const btn  = document.getElementById('hamburger');
+      if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove('open');
+        btn.classList.remove('open');
+      }
+    });
+
+    /* ── Notifications ── */
+    function toggleNotifications() {
+      const panel = document.getElementById('notificationPanel');
+      panel.classList.toggle('open');
+    }
+
+    /* ── Auth ── */
     checkAuth();
 
-    const courtIcons = {
-      tennis: '🎾',
+    /* ── Court emoji map ── */
+    const courtEmojis = {
+      tennis:     '🎾',
       basketball: '🏀',
-      football: '⚽',
-      futsal: '⚽'
+      football:   '⚽',
+      futsal:     '⚽',
+      badminton:  '🏸',
+      volleyball: '🏐',
+      squash:     '🎯',
     };
 
+    /* ── Load favorites ── */
     async function loadFavorites() {
+      const grid = document.getElementById('favoritesGrid');
       try {
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        
+
         if (favorites.length === 0) {
-          document.getElementById("favoritesGrid").innerHTML = 
-            '<div class="card"><p>No favorite courts yet. <a href="courts.html">Browse courts</a> to add favorites!</p></div>';
+          updateFavCount(0);
+          grid.innerHTML = `
+            <div class="state-box">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <p>No favourite courts yet.<br>Browse courts and star your go-to spots!</p>
+              <a href="courts.html">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Browse Courts
+              </a>
+            </div>`;
           return;
         }
 
-        const courts = await apiFetch("/courts");
-        const favoriteCourts = courts.filter(c => favorites.includes(c.id));
+        const courts = await apiFetch('/courts');
+        const favCourts = courts.filter(c => favorites.includes(c.id));
 
-        displayFavorites(favoriteCourts);
-      } catch(err) {
-        console.error("Error loading favorites:", err);
-        document.getElementById("favoritesGrid").innerHTML = '<p>Error loading favorites.</p>';
+        updateFavCount(favCourts.length);
+        displayFavorites(favCourts);
+      } catch (err) {
+        console.error('Error loading favorites:', err);
+        grid.innerHTML = `
+          <div class="state-box">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p>Unable to load favourites. Please try again.</p>
+            <a href="#" onclick="loadFavorites();return false;">
+              <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Retry
+            </a>
+          </div>`;
       }
     }
 
+    /* ── Render cards ── */
     function displayFavorites(courts) {
-      const grid = document.getElementById("favoritesGrid");
+      const grid = document.getElementById('favoritesGrid');
+      if (!courts.length) {
+        grid.innerHTML = `
+          <div class="state-box">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <p>No favourite courts yet.</p>
+            <a href="courts.html">Browse Courts</a>
+          </div>`;
+        return;
+      }
 
-      grid.innerHTML = courts.map(court => `
-        <div class="court-card">
-          <button class="favorite-btn" onclick="removeFavorite(${court.id})">⭐</button>
-          <div class="court-icon">${courtIcons[court.type] || '🏟️'}</div>
-          <div class="court-name">${court.name}</div>
-          <div class="court-type">${court.type.charAt(0).toUpperCase() + court.type.slice(1)}</div>
-          <div class="court-price">${court.price_per_hour} coins/hr</div>
-          <button onclick="quickBook(${court.id})" class="success">Quick Book</button>
-        </div>
-      `).join('');
+      grid.innerHTML = courts.map((court, idx) => {
+        const emoji    = courtEmojis[court.type?.toLowerCase()] || '🏟️';
+        const typeName = court.type ? court.type.charAt(0).toUpperCase() + court.type.slice(1) : 'Court';
+        return `
+          <div class="court-card" style="animation-delay:${idx * 0.06}s">
+            <div class="court-card-top">
+              <div class="court-emoji">${emoji}</div>
+              <button class="fav-remove-btn" onclick="removeFavorite(${court.id})" title="Remove from favourites">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </div>
+            <div class="court-card-body">
+              <div class="court-name">${court.name || `Court ${court.id}`}</div>
+              <div class="court-chips">
+                <span class="court-chip">${typeName}</span>
+                ${court.price_per_hour ? `<span class="court-chip price">${court.price_per_hour.toLocaleString()} coins/hr</span>` : ''}
+              </div>
+              <button class="btn-book" onclick="quickBook(${court.id})">
+                <svg viewBox="0 0 24 24"><path d="M5 12h14m-7-7l7 7-7 7"/></svg>
+                Quick Book
+              </button>
+            </div>
+          </div>`;
+      }).join('');
     }
 
+    /* ── Update count badge ── */
+    function updateFavCount(n) {
+      const el  = document.getElementById('favCount');
+      const num = document.getElementById('favCountNum');
+      if (n > 0) {
+        el.style.display = 'flex';
+        num.textContent  = n;
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    /* ── Remove ── */
     function removeFavorite(courtId) {
       let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
       favorites = favorites.filter(id => id !== courtId);
       localStorage.setItem('favorites', JSON.stringify(favorites));
-      showAlert('Removed from favorites', 'info');
+      showAlert('Removed from favourites', 'info');
       loadFavorites();
     }
 
+    /* ── Quick book ── */
     function quickBook(courtId) {
       localStorage.setItem('selectedCourtId', courtId);
       location.href = 'booking.html';
     }
 
+    /* ── Alert ── */
     function showAlert(message, type = 'info') {
-      const container = document.getElementById("alertContainer");
-      const alert = document.createElement('div');
+      const container = document.getElementById('alertContainer');
+      const alert     = document.createElement('div');
       alert.className = `alert alert-${type}`;
       alert.textContent = message;
       container.appendChild(alert);
       setTimeout(() => {
-        alert.style.animation = "slideOut 0.3s ease-out";
+        alert.style.animation = 'slideOut 0.3s ease-out';
         setTimeout(() => alert.remove(), 300);
       }, 4000);
     }
+    window.showAlert = showAlert;
 
     loadFavorites();
-    loadNotifications();
   </script>
 </body>
 </html>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Management - Admin</title>
   <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     .tab-bar {
       display: flex;
@@ -63,8 +64,8 @@
       <a href="dashboard.html">Dashboard</a>
       <a href="courts.html">Manage Courts</a>
       <a href="bookings.html">Manage Bookings</a>
-      <a href="scanner.html">QR Scanner</a>
       <a href="users.html" style="color: var(--c-accent, #22c55e); font-weight: 600;">Users</a>
+      <a href="scanner.html">QR Scanner</a>
       <a href="reports.html">Reports</a>
       <a href="#" onclick="logout()">Logout</a>
     </div>
@@ -154,10 +155,70 @@
          TAB 3 — USER LOOKUP
     ══════════════════════════════════════ -->
     <div id="panel-lookup" class="tab-panel">
+
+      <!-- QR Scanner Card -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h3 style="margin:0 0 4px; display:flex; align-items:center; gap:8px;">
+              <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:#22c55e; border-radius:7px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zm3 3h3v3h-3zm0-6h3v3h-3z"/></svg>
+              </span>
+              QR Code Scanner
+            </h3>
+            <p style="margin:0; font-size:13px; color:#64748b;">Scan a member's QR code to instantly pull up their full profile and activity.</p>
+          </div>
+          <button id="qrToggleBtn" onclick="toggleQrScanner()"
+            style="padding:9px 20px; width:auto; background:#22c55e; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:7px; white-space:nowrap;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Start Scanner
+          </button>
+        </div>
+
+        <!-- Camera view -->
+        <div id="qrScannerArea" style="display:none;">
+          <div style="position:relative; max-width:380px; margin:0 auto 16px;">
+            <video id="qrVideo" style="width:100%; border-radius:12px; background:#000; display:block;" autoplay muted playsinline></video>
+            <canvas id="qrCanvas" style="display:none;"></canvas>
+            <!-- Viewfinder overlay -->
+            <div style="position:absolute; inset:0; pointer-events:none; border-radius:12px; overflow:hidden;">
+              <div style="position:absolute; inset:0; background:rgba(0,0,0,0.45);
+                clip-path: polygon(0% 0%, 0% 100%, 20% 100%, 20% 20%, 80% 20%, 80% 80%, 20% 80%, 20% 100%, 100% 100%, 100% 0%);"></div>
+              <!-- Corner brackets -->
+              <div style="position:absolute; top:20%; left:20%; width:32px; height:32px; border-top:3px solid #22c55e; border-left:3px solid #22c55e; border-radius:4px 0 0 0;"></div>
+              <div style="position:absolute; top:20%; right:20%; width:32px; height:32px; border-top:3px solid #22c55e; border-right:3px solid #22c55e; border-radius:0 4px 0 0;"></div>
+              <div style="position:absolute; bottom:20%; left:20%; width:32px; height:32px; border-bottom:3px solid #22c55e; border-left:3px solid #22c55e; border-radius:0 0 0 4px;"></div>
+              <div style="position:absolute; bottom:20%; right:20%; width:32px; height:32px; border-bottom:3px solid #22c55e; border-right:3px solid #22c55e; border-radius:0 0 4px 0;"></div>
+              <!-- Scan line animation -->
+              <div id="qrScanLine" style="position:absolute; left:20%; right:20%; height:2px; background:linear-gradient(90deg,transparent,#22c55e,transparent); top:20%; animation:scanLine 2s linear infinite;"></div>
+            </div>
+          </div>
+
+          <div id="qrStatus" style="text-align:center; font-size:13px; color:#64748b; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <span id="qrStatusDot" style="width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block; animation:pulse 1.5s infinite;"></span>
+            <span id="qrStatusText">Scanning… point at a SportCourt member QR code</span>
+          </div>
+
+          <div style="text-align:center;">
+            <button onclick="stopQrScanner()"
+              style="padding:8px 20px; width:auto; background:transparent; color:#64748b; border:1.5px solid #e2e8f0; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">
+              Stop Scanner
+            </button>
+          </div>
+        </div>
+
+        <!-- Scan result flash -->
+        <div id="qrResult" style="display:none; margin-top:14px; padding:12px 16px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; font-size:14px; color:#15803d; display:none; align-items:center; gap:10px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="qrResultText"></span>
+        </div>
+      </div>
+
+      <!-- Text Search Card -->
       <div class="card">
         <div style="margin-bottom:15px;">
-          <h3 style="margin:0 0 4px;">User Activity Lookup</h3>
-          <p style="margin:0; font-size:13px; color:#64748b;">Search by name or email to view all activity for a specific user — bookings, cancellations, penalties and appeals.</p>
+          <h3 style="margin:0 0 4px;">Search by Name or Email</h3>
+          <p style="margin:0; font-size:13px; color:#64748b;">View all activity for a specific user — bookings, cancellations, penalties and appeals.</p>
         </div>
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <input type="text" id="userSearchInput" placeholder="Enter name or email..."
@@ -174,7 +235,13 @@
         </div>
         <div id="userActivityResult" style="margin-top:16px;"></div>
       </div>
+
     </div>
+
+    <style>
+      @keyframes scanLine { 0%{top:22%} 100%{top:76%} }
+      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    </style>
 
   </div>
 
@@ -605,8 +672,8 @@
     let userActivityData = null;
     const expandedSections = {};
 
-    async function searchUserActivity() {
-      const q = document.getElementById('userSearchInput').value.trim();
+    async function searchUserActivity(qOverride) {
+      const q = qOverride || document.getElementById('userSearchInput').value.trim();
       const resultEl = document.getElementById('userActivityResult');
       if (q.length < 2) { showAlert('Please enter at least 2 characters to search.', 'error'); return; }
       resultEl.innerHTML = '<p style="color:#64748b;">Searching...</p>';
@@ -694,6 +761,29 @@
         const isSuspended = u.suspended_until && new Date(u.suspended_until) > new Date();
         const isPermanent = isSuspended && new Date(u.suspended_until).getFullYear() >= 2099;
 
+        // ── Tier from totalSpent ──────────────────────────────
+        const TIERS = [
+          { name:'Platinum', min:50000, color:'#7dd3fc', bg:'rgba(125,211,252,.12)', border:'rgba(125,211,252,.4)' },
+          { name:'Gold',     min:20000, color:'#ffd700', bg:'rgba(255,215,0,.12)',   border:'rgba(255,215,0,.5)'   },
+          { name:'Silver',   min:5000,  color:'#94a3b8', bg:'rgba(148,163,184,.12)', border:'rgba(148,163,184,.4)' },
+          { name:'Bronze',   min:0,     color:'#cd7f32', bg:'rgba(205,127,50,.12)',  border:'rgba(205,127,50,.4)'  },
+        ];
+        const tier = TIERS.find(t => totalSpent >= t.min) || TIERS[TIERS.length - 1];
+        const tierBadge = `<span style="
+          background:${tier.bg};
+          color:${tier.color};
+          border:1.5px solid ${tier.border};
+          padding:4px 10px;
+          border-radius:20px;
+          font-size:12px;
+          font-weight:700;
+          letter-spacing:.04em;
+          text-transform:uppercase;
+          display:inline-flex;
+          align-items:center;
+          gap:4px;
+        ">${tier.name}</span>`;
+
         return `
           <div style="border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; margin-bottom:24px;">
             <div style="background:#f8fafc; padding:16px 20px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; border-bottom:1.5px solid #e2e8f0;">
@@ -707,6 +797,7 @@
                 ${isSuspended
                   ? `<span style="background:#7f1d1d; color:white; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">${isPermanent ? 'Permanently Banned' : 'Suspended'}</span>`
                   : '<span style="background:#d1fae5; color:#065f46; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Active</span>'}
+                ${tierBadge}
                 ${u.penalty > 0 ? `<span style="background:#fff7ed; color:#c2410c; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">Pending Penalty: ${u.penalty} coins</span>` : ''}
               </div>
             </div>
@@ -836,6 +927,120 @@
 
       downloadCSV(`user_activity_${userName.replace(/[^a-z0-9]/gi,'_').toLowerCase()}.csv`, csv);
       showAlert(`Exported activity for ${userName}`, 'success');
+    }
+
+    // ══════════════════════════════════════
+    // QR SCANNER
+    // ══════════════════════════════════════
+    let qrStream = null;
+    let qrAnimFrame = null;
+    let qrScanning = false;
+    let qrCooldown = false;
+
+    function toggleQrScanner() {
+      const area = document.getElementById('qrScannerArea');
+      if (area.style.display === 'none') {
+        startQrScanner();
+      } else {
+        stopQrScanner();
+      }
+    }
+
+    async function startQrScanner() {
+      const area   = document.getElementById('qrScannerArea');
+      const btn    = document.getElementById('qrToggleBtn');
+      const video  = document.getElementById('qrVideo');
+      const status = document.getElementById('qrStatusText');
+
+      try {
+        qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = qrStream;
+        video.play();
+        area.style.display = 'block';
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Stop Scanner`;
+        btn.style.background = '#dc2626';
+        qrScanning = true;
+        requestAnimationFrame(qrScanTick);
+      } catch(e) {
+        showAlert('Camera access denied. Please allow camera permission.', 'error');
+      }
+    }
+
+    function stopQrScanner() {
+      qrScanning = false;
+      if (qrAnimFrame) cancelAnimationFrame(qrAnimFrame);
+      if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
+      document.getElementById('qrScannerArea').style.display = 'none';
+      const btn = document.getElementById('qrToggleBtn');
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Start Scanner`;
+      btn.style.background = '#22c55e';
+    }
+
+    function qrScanTick() {
+      if (!qrScanning) return;
+      const video  = document.getElementById('qrVideo');
+      const canvas = document.getElementById('qrCanvas');
+      if (video.readyState === video.HAVE_ENOUGH_DATA && !qrCooldown) {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = typeof jsQR !== 'undefined' ? jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' }) : null;
+        if (code) {
+          qrCooldown = true;
+          handleQrResult(code.data);
+          setTimeout(() => { qrCooldown = false; }, 3000);
+        }
+      }
+      qrAnimFrame = requestAnimationFrame(qrScanTick);
+    }
+
+    function handleQrResult(raw) {
+      // Expected format: SPORTCOURT:MEMBER:SC-XXXXXXX:email@example.com
+      const parts = raw.split(':');
+      let email = null;
+      let scCode = null;
+
+      if (parts[0] === 'SPORTCOURT' && parts[1] === 'MEMBER') {
+        scCode = parts[2];
+        // email may contain ':' if it has port (unlikely) — join rest
+        email = parts.slice(3).join(':');
+      } else if (raw.includes('@')) {
+        // fallback: raw string is just email
+        email = raw.trim();
+      }
+
+      const resultBox  = document.getElementById('qrResult');
+      const resultText = document.getElementById('qrResultText');
+      const statusText = document.getElementById('qrStatusText');
+      const statusDot  = document.getElementById('qrStatusDot');
+
+      if (!email && !scCode) {
+        statusText.textContent = 'Not a valid SportCourt QR — try again';
+        statusDot.style.background = '#f59e0b';
+        return;
+      }
+
+      // Flash success
+      statusText.textContent = `✓ QR detected — loading member info…`;
+      statusDot.style.background = '#22c55e';
+      resultText.textContent = `QR scanned: ${scCode || email}`;
+      resultBox.style.display = 'flex';
+      setTimeout(() => { resultBox.style.display = 'none'; }, 4000);
+
+      // Stop scanner, switch to showing results
+      stopQrScanner();
+
+      // Auto-fill search and trigger lookup
+      const searchInput = document.getElementById('userSearchInput');
+      searchInput.value = email || scCode;
+
+      // Scroll to result
+      document.getElementById('panel-lookup').scrollIntoView({ behavior: 'smooth' });
+
+      // Trigger the existing search
+      searchUserActivity(email || scCode);
     }
 
     // ── INIT ──

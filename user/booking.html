@@ -3,233 +3,868 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Court - Sport Court Booking</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <title>Book Court — SportCourt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ════════════════════════════════════════════
+       DESIGN TOKENS — matches dashboard.html
+    ════════════════════════════════════════════ */
+    :root {
+      --ink:          #0f1117;
+      --ink-2:        #1c1f2b;
+      --ink-3:        #2d3142;
+      --mid:          #5c6070;
+      --muted:        #8b909f;
+      --border:       #e9eaf0;
+      --border-2:     #d8dae4;
+      --bg:           #f4f5f9;
+      --bg-2:         #ecedf3;
+      --white:        #ffffff;
+      --accent:       #e5520e;
+      --accent-h:     #d14509;
+      --accent-dim:   rgba(229,82,14,.07);
+      --accent-glow:  rgba(229,82,14,.22);
+      --green:        #12b981;
+      --green-dim:    rgba(18,185,129,.09);
+      --green-border: #6ee7b7;
+      --green-text:   #065f46;
+      --blue-dim:     rgba(59,110,248,.08);
+      --amber:        #f59e0b;
+      --amber-dim:    rgba(245,158,11,.09);
+      --amber-border: #fde68a;
+      --amber-text:   #92400e;
+      --red-dim:      #fef2f2;
+      --red-border:   #fecaca;
+      --red-text:     #991b1b;
+      --radius:       16px;
+      --radius-sm:    10px;
+      --radius-xs:    7px;
+      --shadow-xs:    0 1px 2px rgba(0,0,0,.04);
+      --shadow-sm:    0 2px 8px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+      --shadow:       0 4px 20px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg:    0 16px 48px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.04);
+      --shadow-xl:    0 28px 72px rgba(0,0,0,.15);
+      --ease:         cubic-bezier(.22,1,.36,1);
+      --ease-spring:  cubic-bezier(.34,1.56,.64,1);
+      --nav-h:        60px;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'DM Sans', sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
+
+    /* ════════════════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════════════════ */
+    @keyframes fadeUp    { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin      { to{transform:rotate(360deg)} }
+    @keyframes popIn     { from{transform:scale(0)} to{transform:scale(1)} }
+    @keyframes alertSlide{ from{transform:translateX(110%);opacity:0;} to{transform:translateX(0);opacity:1;} }
+    @keyframes modalUp   { from{opacity:0;transform:translateY(20px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);} }
+
+    .a1{animation:fadeUp .55s var(--ease) both}
+    .a2{animation:fadeUp .55s .07s var(--ease) both}
+    .a3{animation:fadeUp .55s .14s var(--ease) both}
+    .a4{animation:fadeUp .55s .21s var(--ease) both}
+
+    /* ════════════════════════════════════════════
+       NAVBAR
+    ════════════════════════════════════════════ */
+    .navbar {
+      position:sticky; top:0; z-index:200;
+      height:var(--nav-h);
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center;
+      padding:0 clamp(16px,4vw,44px);
+      gap:16px;
+      transition:box-shadow .25s;
+    }
+    .navbar.scrolled { box-shadow:var(--shadow-sm); }
+
+    .nav-brand {
+      display:flex; align-items:center; gap:9px;
+      text-decoration:none; flex-shrink:0;
+    }
+    .nav-brand-logo {
+      width:32px; height:32px; border-radius:9px;
+      background:var(--ink);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .nav-brand-logo svg { width:16px; height:16px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-brand-name { font-size:.92rem; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
+    .nav-brand-name span { color:var(--accent); }
+
+    .nav-links {
+      display:flex; align-items:center; gap:2px;
+      margin:0 auto;
+    }
+    .nav-links a {
+      font-size:.82rem; font-weight:500; color:var(--mid);
+      text-decoration:none; padding:7px 13px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s; white-space:nowrap;
+    }
+    .nav-links a:hover { color:var(--ink); background:var(--bg); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
+
+    .nav-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+
+    .nav-icon-btn {
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      color:var(--mid); display:flex; align-items:center; justify-content:center;
+      position:relative; transition:background .18s, color .18s;
+    }
+    .nav-icon-btn:hover { background:var(--bg); color:var(--ink); }
+    .nav-icon-btn svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .notif-badge {
+      position:absolute; top:4px; right:4px;
+      min-width:15px; height:15px; border-radius:999px;
+      background:var(--accent); color:#fff;
+      font-size:.5rem; font-weight:800;
+      display:none; align-items:center; justify-content:center; padding:0 3px;
+      border:2px solid var(--white);
+      animation:popIn .3s var(--ease-spring) both;
+    }
+    .notif-badge.visible { display:flex; }
+
+    .nav-logout {
+      font-size:.8rem; font-weight:600; color:var(--muted);
+      text-decoration:none; padding:7px 12px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
+    }
+    .nav-logout:hover { color:var(--ink); background:var(--bg); }
+
+    /* Hamburger */
+    .hamburger {
+      display:none;
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      align-items:center; justify-content:center; flex-direction:column;
+      gap:5px; padding:8px;
+    }
+    .hamburger span {
+      display:block; width:100%; height:1.5px;
+      background:var(--ink); border-radius:999px;
+      transition:transform .25s var(--ease), opacity .2s;
+    }
+    .hamburger.open span:nth-child(1) { transform:translateY(6.5px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
+
+    /* Mobile menu drawer */
+    .mobile-menu {
+      position:fixed; top:var(--nav-h); left:0; right:0;
+      background:var(--white); border-bottom:1px solid var(--border);
+      box-shadow:var(--shadow-lg);
+      z-index:190; padding:12px 16px 16px;
+      transform:translateY(-8px);
+      opacity:0; pointer-events:none;
+      transition:transform .28s var(--ease), opacity .22s;
+    }
+    .mobile-menu.open { transform:translateY(0); opacity:1; pointer-events:all; }
+    .mobile-menu a {
+      display:block; padding:12px 14px;
+      font-size:.9rem; font-weight:500; color:var(--mid);
+      text-decoration:none; border-radius:var(--radius-xs);
+      transition:background .15s, color .15s;
+    }
+    .mobile-menu a.active { color:var(--accent); font-weight:600; background:var(--accent-dim); }
+    .mobile-menu a:hover { color:var(--ink); background:var(--bg); }
+    .mobile-menu-divider { height:1px; background:var(--border); margin:8px 0; }
+
+    /* ════════════════════════════════════════════
+       NOTIFICATION PANEL
+    ════════════════════════════════════════════ */
+    .notification-panel {
+      position:fixed; top:var(--nav-h); right:0;
+      width:min(380px, 100vw);
+      background:var(--white);
+      border-left:1px solid var(--border);
+      box-shadow:var(--shadow-xl);
+      z-index:300;
+      transform:translateX(110%);
+      transition:transform .32s var(--ease);
+      max-height:calc(100vh - var(--nav-h));
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+    .notification-panel.open { transform:translateX(0); }
+
+    .notif-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px 14px; border-bottom:1px solid var(--border); flex-shrink:0;
+    }
+    .notif-header h3 { font-size:.92rem; font-weight:700; letter-spacing:-.01em; }
+    .notif-close-btn {
+      width:28px; height:28px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      color:var(--mid); cursor:pointer; font-size:15px;
+      display:flex; align-items:center; justify-content:center; transition:all .15s;
+    }
+    .notif-close-btn:hover { color:var(--ink); background:var(--bg-2); }
+
+    .notif-summary-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 20px; background:var(--bg);
+      border-bottom:1px solid var(--border); flex-shrink:0;
+    }
+    .notif-summary-text { font-size:.72rem; color:var(--muted); font-weight:500; }
+    .notif-mark-all-btn {
+      font-size:.68rem; font-weight:700; letter-spacing:.04em;
+      color:var(--accent); background:none; border:none; cursor:pointer; transition:color .15s;
+    }
+    .notif-mark-all-btn:hover { color:var(--accent-h); }
+
+    #notificationList { overflow-y:auto; flex:1; }
+    #notificationList::-webkit-scrollbar { width:3px; }
+    #notificationList::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:3px; }
+
+    .notif-item {
+      display:flex; align-items:flex-start; gap:12px;
+      padding:14px 20px; border-bottom:1px solid var(--border);
+      cursor:pointer; transition:background .15s;
+    }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item:hover { background:var(--bg); }
+    .notif-item.unread { background:rgba(229,82,14,.022); }
+    .notif-icon-wrap {
+      width:35px; height:35px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--bg); border:1px solid var(--border);
+    }
+    .notif-icon-wrap svg { width:14px; height:14px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; }
+    .notif-item.unread .notif-icon-wrap { background:var(--accent-dim); border-color:rgba(229,82,14,.18); }
+    .notif-item.unread .notif-icon-wrap svg { stroke:var(--accent); }
+    .notif-body { flex:1; min-width:0; }
+    .notif-msg { font-size:.8rem; line-height:1.45; color:var(--mid); word-break:break-word; }
+    .notif-item.unread .notif-msg { color:var(--ink); font-weight:500; }
+    .notif-time { font-size:.66rem; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:3px; }
+    .notif-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:7px; }
+    .notif-item.read .notif-dot { visibility:hidden; }
+    .notif-empty { padding:48px 20px; text-align:center; color:var(--muted); }
+    .notif-empty svg { width:36px; height:36px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 12px; }
+    .notif-empty p { font-size:.82rem; }
+
+    /* ════════════════════════════════════════════
+       ALERTS
+    ════════════════════════════════════════════ */
+    .alert-container {
+      position:fixed; top:calc(var(--nav-h) + 12px); right:20px;
+      z-index:9999; display:flex; flex-direction:column; gap:8px; max-width:300px;
+    }
+    .alert {
+      padding:12px 15px; border-radius:var(--radius-sm);
+      font-size:.8rem; font-weight:500;
+      box-shadow:var(--shadow-lg);
+      animation:alertSlide .35s var(--ease-spring) both;
+      display:flex; align-items:center; gap:9px;
+    }
+    .alert-success { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+    .alert-error   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+    .alert-info    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+
+    /* ════════════════════════════════════════════
+       PAGE WRAP
+    ════════════════════════════════════════════ */
+    .page-wrap {
+      max-width:780px; margin:0 auto;
+      padding:clamp(24px,3vw,40px) clamp(16px,4vw,40px);
+      display:flex; flex-direction:column; gap:16px;
+    }
+
+    /* ════════════════════════════════════════════
+       PAGE HEADER CARD
+    ════════════════════════════════════════════ */
+    .page-header {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); padding:22px 26px;
+      display:flex; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap; gap:14px;
+      box-shadow:var(--shadow-xs);
+    }
+    .page-back {
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:.72rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+      color:var(--muted); text-decoration:none; margin-bottom:10px;
+      transition:color .15s;
+    }
+    .page-back:hover { color:var(--accent); }
+    .page-back svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .page-header-title {
+      font-size:clamp(1.4rem,3.8vw,1.9rem); font-weight:700;
+      letter-spacing:-.025em; line-height:1.15; margin-bottom:4px;
+    }
+    .page-header-title em { color:var(--accent); font-style:normal; }
+    .page-header-sub { font-size:.84rem; color:var(--muted); }
+
+    /* Court pill */
+    .court-pill {
+      display:flex; align-items:center; gap:10px;
+      padding:10px 14px; border:1px solid var(--border);
+      border-radius:var(--radius-sm); background:var(--bg);
+      align-self:flex-start; box-shadow:var(--shadow-xs);
+    }
+    .court-pill-icon {
+      width:30px; height:30px; border-radius:var(--radius-xs);
+      background:var(--accent-dim); border:1px solid rgba(229,82,14,.18);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .court-pill-icon svg { width:14px; height:14px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .court-pill-name { font-size:.88rem; font-weight:700; letter-spacing:-.01em; color:var(--ink); line-height:1.2; }
+    .court-pill-sub  { font-size:.7rem; color:var(--muted); margin-top:1px; }
+
+    /* ════════════════════════════════════════════
+       SECTION CARDS
+    ════════════════════════════════════════════ */
+    .section-card {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); overflow:hidden;
+      box-shadow:var(--shadow-xs);
+    }
+    .section-head {
+      padding:16px 22px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .section-head-title {
+      font-size:.88rem; font-weight:700; letter-spacing:-.01em;
+      display:flex; align-items:center; gap:10px; color:var(--ink);
+    }
+    .section-head-title svg { width:15px; height:15px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .step-badge {
+      width:22px; height:22px; border-radius:50%;
+      background:var(--accent); color:#fff;
+      font-size:.68rem; font-weight:700;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .step-badge.done     { background:var(--green); }
+    .step-badge.inactive { background:var(--border-2); color:var(--muted); }
+    .section-body { padding:22px; }
+
+    /* ════════════════════════════════════════════
+       FORM ELEMENTS
+    ════════════════════════════════════════════ */
+    .form-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-label {
+      font-size:.68rem; font-weight:600; letter-spacing:.06em;
+      text-transform:uppercase; color:var(--muted);
+    }
+    .form-input {
+      padding:11px 14px; background:var(--bg); border:1.5px solid var(--border);
+      border-radius:var(--radius-sm); color:var(--ink);
+      font-family:'DM Sans', sans-serif; font-size:.88rem;
+      outline:none; transition:border-color .18s, box-shadow .18s; width:100%;
+    }
+    .form-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-dim); }
+    .form-input::-webkit-calendar-picker-indicator { opacity:.5; cursor:pointer; }
+
+    /* ════════════════════════════════════════════
+       AVAILABILITY RESULT
+    ════════════════════════════════════════════ */
+    .avail-box {
+      margin-top:16px; padding:14px 16px; border-radius:var(--radius-sm);
+      border-left:3px solid; display:flex; align-items:flex-start; gap:10px;
+    }
+    .avail-box svg { width:16px; height:16px; flex-shrink:0; margin-top:1px; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+    .avail-box.available   { background:#f0fdf4; color:var(--green-text); border-color:var(--green-border); }
+    .avail-box.available svg   { stroke:var(--green); }
+    .avail-box.unavailable { background:var(--red-dim); color:var(--red-text); border-color:var(--red-border); }
+    .avail-box.unavailable svg { stroke:#ef4444; }
+    .avail-box.warning     { background:#fffbeb; color:var(--amber-text); border-color:var(--amber-border); }
+    .avail-box.warning svg { stroke:#d97706; }
+    .avail-box.error-time  { background:var(--red-dim); color:var(--red-text); border-color:var(--red-border); }
+    .avail-box.error-time svg { stroke:#ef4444; }
+    .avail-title { font-size:.84rem; font-weight:700; margin-bottom:3px; }
+    .avail-sub   { font-size:.78rem; line-height:1.5; opacity:.9; }
+
+    /* Penalty note */
+    .penalty-note {
+      display:flex; align-items:center; gap:6px;
+      margin-top:8px; padding:8px 10px; border-radius:var(--radius-xs);
+      background:#fffbeb; border:1px solid var(--amber-border);
+      font-size:.76rem; font-weight:600; color:#c2410c;
+    }
+    .penalty-note svg { width:13px; height:13px; stroke:#c2410c; fill:none; stroke-width:2.5; flex-shrink:0; }
+
+    /* Continue button */
+    .btn-continue {
+      display:none; margin-top:16px; width:100%;
+      padding:12px; background:var(--accent); color:#fff; border:none;
+      border-radius:var(--radius-sm);
+      font-size:.88rem; font-weight:600;
+      cursor:pointer; transition:background .18s, transform .18s, box-shadow .18s;
+      align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-continue svg { width:15px; height:15px; stroke:#fff; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+    .btn-continue:hover { background:var(--accent-h); transform:translateY(-1px); box-shadow:0 4px 16px var(--accent-glow); }
+
+    /* ════════════════════════════════════════════
+       PENALTY WARNING BANNER
+    ════════════════════════════════════════════ */
+    .penalty-banner {
+      display:none; padding:14px 18px; border-radius:var(--radius-sm);
+      background:#fffbeb; border:1.5px solid var(--amber-border);
+      align-items:flex-start; gap:12px;
+      box-shadow:var(--shadow-xs);
+    }
+    .penalty-banner.show { display:flex; }
+    .penalty-banner svg { width:18px; height:18px; stroke:#d97706; fill:none; stroke-width:2; stroke-linecap:round; flex-shrink:0; margin-top:1px; }
+    .penalty-banner-title { font-size:.82rem; font-weight:700; color:var(--amber-text); margin-bottom:3px; }
+    .penalty-banner-sub   { font-size:.78rem; color:#c2410c; line-height:1.5; }
+
+    /* ════════════════════════════════════════════
+       PAYMENT RECEIPT (Step 2)
+    ════════════════════════════════════════════ */
+    .receipt-card {
+      background:var(--bg); border:1px solid var(--border);
+      border-radius:var(--radius-sm); overflow:hidden;
+    }
+    .receipt-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:13px 16px; border-bottom:1px solid var(--border);
+      font-size:.84rem;
+    }
+    .receipt-row:last-child { border-bottom:none; }
+    .receipt-row-label { color:var(--mid); display:flex; align-items:center; gap:6px; }
+    .receipt-row-label svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .receipt-row-val { font-weight:600; color:var(--ink); }
+
+    /* Penalty row */
+    .receipt-row.penalty-row { background:#fffbeb; border-color:var(--amber-border); }
+    .receipt-row.penalty-row .receipt-row-label { color:#c2410c; }
+    .receipt-row.penalty-row .receipt-row-val   { color:#c2410c; font-weight:700; }
+
+    /* Total row */
+    .receipt-row.total-row {
+      background:var(--accent-dim);
+      border-top:1.5px solid rgba(229,82,14,.18);
+      border-bottom:none;
+    }
+    .receipt-row.total-row .receipt-row-label { font-weight:700; color:var(--ink); font-size:.9rem; }
+    .receipt-row.total-row .receipt-row-val   { font-size:1.2rem; font-weight:700; color:var(--accent); }
+
+    /* Balance after */
+    .receipt-row.balance-after .receipt-row-val.negative { color:#ef4444; }
+    .receipt-row.balance-after .receipt-row-val.positive { color:var(--green); }
+
+    /* Insufficient funds */
+    .insufficient-box {
+      display:none; margin-top:14px; padding:13px 16px;
+      background:var(--red-dim); border:1.5px solid var(--red-border);
+      border-radius:var(--radius-sm); font-size:.82rem; color:var(--red-text);
+      align-items:center; gap:8px;
+    }
+    .insufficient-box.show { display:flex; }
+    .insufficient-box svg { width:16px; height:16px; stroke:#ef4444; fill:none; stroke-width:2; flex-shrink:0; }
+    .insufficient-box a { color:var(--accent); font-weight:700; text-decoration:none; }
+    .insufficient-box a:hover { text-decoration:underline; }
+
+    /* Step 2 action buttons */
+    .step2-actions { display:flex; gap:10px; margin-top:16px; }
+    .btn-back {
+      padding:11px 20px; background:var(--bg); border:1.5px solid var(--border);
+      border-radius:var(--radius-sm); color:var(--mid);
+      font-size:.85rem; font-weight:600;
+      cursor:pointer; transition:border-color .15s, color .15s, background .15s;
+      display:flex; align-items:center; gap:6px;
+    }
+    .btn-back svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .btn-back:hover { border-color:var(--border-2); color:var(--ink); background:var(--bg-2); }
+    .btn-pay {
+      flex:1; padding:12px; background:var(--green); color:#fff; border:none;
+      border-radius:var(--radius-sm);
+      font-size:.9rem; font-weight:600;
+      cursor:pointer; transition:background .18s, transform .15s, box-shadow .15s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-pay svg { width:15px; height:15px; stroke:#fff; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+    .btn-pay:hover:not(:disabled) { background:#059669; transform:translateY(-1px); box-shadow:0 4px 14px rgba(18,185,129,.3); }
+    .btn-pay:disabled { background:var(--border-2); color:var(--muted); cursor:not-allowed; transform:none; box-shadow:none; }
+
+    /* ════════════════════════════════════════════
+       PROCESSING STATE
+    ════════════════════════════════════════════ */
+    .processing-card {
+      display:none; padding:56px 20px; text-align:center;
+    }
+    .processing-spinner {
+      width:38px; height:38px; margin:0 auto 18px;
+      border:2.5px solid var(--border); border-top-color:var(--accent);
+      border-radius:50%; animation:spin .85s linear infinite;
+    }
+    .processing-title {
+      font-size:1rem; font-weight:700; letter-spacing:-.01em; margin-bottom:5px; color:var(--ink);
+    }
+    .processing-sub { font-size:.8rem; color:var(--muted); }
+
+    /* ════════════════════════════════════════════
+       TOP UP MODAL
+    ════════════════════════════════════════════ */
+    .modal-overlay {
+      position:fixed; inset:0; z-index:999;
+      background:rgba(0,0,0,.45); backdrop-filter:blur(4px);
+      display:none; align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-overlay.show { display:flex; }
+    .modal-box {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); width:100%; max-width:420px;
+      box-shadow:var(--shadow-xl); animation:modalUp .3s var(--ease) both;
+      overflow:hidden;
+    }
+    .modal-head {
+      padding:18px 20px 14px; border-bottom:1px solid var(--border);
+      display:flex; align-items:flex-start; justify-content:space-between;
+    }
+    .modal-title { font-size:1rem; font-weight:700; letter-spacing:-.01em; color:var(--ink); margin-bottom:2px; }
+    .modal-sub   { font-size:.76rem; color:var(--muted); }
+    .modal-close-btn {
+      width:28px; height:28px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      color:var(--mid); cursor:pointer; font-size:16px;
+      display:flex; align-items:center; justify-content:center; transition:all .15s;
+    }
+    .modal-close-btn:hover { color:var(--ink); background:var(--bg-2); }
+    .modal-body { padding:16px 20px 20px; }
+
+    .topup-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+    .topup-opt {
+      padding:14px 10px; border-radius:var(--radius-sm);
+      background:var(--bg); border:1.5px solid var(--border);
+      cursor:pointer; text-align:center; transition:all .2s var(--ease);
+    }
+    .topup-opt:hover { border-color:var(--accent); background:var(--accent-dim); }
+    .topup-coins { font-size:1.3rem; font-weight:700; color:var(--ink); line-height:1; }
+    .topup-opt:hover .topup-coins { color:var(--accent); }
+    .topup-price { font-size:.7rem; color:var(--muted); margin-top:3px; }
+
+    .topup-custom-row { display:flex; gap:8px; }
+    .topup-custom-row input {
+      flex:1; padding:10px 12px; background:var(--bg); border:1.5px solid var(--border);
+      border-radius:var(--radius-sm); color:var(--ink);
+      font-family:'DM Sans', sans-serif; font-size:.86rem; outline:none;
+      transition:border-color .15s;
+    }
+    .topup-custom-row input:focus { border-color:var(--accent); }
+    .topup-custom-row input::placeholder { color:var(--muted); }
+    .topup-custom-row button {
+      padding:10px 16px; border:none; border-radius:var(--radius-sm);
+      background:var(--ink); color:#fff;
+      font-family:'DM Sans', sans-serif; font-size:.82rem; font-weight:600;
+      cursor:pointer; transition:background .15s;
+      white-space:nowrap;
+    }
+    .topup-custom-row button:hover { background:var(--accent); }
+
+    /* ════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════ */
+    @media (max-width:768px) {
+      .nav-links  { display:none; }
+      .nav-logout { display:none; }
+      .hamburger  { display:flex; }
+    }
+    @media (max-width:640px) {
+      .form-grid  { grid-template-columns:1fr; }
+      .topup-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width:500px) {
+      .page-header { flex-direction:column; }
+      .court-pill  { align-self:stretch; }
+      .alert-container { right:12px; max-width:calc(100vw - 24px); }
+    }
+  </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-brand">SportCourt</div>
-    <div class="navbar-links">
-      <a href="dashboard.html">Dashboard</a>
-      <a href="courts.html">Book Courts</a>
-      <a href="bookings.html">My Bookings</a>
-      <a href="favorites.html">Favorites</a>
-      <a href="profile.html">Profile</a>
-      <div class="notification-badge">
-        <button class="notif-btn" onclick="toggleNotifications(); return false;" aria-label="Notifications">
-          <svg class="notif-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span id="notifBadge" class="notif-count" style="display:none;">0</span>
-        </button>
+
+  <div class="alert-container" id="alertContainer"></div>
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar" id="mainNav">
+    <a href="dashboard.html" class="nav-brand">
+      <div class="nav-brand-logo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M4 12a8 8 0 0 1 8-8M12 20a8 8 0 0 1-8-8M20 12a8 8 0 0 1-8 8M12 4a8 8 0 0 1 8 8"/></svg>
       </div>
-      <a href="#" onclick="logout()">Logout</a>
+      <span class="nav-brand-name">Sport<span>Court</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html" class="active">Book Courts</a>
+      <a href="bookings.html">My Bookings</a>
+      <a href="favorites.html">Favourites</a>
+      <a href="profile.html">Profile</a>
+    </div>
+
+    <!-- Right actions -->
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <a href="#" onclick="logout();return false;" class="nav-logout">Logout</a>
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
-  <!-- Notification Panel -->
-  <div id="notificationPanel" class="notification-panel">
-    <div class="notification-header">
-      <h3>Notifications</h3>
-      <span class="close" onclick="toggleNotifications()">&times;</span>
-    </div>
-    <div id="notificationList"></div>
+  <!-- Mobile menu drawer -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="courts.html" class="active">Book Courts</a>
+    <a href="bookings.html">My Bookings</a>
+    <a href="favorites.html">Favourites</a>
+    <a href="profile.html">Profile</a>
+    <div class="mobile-menu-divider"></div>
+    <a href="#" onclick="logout();return false;">Logout</a>
   </div>
 
-  <div class="dashboard-container">
-    <div class="booking-form" style="max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px;">
-      <h2>Book Court: <span id="courtName"></span></h2>
-      <p id="courtDetails"></p>
+  <!-- ── NOTIFICATION PANEL ── -->
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notif-header">
+      <h3>Notifications</h3>
+      <button class="notif-close-btn" onclick="toggleNotifications()">&#x2715;</button>
+    </div>
+    <div id="notifSummaryBar" style="display:none" class="notif-summary-bar">
+      <span class="notif-summary-text" id="notifSummaryText"></span>
+      <button class="notif-mark-all-btn" onclick="markAllAsRead()">Mark all read</button>
+    </div>
+    <div id="notificationList">
+      <div class="notif-empty">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <p>No notifications yet</p>
+      </div>
+    </div>
+  </div>
 
-      <!-- Penalty Warning Banner -->
-      <div id="penaltyWarningBanner" style="display:none; background:#fff7ed; border:1.5px solid #fb923c; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          <div>
-            <div style="font-weight:700; color:#9a3412; margin-bottom:4px;">Pending Penalty Fee</div>
-            <div style="color:#c2410c; font-size:0.93em; line-height:1.6;">
-              You have a <strong id="penaltyBannerAmount">0</strong> coin penalty from a previous late checkout.
-              This amount will be added to your booking total today.
-            </div>
-          </div>
+  <!-- ── PAGE ── -->
+  <div class="page-wrap">
+
+    <!-- Page Header -->
+    <div class="page-header a1">
+      <div class="page-header-left">
+        <a href="courts.html" class="page-back">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Courts
+        </a>
+        <div class="page-header-title">Book Court: <em id="courtName">—</em></div>
+        <div class="page-header-sub">Select your preferred date and time slot</div>
+      </div>
+      <div class="court-pill" id="courtPill" style="display:none;">
+        <div class="court-pill-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7m-3.5-3.5v7"/></svg>
+        </div>
+        <div>
+          <div class="court-pill-name" id="courtPillName">—</div>
+          <div class="court-pill-sub"  id="courtPillSub">—</div>
         </div>
       </div>
+    </div>
 
-      <!-- Step 1: Select Date and Time -->
-      <div id="step1">
-        <h3>Step 1: Select Date &amp; Time</h3>
-
-        <div class="form-group">
-          <label>Select Date</label>
-          <input type="date" id="bookingDate" onchange="checkAvailability()">
+    <!-- Penalty Warning Banner -->
+    <div class="penalty-banner a2" id="penaltyWarningBanner">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <div class="penalty-banner-title">Pending Penalty Fee</div>
+        <div class="penalty-banner-sub">
+          You have a <strong id="penaltyBannerAmount">0</strong> coin penalty from a previous late checkout.
+          This amount will be added to your booking total today.
         </div>
+      </div>
+    </div>
 
-        <div class="form-group">
-          <label>Start Time</label>
-          <input type="time" id="startTime" onchange="calculateDuration()">
+    <!-- STEP 1: Date & Time -->
+    <div class="section-card a3" id="step1">
+      <div class="section-head">
+        <div class="section-head-title">
+          <span class="step-badge" id="step1Badge">1</span>
+          Select Date &amp; Time
         </div>
-
-        <div class="form-group">
-          <label>End Time</label>
-          <input type="time" id="endTime" onchange="calculateDuration()">
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input class="form-input" type="date" id="bookingDate" onchange="checkAvailability()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Time</label>
+            <input class="form-input" type="time" id="startTime" onchange="calculateDuration()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Time</label>
+            <input class="form-input" type="time" id="endTime" onchange="calculateDuration()">
+          </div>
         </div>
 
         <div id="availabilityResult"></div>
 
-        <button onclick="proceedToPayment()" id="continueBtn" style="display:none;">Continue to Payment</button>
+        <button class="btn-continue" id="continueBtn" onclick="proceedToPayment()" style="display:none;">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          Continue to Payment
+        </button>
       </div>
+    </div>
 
-      <!-- Step 2: Payment Summary -->
-      <div id="step2" style="display:none;">
-        <h3>Step 2: Payment Summary</h3>
-
-        <div class="receipt-details" style="background: #f9fafb; padding: 20px; border-radius: 8px;">
-          <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb;">
-            <span>Court Rental</span>
-            <span id="courtCost">0 coins</span>
-          </div>
-          <!-- Penalty row — only shown when penalty > 0 -->
-          <div class="receipt-row" id="penaltyRow" style="display:none; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid #fed7aa; background:#fff7ed; border-radius:6px; margin:4px 0;">
-            <span style="color:#c2410c; display:flex; align-items:center; gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-              Penalty Fee <small style="font-weight:400;">(1-hr court rate from prior session)</small>
+    <!-- STEP 2: Payment Summary -->
+    <div class="section-card a3" id="step2" style="display:none;">
+      <div class="section-head">
+        <div class="section-head-title">
+          <span class="step-badge" id="step2Badge">2</span>
+          Payment Summary
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="receipt-card">
+          <!-- Court rental -->
+          <div class="receipt-row">
+            <span class="receipt-row-label">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7m-3.5-3.5v7"/></svg>
+              Court Rental
             </span>
-            <span id="penaltyCost" style="color:#c2410c; font-weight:700;">0 coins</span>
+            <span class="receipt-row-val" id="courtCost">0 coins</span>
           </div>
-          <div class="receipt-row receipt-total" style="display: flex; justify-content: space-between; background: #eff6ff; padding: 15px; margin-top: 10px; border-radius: 8px;">
-            <span style="font-weight: bold; font-size: 1.1em;">Total</span>
-            <span id="totalCost" style="font-weight: bold; color: #6366f1; font-size: 1.1em;">0 coins</span>
+          <!-- Penalty row -->
+          <div class="receipt-row penalty-row" id="penaltyRow" style="display:none;">
+            <span class="receipt-row-label">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Penalty Fee <small style="font-weight:400;margin-left:4px;font-size:.7rem;">(prior session)</small>
+            </span>
+            <span class="receipt-row-val" id="penaltyCost">0 coins</span>
           </div>
-          <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 10px 0;">
-            <span>Your Balance</span>
-            <span id="userBalance">0 coins</span>
+          <!-- Total -->
+          <div class="receipt-row total-row">
+            <span class="receipt-row-label">Total</span>
+            <span class="receipt-row-val" id="totalCost">0 coins</span>
           </div>
-          <div class="receipt-row" style="display: flex; justify-content: space-between; padding: 10px 0;">
-            <span>Balance After Payment</span>
-            <span id="balanceAfter" style="font-weight: 600;">0 coins</span>
+          <!-- Balance -->
+          <div class="receipt-row">
+            <span class="receipt-row-label">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2M15 10a3 3 0 0 0-6 0c0 1.7 1.3 2.5 3 3s3 1.3 3 3a3 3 0 0 1-6 0"/></svg>
+              Your Balance
+            </span>
+            <span class="receipt-row-val" id="userBalance">0 coins</span>
+          </div>
+          <!-- Balance after -->
+          <div class="receipt-row balance-after">
+            <span class="receipt-row-label">Balance After Payment</span>
+            <span class="receipt-row-val" id="balanceAfter">0 coins</span>
           </div>
         </div>
 
-        <div id="insufficientFunds" style="display:none; background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-top: 15px;">
-          Insufficient funds! Please <a href="#" onclick="showTopUpModal()" style="color: #6366f1; text-decoration: underline;">top up your account</a>.
+        <!-- Insufficient funds -->
+        <div class="insufficient-box" id="insufficientFunds">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          Insufficient funds. <a href="#" onclick="showTopUpModal();return false;">Top up your account →</a>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button onclick="backToDateTime()" class="secondary">Back</button>
-          <button onclick="confirmBooking()" id="payBtn" style="background: #22c55e; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Confirm &amp; Pay</button>
+        <div class="step2-actions">
+          <button class="btn-back" onclick="backToDateTime()">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <button class="btn-pay" onclick="confirmBooking()" id="payBtn">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Confirm &amp; Pay
+          </button>
         </div>
       </div>
+    </div>
 
-      <!-- Processing -->
-      <div id="processing" style="display:none; text-align:center; padding: 40px;">
-        <div class="spinner" style="border: 4px solid #f3f4f6; border-top: 4px solid #6366f1; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto;"></div>
-        <p style="color: #666;">Processing your booking...</p>
+    <!-- PROCESSING -->
+    <div class="section-card a3" id="processing" style="display:none;">
+      <div class="processing-card" style="display:block;">
+        <div class="processing-spinner"></div>
+        <div class="processing-title">Processing Booking…</div>
+        <div class="processing-sub">Please wait while we confirm your reservation</div>
+      </div>
+    </div>
+
+  </div><!-- /page-wrap -->
+
+  <!-- TOP UP MODAL -->
+  <div class="modal-overlay" id="topUpModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Top Up Coins</div>
+          <div class="modal-sub">Add coins to complete your booking</div>
+        </div>
+        <button class="modal-close-btn" onclick="closeTopUpModal()">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <div class="topup-grid">
+          <div class="topup-opt" onclick="topUp(100)">
+            <div class="topup-coins">100</div>
+            <div class="topup-price">$10.00</div>
+          </div>
+          <div class="topup-opt" onclick="topUp(500)">
+            <div class="topup-coins">500</div>
+            <div class="topup-price">$45.00</div>
+          </div>
+          <div class="topup-opt" onclick="topUp(1000)">
+            <div class="topup-coins">1,000</div>
+            <div class="topup-price">$80.00</div>
+          </div>
+        </div>
+        <div class="topup-custom-row">
+          <input type="number" id="topupCustomInput" placeholder="Custom amount…" min="10">
+          <button onclick="topUpCustomAmount()">Top Up</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Top Up Modal -->
-  <div id="topUpModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <span class="close" onclick="closeTopUpModal()">&times;</span>
-      <h2>Top Up Coins</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
-        <button onclick="topUp(100)">+100 coins<br><small>$10</small></button>
-        <button onclick="topUp(500)">+500 coins<br><small>$45</small></button>
-        <button onclick="topUp(1000)">+1000 coins<br><small>$80</small></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <div class="footer-section footer-brand">
-        <div class="footer-logo">
-          <div class="footer-logo-mark"></div>
-          <div class="footer-logo-text">SportCourt</div>
-        </div>
-        <p class="footer-description">Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.</p>
-        <span class="footer-tagline"><span class="dot-live"></span> Book Smart, Play Hard</span>
-      </div>
-      <div class="footer-section">
-        <h3>Quick Links</h3>
-        <div class="footer-links">
-          <a href="dashboard.html" class="footer-link">Dashboard</a>
-          <a href="courts.html" class="footer-link">Browse Courts</a>
-          <a href="bookings.html" class="footer-link">My Bookings</a>
-          <a href="favorites.html" class="footer-link">Favorites</a>
-          <a href="profile.html" class="footer-link">Profile</a>
-        </div>
-      </div>
-      <div class="footer-section">
-        <h3>Resources</h3>
-        <div class="footer-links">
-          <a href="#" class="footer-link">FAQs</a>
-          <a href="#" class="footer-link">How It Works</a>
-          <a href="#" class="footer-link">Pricing</a>
-          <a href="#" class="footer-link">Safety Guidelines</a>
-          <a href="#" class="footer-link">Court Rules</a>
-        </div>
-      </div>
-      <div class="footer-section">
-        <h3>Contact Us</h3>
-        <div class="footer-contact-info">
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Email</span>
-              <span class="contact-value"><a href="/cdn-cgi/l/email-protection#b8cbcdc8c8d7caccf8cbc8d7caccdbd7cdcacc96dbd7d5"><span class="__cf_email__" data-cfemail="84f7f1f4f4ebf6f0c4f7f4ebf6f0e7ebf1f6f0aae7ebe9">[email&#160;protected]</span></a></span>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Phone</span>
-              <span class="contact-value"><a href="tel:+91234565">+91234565</a></span>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Support</span>
-              <span class="contact-value">Customer Service</span>
-            </div>
-          </div>
-        </div>
-        <div class="footer-social">
-          <a href="#" class="social-link" title="Facebook"></a>
-          <a href="#" class="social-link" title="Twitter"></a>
-          <a href="#" class="social-link" title="Instagram"></a>
-          <a href="#" class="social-link" title="LinkedIn"></a>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <div class="footer-copyright">© 2026 SportCourt. All rights reserved. Made with <span class="heart"></span></div>
-      <div class="footer-legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Refund Policy</a>
-        <a href="#">Accessibility</a>
-      </div>
-    </div>
-  </footer>
-
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="../js/api.js"></script>
+  <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
   <script>
     checkAuth();
+
+    /* ── Navbar scroll shadow ── */
+    window.addEventListener('scroll', () => {
+      document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 4);
+    });
+
+    /* ── Hamburger / mobile menu ── */
+    function toggleMobileMenu() {
+      const btn  = document.getElementById('hamburger');
+      const menu = document.getElementById('mobileMenu');
+      const open = menu.classList.toggle('open');
+      btn.classList.toggle('open', open);
+    }
+    document.addEventListener('click', e => {
+      const menu = document.getElementById('mobileMenu');
+      const btn  = document.getElementById('hamburger');
+      if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove('open');
+        btn.classList.remove('open');
+      }
+    });
+
+    /* ── Notifications ── */
+    function toggleNotifications() {
+      const panel = document.getElementById('notificationPanel');
+      const isOpen = panel.classList.toggle('open');
+      if (isOpen && typeof loadNotifications === 'function') loadNotifications();
+    }
+    window.toggleNotifications = toggleNotifications;
 
     let selectedCourt = null;
     let userBalance   = 0;
@@ -237,254 +872,213 @@
     let baseCost      = 0;
     let userPenalty   = 0;
 
+    /* ── Load court details ── */
     async function loadCourtDetails() {
       const courtId = localStorage.getItem('selectedCourtId');
-      if (!courtId) {
-        showAlert('No court selected', 'error');
-        location.href = 'courts.html';
-        return;
-      }
+      if (!courtId) { showAlert('No court selected', 'error'); location.href = 'courts.html'; return; }
 
       try {
         const courts = await apiFetch("/courts");
         selectedCourt = courts.find(c => c.id == courtId);
+        if (!selectedCourt) { showAlert('Court not found', 'error'); location.href = 'courts.html'; return; }
 
-        if (!selectedCourt) {
-          showAlert('Court not found', 'error');
-          location.href = 'courts.html';
-          return;
-        }
+        document.getElementById('courtName').textContent     = selectedCourt.name;
+        document.getElementById('courtPillName').textContent = selectedCourt.name;
+        document.getElementById('courtPillSub').textContent  =
+          selectedCourt.type.charAt(0).toUpperCase() + selectedCourt.type.slice(1) +
+          ' · ' + selectedCourt.price_per_hour + ' coins/hr';
+        document.getElementById('courtPill').style.display = 'flex';
 
-        document.getElementById("courtName").textContent    = selectedCourt.name;
-        document.getElementById("courtDetails").textContent =
-          `${selectedCourt.type.toUpperCase()} - ${selectedCourt.price_per_hour} coins per hour`;
-
-        // Check if user is suspended — redirect to suspended page if so
         const suspStatus = await apiFetch("/auth/suspension-status", { headers: authHeader() });
-        if (suspStatus.suspended) {
-          location.href = 'suspended.html';
-          return;
-        }
+        if (suspStatus.suspended) { location.href = 'suspended.html'; return; }
 
-        // Load user balance AND penalty
         const user  = await apiFetch("/users/me", { headers: authHeader() });
         userBalance = user.coin_balance || 0;
         userPenalty = user.penalty      || 0;
 
-        // Show penalty warning banner if user has a pending penalty
         if (userPenalty > 0) {
-          document.getElementById('penaltyWarningBanner').style.display = 'block';
-          document.getElementById('penaltyBannerAmount').textContent     = userPenalty;
+          document.getElementById('penaltyWarningBanner').classList.add('show');
+          document.getElementById('penaltyBannerAmount').textContent = userPenalty;
         }
 
-        // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById("bookingDate").setAttribute('min', today);
+        document.getElementById('bookingDate').setAttribute('min', today);
 
       } catch(err) {
-        console.error("Error loading court:", err);
+        console.error('Error loading court:', err);
         showAlert('Error loading court details', 'error');
       }
     }
 
+    /* ── Duration calculation ── */
     function calculateDuration() {
-      const startTime = document.getElementById("startTime").value;
-      const endTime   = document.getElementById("endTime").value;
+      const startTime = document.getElementById('startTime').value;
+      const endTime   = document.getElementById('endTime').value;
+      if (!startTime || !endTime) return;
 
-      if (startTime && endTime) {
-        const start = new Date(`2000-01-01T${startTime}`);
-        const end   = new Date(`2000-01-01T${endTime}`);
-        duration = (end - start) / (1000 * 60 * 60);
+      const start = new Date('2000-01-01T' + startTime);
+      const end   = new Date('2000-01-01T' + endTime);
+      duration = (end - start) / (1000 * 60 * 60);
 
-        if (duration <= 0) {
-          document.getElementById("availabilityResult").innerHTML = `
-            <div style="background:#fee2e2; color:#991b1b; padding:12px 15px; border-radius:8px; margin:15px 0;">
-              ❌ <strong>End time must be after start time.</strong>
-            </div>`;
-          document.getElementById("continueBtn").style.display = 'none';
-          return;
-        }
+      const resultDiv = document.getElementById('availabilityResult');
 
-        if (duration < 1) {
-          document.getElementById("availabilityResult").innerHTML = `
-            <div style="background:#fee2e2; color:#991b1b; padding:12px 15px; border-radius:8px; margin:15px 0;">
-              ❌ <strong>Minimum booking duration is 1 hour.</strong>
-              Please select an end time at least 1 hour after the start time.
-            </div>`;
-          document.getElementById("continueBtn").style.display = 'none';
-          return;
-        }
-
-        baseCost = selectedCourt.price_per_hour * duration;
-        checkAvailability();
+      if (duration <= 0) {
+        resultDiv.innerHTML = `<div class="avail-box error-time">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <div><div class="avail-title">Invalid time range</div><div class="avail-sub">End time must be after start time.</div></div>
+        </div>`;
+        document.getElementById('continueBtn').style.display = 'none';
+        return;
       }
+      if (duration < 1) {
+        resultDiv.innerHTML = `<div class="avail-box error-time">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <div><div class="avail-title">Minimum 1 hour required</div><div class="avail-sub">Please select an end time at least 1 hour after the start time.</div></div>
+        </div>`;
+        document.getElementById('continueBtn').style.display = 'none';
+        return;
+      }
+
+      baseCost = selectedCourt.price_per_hour * duration;
+      checkAvailability();
     }
 
+    /* ── Availability check ── */
     async function checkAvailability() {
-      const date      = document.getElementById("bookingDate").value;
-      const startTime = document.getElementById("startTime").value + ':00';
-      const endTime   = document.getElementById("endTime").value   + ':00';
-
+      const date      = document.getElementById('bookingDate').value;
+      const startTime = document.getElementById('startTime').value + ':00';
+      const endTime   = document.getElementById('endTime').value   + ':00';
       if (!date || !startTime || !endTime || duration <= 0) return;
 
-      // Format "HH:MM:SS" → "9:00 PM"
-      function fmt(timeStr) {
-        if (!timeStr) return timeStr;
-        const [h, m] = timeStr.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const hour = h % 12 || 12;
-        return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
-      }
+      const fmt = t => {
+        if (!t) return t;
+        const [h, m] = t.split(':').map(Number);
+        return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+      };
 
       try {
         const result = await apiFetch("/bookings/availability", {
-          method: "POST",
-          headers: authHeader(),
-          body: JSON.stringify({
-            court_id:   selectedCourt.id,
-            date:       date,
-            start_time: startTime,
-            end_time:   endTime
-          })
+          method: "POST", headers: authHeader(),
+          body: JSON.stringify({ court_id: selectedCourt.id, date, start_time: startTime, end_time: endTime })
         });
 
-        const resultDiv = document.getElementById("availabilityResult");
+        const resultDiv = document.getElementById('availabilityResult');
 
         if (result.available) {
-          resultDiv.innerHTML = `
-            <div style="background:#d1fae5; color:#065f46; padding:15px; border-radius:8px; margin:15px 0;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#065f46" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                <strong>Court is available for the selected time slot!</strong>
-              </div>
-              <strong>Duration:</strong> ${duration} hour(s)<br>
-              <strong>Cost:</strong> ${baseCost} coins
-              ${userPenalty > 0 ? `
-                <div style="display:flex; align-items:center; gap:6px; margin-top:6px; color:#c2410c; font-weight:600;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                  </svg>
-                  +${userPenalty} coins penalty fee will be added at checkout
-                </div>` : ''}
-            </div>
-          `;
-          document.getElementById("continueBtn").style.display = 'block';
-        } else {
-          const clockSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
-          let extraMsg = '';
+          const penaltyHtml = userPenalty > 0 ? `
+            <div class="penalty-note">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              +${userPenalty} coins penalty fee will be added at checkout
+            </div>` : '';
 
+          resultDiv.innerHTML = `<div class="avail-box available">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <div>
+              <div class="avail-title">Court is available!</div>
+              <div class="avail-sub">
+                Duration: <strong>${duration} hour${duration!==1?'s':''}</strong> &nbsp;·&nbsp; Cost: <strong>${baseCost} coins</strong>
+              </div>
+              ${penaltyHtml}
+            </div>
+          </div>`;
+          document.getElementById('continueBtn').style.display = 'flex';
+        } else {
+          let warningHtml = '';
           if (result.next_available_time) {
-            extraMsg = `
-              <div style="display:flex; align-items:flex-start; gap:8px; margin-top:10px; background:#fef3c7; color:#92400e; padding:10px 14px; border-radius:6px; border-left:4px solid #f59e0b;">
-                ${clockSvg}
-                <div><strong>Next available start time: ${fmt(result.next_available_time)}</strong><br>
-                <small>A 15-minute maintenance gap is required between bookings.</small></div>
-              </div>`;
+            warningHtml = `<div class="avail-box warning" style="margin-top:10px;">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <div><div class="avail-title">Next available: ${fmt(result.next_available_time)}</div>
+              <div class="avail-sub">A 15-minute maintenance gap is required between bookings.</div></div>
+            </div>`;
           } else if (result.next_booking_start) {
-            extraMsg = `
-              <div style="display:flex; align-items:flex-start; gap:8px; margin-top:10px; background:#fef3c7; color:#92400e; padding:10px 14px; border-radius:6px; border-left:4px solid #f59e0b;">
-                ${clockSvg}
-                <div><strong>Next booking starts at: ${fmt(result.next_booking_start)}</strong><br>
-                <small>Please choose an end time at least 15 minutes before the next booking.</small></div>
-              </div>`;
+            warningHtml = `<div class="avail-box warning" style="margin-top:10px;">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <div><div class="avail-title">Next booking starts at: ${fmt(result.next_booking_start)}</div>
+              <div class="avail-sub">Please choose an end time at least 15 minutes before the next booking.</div></div>
+            </div>`;
           }
 
-          resultDiv.innerHTML = `
-            <div style="background:#fee2e2; color:#991b1b; padding:15px; border-radius:8px; margin:15px 0;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-                </svg>
-                <strong>Court is not available for the selected time slot.</strong>
-              </div>
-              ${result.reason ? `<strong>Reason:</strong> ${result.reason}` : 'Please choose a different time.'}
-              ${extraMsg}
+          resultDiv.innerHTML = `<div class="avail-box unavailable">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div>
+              <div class="avail-title">Court not available for this slot</div>
+              <div class="avail-sub">${result.reason || 'Please choose a different time.'}</div>
             </div>
-          `;
-          document.getElementById("continueBtn").style.display = 'none';
+          </div>${warningHtml}`;
+          document.getElementById('continueBtn').style.display = 'none';
         }
       } catch(err) {
-        console.error("Availability check error:", err);
+        console.error('Availability check error:', err);
         showAlert('Error checking availability', 'error');
       }
     }
 
-    function backToDateTime() {
-      document.getElementById("step2").style.display = 'none';
-      document.getElementById("step1").style.display = 'block';
-    }
-
+    /* ── Step navigation ── */
     function proceedToPayment() {
-      document.getElementById("step1").style.display = 'none';
-      document.getElementById("step2").style.display = 'block';
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
       updateTotal();
     }
+    function backToDateTime() {
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('step1').style.display = 'block';
+    }
 
+    /* ── Payment summary ── */
     function updateTotal() {
-      const total = baseCost + userPenalty;
+      const total    = baseCost + userPenalty;
+      const afterBal = userBalance - total;
 
-      document.getElementById("courtCost").textContent    = baseCost     + ' coins';
-      document.getElementById("totalCost").textContent    = total        + ' coins';
-      document.getElementById("userBalance").textContent  = userBalance  + ' coins';
-      document.getElementById("balanceAfter").textContent = (userBalance - total) + ' coins';
+      document.getElementById('courtCost').textContent   = baseCost    + ' coins';
+      document.getElementById('totalCost').textContent   = total       + ' coins';
+      document.getElementById('userBalance').textContent = userBalance  + ' coins';
+
+      const afterEl = document.getElementById('balanceAfter');
+      afterEl.textContent = afterBal + ' coins';
+      afterEl.className   = 'receipt-row-val ' + (afterBal < 0 ? 'negative' : 'positive');
 
       if (userPenalty > 0) {
-        document.getElementById("penaltyRow").style.display = 'flex';
-        document.getElementById("penaltyCost").textContent  = userPenalty + ' coins';
+        document.getElementById('penaltyRow').style.display    = 'flex';
+        document.getElementById('penaltyCost').textContent     = userPenalty + ' coins';
       } else {
-        document.getElementById("penaltyRow").style.display = 'none';
+        document.getElementById('penaltyRow').style.display = 'none';
       }
 
+      const insufficient = document.getElementById('insufficientFunds');
+      const payBtn       = document.getElementById('payBtn');
       if (userBalance < total) {
-        document.getElementById("insufficientFunds").style.display = 'block';
-        document.getElementById("payBtn").disabled      = true;
-        document.getElementById("payBtn").style.opacity = '0.5';
-        document.getElementById("payBtn").style.cursor  = 'not-allowed';
+        insufficient.classList.add('show');
+        payBtn.disabled = true;
       } else {
-        document.getElementById("insufficientFunds").style.display = 'none';
-        document.getElementById("payBtn").disabled      = false;
-        document.getElementById("payBtn").style.opacity = '1';
-        document.getElementById("payBtn").style.cursor  = 'pointer';
+        insufficient.classList.remove('show');
+        payBtn.disabled = false;
       }
     }
 
+    /* ── Confirm booking ── */
     async function confirmBooking() {
-      document.getElementById("step2").style.display      = 'none';
-      document.getElementById("processing").style.display = 'block';
+      document.getElementById('step2').style.display      = 'none';
+      document.getElementById('processing').style.display = 'block';
 
       try {
-        const date      = document.getElementById("bookingDate").value;
-        const startTime = document.getElementById("startTime").value + ':00';
-        const endTime   = document.getElementById("endTime").value   + ':00';
+        const date      = document.getElementById('bookingDate').value;
+        const startTime = document.getElementById('startTime').value + ':00';
+        const endTime   = document.getElementById('endTime').value   + ':00';
 
         const bookingResult = await apiFetch("/bookings/book", {
-          method: "POST",
-          headers: authHeader(),
-          body: JSON.stringify({
-            court_id:   selectedCourt.id,
-            date:       date,
-            start_time: startTime,
-            end_time:   endTime
-          })
+          method: "POST", headers: authHeader(),
+          body: JSON.stringify({ court_id: selectedCourt.id, date, start_time: startTime, end_time: endTime })
         });
 
-        // Handle suspension response from backend
-        if (bookingResult.suspended) {
-          location.href = 'suspended.html';
-          return;
-        }
+        if (bookingResult.suspended) { location.href = 'suspended.html'; return; }
 
-        // Save payment breakdown so receipt.html can show penalty separately
         localStorage.setItem('lastBookingBreakdown', JSON.stringify({
           base_cost:      bookingResult.base_cost      ?? baseCost,
           penalty_amount: bookingResult.penalty_amount ?? userPenalty,
           total_price:    bookingResult.total_price    ?? (baseCost + userPenalty)
         }));
 
-        showAlert('Booking confirmed! Redirecting...', 'success');
+        showAlert('Booking confirmed! Redirecting…', 'success');
 
         setTimeout(async () => {
           try {
@@ -495,47 +1089,51 @@
             } else {
               location.href = 'bookings.html';
             }
-          } catch (e) {
-            location.href = 'bookings.html';
-          }
+          } catch(e) { location.href = 'bookings.html'; }
         }, 2000);
 
       } catch(err) {
-        console.error("Booking error:", err);
-        // If backend returns suspended error, redirect
-        if (err.message && err.message.toLowerCase().includes('suspended')) {
-          location.href = 'suspended.html';
-          return;
-        }
+        console.error('Booking error:', err);
+        if (err.message && err.message.toLowerCase().includes('suspended')) { location.href = 'suspended.html'; return; }
         showAlert('Booking failed: ' + (err.message || 'Please try again'), 'error');
-        document.getElementById("processing").style.display = 'none';
-        document.getElementById("step2").style.display      = 'block';
+        document.getElementById('processing').style.display = 'none';
+        document.getElementById('step2').style.display      = 'block';
       }
     }
 
-    function showTopUpModal() {
-      document.getElementById("topUpModal").style.display = "block";
-    }
-
-    function closeTopUpModal() {
-      document.getElementById("topUpModal").style.display = "none";
-    }
+    /* ── Top Up ── */
+    function showTopUpModal()  { document.getElementById('topUpModal').classList.add('show'); }
+    function closeTopUpModal() { document.getElementById('topUpModal').classList.remove('show'); }
 
     async function topUp(amount) {
+      closeTopUpModal();
       try {
         const data = await apiFetch("/users/topup", {
-          method: "POST",
-          headers: authHeader(),
+          method: "POST", headers: authHeader(),
           body: JSON.stringify({ amount })
         });
         userBalance = data.coin_balance;
         showAlert(`Successfully added ${amount} coins!`, 'success');
         updateTotal();
-        closeTopUpModal();
-      } catch(err) {
-        showAlert('Top up failed', 'error');
-      }
+      } catch(err) { showAlert('Top up failed. Please try again.', 'error'); }
     }
+
+    async function topUpCustomAmount() {
+      const amt = parseInt(document.getElementById('topupCustomInput').value);
+      if (!amt || amt < 10) { showAlert('Minimum top up is 10 coins', 'error'); return; }
+      await topUp(amt);
+    }
+
+    /* ── Alerts ── */
+    function showAlert(message, type = 'info') {
+      const container = document.getElementById('alertContainer');
+      const el = document.createElement('div');
+      el.className = 'alert alert-' + type;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 4500);
+    }
+    window.showAlert = showAlert;
 
     loadCourtDetails();
     loadNotifications();

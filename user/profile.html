@@ -3,853 +3,1033 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile - Sport Court Booking</title>
+  <title>Profile — SportCourt</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
+    /* ════════════════════════════════════════════
+       DESIGN TOKENS — matches dashboard.html
+    ════════════════════════════════════════════ */
     :root {
-      --primary-green: #10b981;
-      --dark-bg: #0f0f0f;
-      --card-bg: #ffffff;
-      --text-primary: #1a1a1a;
-      --text-secondary: #6b7280;
-      --border-color: #e5e7eb;
-      --success-green: #10b981;
-      --danger-red: #ef4444;
+      --ink:          #0f1117;
+      --ink-2:        #1c1f2b;
+      --ink-3:        #2d3142;
+      --mid:          #5c6070;
+      --muted:        #8b909f;
+      --border:       #e9eaf0;
+      --border-2:     #d8dae4;
+      --bg:           #f4f5f9;
+      --bg-2:         #ecedf3;
+      --white:        #ffffff;
+      --accent:       #e5520e;
+      --accent-h:     #d14509;
+      --accent-dim:   rgba(229,82,14,.07);
+      --accent-glow:  rgba(229,82,14,.22);
+      --radius:       16px;
+      --radius-sm:    10px;
+      --radius-xs:    7px;
+      --shadow-xs:    0 1px 2px rgba(0,0,0,.04);
+      --shadow-sm:    0 2px 8px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+      --shadow:       0 4px 20px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg:    0 16px 48px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.04);
+      --shadow-xl:    0 28px 72px rgba(0,0,0,.15);
+      --ease:         cubic-bezier(.22,1,.36,1);
+      --ease-spring:  cubic-bezier(.34,1.56,.64,1);
+      --nav-h:        60px;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
     body {
-      font-family: 'Work Sans', sans-serif;
-      background: #f9fafb;
-      color: var(--text-primary);
-      line-height: 1.6;
+      font-family:'DM Sans', sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
     }
 
+    /* ════════════════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════════════════ */
+    @keyframes fadeUp    { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin      { to{transform:rotate(360deg)} }
+    @keyframes popIn     { from{transform:scale(0)} to{transform:scale(1)} }
+    @keyframes alertSlide{ from{transform:translateX(110%);opacity:0;} to{transform:translateX(0);opacity:1;} }
+    @keyframes slideOut  { from{transform:translateX(0);opacity:1;} to{transform:translateX(100%);opacity:0;} }
+
+    .a1{animation:fadeUp .55s var(--ease) both}
+    .a2{animation:fadeUp .55s .07s var(--ease) both}
+    .a3{animation:fadeUp .55s .14s var(--ease) both}
+    .a4{animation:fadeUp .55s .21s var(--ease) both}
+    .a5{animation:fadeUp .55s .28s var(--ease) both}
+
+    /* ════════════════════════════════════════════
+       NAVBAR
+    ════════════════════════════════════════════ */
     .navbar {
-      background: var(--dark-bg);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position:sticky; top:0; z-index:200;
+      height:var(--nav-h);
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center;
+      padding:0 clamp(16px,4vw,44px);
+      gap:16px;
+      transition:box-shadow .25s;
     }
+    .navbar.scrolled { box-shadow:var(--shadow-sm); }
 
-    .navbar-brand {
-      font-family: 'Oswald', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary-green);
-      letter-spacing: 1px;
+    .nav-brand {
+      display:flex; align-items:center; gap:9px;
+      text-decoration:none; flex-shrink:0;
     }
+    .nav-brand-logo {
+      width:32px; height:32px; border-radius:9px;
+      background:var(--ink);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .nav-brand-logo svg { width:16px; height:16px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-brand-name { font-size:.92rem; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
+    .nav-brand-name span { color:var(--accent); }
 
-    .navbar-links {
-      display: flex;
-      gap: 2rem;
-      align-items: center;
+    .nav-links {
+      display:flex; align-items:center; gap:2px;
+      margin:0 auto;
     }
+    .nav-links a {
+      font-size:.82rem; font-weight:500; color:var(--mid);
+      text-decoration:none; padding:7px 13px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s; white-space:nowrap;
+    }
+    .nav-links a:hover { color:var(--ink); background:var(--bg); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
 
-    .navbar-links a {
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s;
-    }
+    .nav-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
 
-    .navbar-links a:hover {
-      color: var(--primary-green);
+    .nav-icon-btn {
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      color:var(--mid); display:flex; align-items:center; justify-content:center;
+      position:relative; transition:background .18s, color .18s;
     }
+    .nav-icon-btn:hover { background:var(--bg); color:var(--ink); }
+    .nav-icon-btn svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
-    /* Notification bell — white icon on dark navbar */
-    .notif-btn {
-      background: rgba(255,255,255,0.08) !important;
+    .notif-badge {
+      position:absolute; top:4px; right:4px;
+      min-width:15px; height:15px; border-radius:999px;
+      background:var(--accent); color:#fff;
+      font-size:.5rem; font-weight:800;
+      display:none; align-items:center; justify-content:center; padding:0 3px;
+      border:2px solid var(--white);
+      animation:popIn .3s var(--ease-spring) both;
     }
-    .notif-btn:hover {
-      background: rgba(255,255,255,0.18) !important;
-    }
-    .notif-btn .notif-icon {
-      stroke: #ffffff !important;
-    }
-    .notif-btn:hover .notif-icon {
-      stroke: var(--primary-green) !important;
-    }
-    .notif-count {
-      border-color: var(--dark-bg) !important;
-    }
+    .notif-badge.visible { display:flex; }
 
-    .profile-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 3rem 2rem;
+    .nav-logout {
+      font-size:.8rem; font-weight:600; color:var(--muted);
+      text-decoration:none; padding:7px 12px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
     }
+    .nav-logout:hover { color:var(--ink); background:var(--bg); }
 
-    .profile-header {
-      background: white;
-      border-radius: 16px;
-      padding: 2.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    /* Hamburger */
+    .hamburger {
+      display:none;
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      align-items:center; justify-content:center; flex-direction:column;
+      gap:5px; padding:8px;
     }
-
-    .profile-header h1 {
-      font-family: 'Oswald', sans-serif;
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 0.5rem;
+    .hamburger span {
+      display:block; width:100%; height:1.5px;
+      background:var(--ink); border-radius:999px;
+      transition:transform .25s var(--ease), opacity .2s;
     }
+    .hamburger.open span:nth-child(1) { transform:translateY(6.5px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
 
-    .profile-header p {
-      color: var(--text-secondary);
-      font-size: 1rem;
+    /* Mobile menu drawer */
+    .mobile-menu {
+      position:fixed; top:var(--nav-h); left:0; right:0;
+      background:var(--white); border-bottom:1px solid var(--border);
+      box-shadow:var(--shadow-lg);
+      z-index:190; padding:12px 16px 16px;
+      transform:translateY(-8px);
+      opacity:0; pointer-events:none;
+      transition:transform .28s var(--ease), opacity .22s;
     }
-
-    .profile-grid {
-      display: grid;
-      grid-template-columns: 400px 1fr;
-      gap: 2rem;
-      align-items: start;
+    .mobile-menu.open { transform:translateY(0); opacity:1; pointer-events:all; }
+    .mobile-menu a {
+      display:block; padding:12px 14px;
+      font-size:.9rem; font-weight:500; color:var(--mid);
+      text-decoration:none; border-radius:var(--radius-xs);
+      transition:background .15s, color .15s;
     }
+    .mobile-menu a.active { color:var(--accent); font-weight:600; background:var(--accent-dim); }
+    .mobile-menu a:hover { color:var(--ink); background:var(--bg); }
+    .mobile-menu-divider { height:1px; background:var(--border); margin:8px 0; }
 
-    .profile-sidebar {
-      background: var(--dark-bg);
-      border-radius: 16px;
-      padding: 3rem 2rem;
-      text-align: center;
-      color: white;
-      position: sticky;
-      top: 2rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    /* ════════════════════════════════════════════
+       NOTIFICATION PANEL
+    ════════════════════════════════════════════ */
+    .notification-panel {
+      position:fixed; top:var(--nav-h); right:0;
+      width:min(380px, 100vw);
+      background:var(--white);
+      border-left:1px solid var(--border);
+      box-shadow:var(--shadow-xl);
+      z-index:300;
+      transform:translateX(110%);
+      transition:transform .32s var(--ease);
+      max-height:calc(100vh - var(--nav-h));
+      display:flex; flex-direction:column; overflow:hidden;
     }
+    .notification-panel.open { transform:translateX(0); }
 
-    .avatar-container {
-      width: 140px;
-      height: 140px;
-      margin: 0 auto 1.5rem;
-      background: linear-gradient(135deg, var(--primary-green), #059669);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.3);
+    .notif-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px 14px; border-bottom:1px solid var(--border); flex-shrink:0;
     }
-
-    .avatar-letter {
-      font-family: 'Oswald', sans-serif;
-      font-size: 4rem;
-      font-weight: 700;
-      color: white;
-      text-transform: uppercase;
+    .notif-header h3 { font-size:.92rem; font-weight:700; letter-spacing:-.01em; }
+    .notif-close-btn {
+      width:28px; height:28px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      color:var(--mid); cursor:pointer; font-size:15px;
+      display:flex; align-items:center; justify-content:center; transition:all .15s;
     }
+    .notif-close-btn:hover { color:var(--ink); background:var(--bg-2); }
 
-    .profile-name {
-      font-family: 'Oswald', sans-serif;
-      font-size: 2rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 0.5rem;
+    .notif-summary-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 20px; background:var(--bg);
+      border-bottom:1px solid var(--border); flex-shrink:0;
     }
-
-    .profile-role {
-      display: inline-block;
-      background: var(--primary-green);
-      color: white;
-      padding: 0.5rem 1.5rem;
-      border-radius: 25px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 1rem;
+    .notif-summary-text { font-size:.72rem; color:var(--muted); font-weight:500; }
+    .notif-mark-all-btn {
+      font-size:.68rem; font-weight:700; letter-spacing:.04em;
+      color:var(--accent); background:none; border:none; cursor:pointer; transition:color .15s;
     }
+    .notif-mark-all-btn:hover { color:var(--accent-h); }
 
-    .profile-email {
-      color: #9ca3af;
-      font-size: 0.95rem;
-      margin-bottom: 2.5rem;
+    #notificationList { overflow-y:auto; flex:1; }
+    #notificationList::-webkit-scrollbar { width:3px; }
+    #notificationList::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:3px; }
+
+    .notif-item {
+      display:flex; align-items:flex-start; gap:12px;
+      padding:14px 20px; border-bottom:1px solid var(--border);
+      cursor:pointer; transition:background .15s; position:relative;
     }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      padding-top: 2rem;
-      border-top: 1px solid rgba(255,255,255,0.1);
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item:hover { background:var(--bg); }
+    .notif-item.unread { background:rgba(229,82,14,.022); }
+    .notif-item.unread:hover { background:rgba(229,82,14,.048); }
+    .notif-icon-wrap {
+      width:35px; height:35px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--bg); border:1px solid var(--border);
     }
+    .notif-icon-wrap svg { width:14px; height:14px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .notif-item.unread .notif-icon-wrap { background:var(--accent-dim); border-color:rgba(229,82,14,.18); }
+    .notif-item.unread .notif-icon-wrap svg { stroke:var(--accent); }
+    .notif-body { flex:1; min-width:0; }
+    .notif-msg { font-size:.8rem; line-height:1.45; color:var(--mid); word-break:break-word; }
+    .notif-item.unread .notif-msg { color:var(--ink); font-weight:500; }
+    .notif-time { font-size:.66rem; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:3px; }
+    .notif-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:7px; }
+    .notif-item.read .notif-dot { visibility:hidden; }
+    .notif-empty { padding:48px 20px; text-align:center; color:var(--muted); }
+    .notif-empty svg { width:36px; height:36px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 12px; }
+    .notif-empty p { font-size:.82rem; }
 
-    .stat-item {
-      text-align: center;
-    }
-
-    .stat-value {
-      font-family: 'Oswald', sans-serif;
-      font-size: 3rem;
-      font-weight: 700;
-      color: white;
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #9ca3af;
-      margin-top: 0.5rem;
-    }
-
-    .profile-content {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    .info-card {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .card-header {
-      padding: 1.5rem 2rem;
-      border-bottom: 3px solid var(--primary-green);
-    }
-
-    .card-header h2 {
-      font-family: 'Oswald', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-    }
-
-    .card-body {
-      padding: 2rem;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.25rem 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .info-row:last-child {
-      border-bottom: none;
-    }
-
-    .info-label {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-secondary);
-      font-weight: 600;
-    }
-
-    .info-value {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 0.4rem 1rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .status-active {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 60px;
-      height: 30px;
-      background: #e5e7eb;
-      border-radius: 15px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .toggle-switch.active {
-      background: var(--primary-green);
-    }
-
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      background: white;
-      border-radius: 50%;
-      top: 3px;
-      left: 3px;
-      transition: transform 0.3s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .toggle-switch.active::after {
-      transform: translateX(30px);
-    }
-
-    .wallet-card {
-      background: linear-gradient(135deg, var(--primary-green), #059669);
-      color: white;
-      padding: 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
-    }
-
-    .wallet-balance {
-      font-family: 'Oswald', sans-serif;
-      font-size: 4rem;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 0.5rem;
-    }
-
-    .wallet-label {
-      font-size: 0.95rem;
-      opacity: 0.9;
-      margin-bottom: 2rem;
-    }
-
-    .btn {
-      padding: 0.875rem 2rem;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Work Sans', sans-serif;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-primary {
-      background: white;
-      color: var(--primary-green);
-    }
-
-    .btn-primary:hover {
-      background: #f3f4f6;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .btn-secondary {
-      background: #f3f4f6;
-      color: var(--text-primary);
-    }
-
-    .btn-secondary:hover {
-      background: #e5e7eb;
-      transform: translateY(-2px);
-    }
-
-    .btn-danger {
-      background: var(--danger-red);
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #dc2626;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
-
-    .activity-item {
-      padding: 1rem 0;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .activity-item:last-child {
-      border-bottom: none;
-    }
-
-    .activity-title {
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 0.25rem;
-    }
-
-    .activity-meta {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-    }
-
-    .danger-zone {
-      background: #fef2f2;
-      border-left: 4px solid var(--danger-red);
-    }
-
-    .danger-zone .card-header {
-      border-bottom-color: var(--danger-red);
-    }
-
-    .danger-zone .card-header h2 {
-      color: var(--danger-red);
-    }
-
-    @media (max-width: 1024px) {
-      .profile-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .profile-sidebar {
-        position: relative;
-        top: 0;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .profile-header h1 {
-        font-size: 2rem;
-      }
-
-      .wallet-balance {
-        font-size: 3rem;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-    }
-  </style>
-  <link rel="stylesheet" href="../css/alerts.css">
-  <style>
+    /* ════════════════════════════════════════════
+       ALERTS
+    ════════════════════════════════════════════ */
     .alert-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 400px;
+      position:fixed; top:calc(var(--nav-h) + 12px); right:20px;
+      z-index:9999; display:flex; flex-direction:column; gap:8px; max-width:300px;
     }
-    @keyframes slideOut {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
+    .alert {
+      padding:12px 15px; border-radius:var(--radius-sm);
+      font-size:.8rem; font-weight:500;
+      box-shadow:var(--shadow-lg);
+      animation:alertSlide .35s var(--ease-spring) both;
+      display:flex; align-items:center; gap:9px;
+    }
+    .alert-success { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+    .alert-error   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+    .alert-info    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+
+    /* ════════════════════════════════════════════
+       PAGE LAYOUT
+    ════════════════════════════════════════════ */
+    .page {
+      max-width:1120px; margin:0 auto;
+      padding:clamp(24px,3vw,40px) clamp(16px,3.5vw,40px);
+      display:flex; flex-direction:column; gap:24px;
+    }
+
+    /* ════════════════════════════════════════════
+       PAGE HEADER
+    ════════════════════════════════════════════ */
+    .page-header-title {
+      font-size:clamp(1.5rem,3.8vw,2rem); font-weight:700;
+      letter-spacing:-.025em; line-height:1.15;
+    }
+    .page-header-title em { color:var(--accent); font-style:normal; }
+    .page-header-sub { font-size:.84rem; color:var(--muted); margin-top:4px; }
+
+    /* ════════════════════════════════════════════
+       PROFILE GRID
+    ════════════════════════════════════════════ */
+    .profile-grid {
+      display:grid;
+      grid-template-columns:288px 1fr;
+      gap:16px;
+      align-items:start;
+    }
+
+    /* ════════════════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════════════════ */
+    .profile-sidebar {
+      display:flex; flex-direction:column; gap:12px;
+      position:sticky; top:calc(var(--nav-h) + 16px);
+    }
+
+    /* Identity card */
+    .identity-card {
+      background:var(--ink);
+      border-radius:var(--radius);
+      padding:28px 20px 24px;
+      text-align:center;
+      overflow:hidden; position:relative;
+      box-shadow:var(--shadow);
+    }
+    .identity-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:var(--accent);
+    }
+    /* subtle glow blob */
+    .identity-card::after {
+      content:''; position:absolute; top:-40px; right:-40px;
+      width:140px; height:140px; border-radius:50%;
+      background:rgba(229,82,14,.08); pointer-events:none;
+    }
+
+    .avatar {
+      width:80px; height:80px; border-radius:50%;
+      background:var(--accent);
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 14px;
+      box-shadow:0 0 0 4px rgba(229,82,14,.22);
+      position:relative; z-index:1;
+    }
+    .avatar-letter {
+      font-size:2.2rem; font-weight:700; color:#fff;
+      text-transform:uppercase; line-height:1;
+    }
+
+    .identity-name {
+      font-size:1.1rem; font-weight:700;
+      letter-spacing:-.01em; color:#fff; margin-bottom:5px;
+    }
+    .identity-role {
+      display:inline-block;
+      font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+      color:var(--accent); background:rgba(229,82,14,.12);
+      border:1px solid rgba(229,82,14,.25);
+      padding:3px 10px; border-radius:999px; margin-bottom:7px;
+    }
+    .identity-email { font-size:.78rem; color:rgba(255,255,255,.4); margin-bottom:20px; }
+
+    .sidebar-stats {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:1px; background:rgba(255,255,255,.07);
+      border-radius:var(--radius-xs); overflow:hidden;
+      border:1px solid rgba(255,255,255,.07);
+    }
+    .sidebar-stat {
+      background:rgba(255,255,255,.03);
+      padding:14px 10px; text-align:center;
+    }
+    .sidebar-stat-val {
+      font-size:1.8rem; font-weight:700; color:#fff; line-height:1;
+    }
+    .sidebar-stat-label {
+      font-size:.6rem; text-transform:uppercase; letter-spacing:.06em;
+      color:rgba(255,255,255,.35); margin-top:3px;
+    }
+
+    /* Wallet card */
+    .wallet-card {
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow-xs);
+    }
+    .wallet-card-top {
+      background:var(--accent);
+      padding:20px; position:relative; overflow:hidden;
+    }
+    .wallet-card-top::after {
+      content:'◎'; position:absolute; right:-10px; top:-10px;
+      font-size:80px; color:rgba(255,255,255,.07);
+      line-height:1; pointer-events:none;
+    }
+    .wallet-label {
+      font-size:.62rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.08em; color:rgba(255,255,255,.7); margin-bottom:4px;
+    }
+    .wallet-balance {
+      font-size:2.2rem; font-weight:700; color:#fff; line-height:1;
+    }
+    .wallet-balance span { font-size:.95rem; font-weight:400; opacity:.8; margin-left:4px; }
+    .wallet-card-body { padding:14px 16px; }
+    .penalty-alert {
+      display:flex; align-items:flex-start; gap:10px;
+      background:#fff7ed; border:1px solid #fed7aa;
+      border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:12px;
+    }
+    .penalty-alert svg { width:14px; height:14px; stroke:#c2410c; fill:none; stroke-width:2; stroke-linecap:round; flex-shrink:0; margin-top:1px; }
+    .penalty-alert-text { font-size:.75rem; color:#7c2d12; line-height:1.4; }
+    .penalty-alert-text strong { color:#c2410c; }
+    .btn-topup {
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      width:100%;
+      font-size:.8rem; font-weight:600;
+      background:var(--ink); color:#fff;
+      border:none; border-radius:var(--radius-sm);
+      padding:11px; cursor:pointer;
+      transition:background .18s, transform .12s;
+    }
+    .btn-topup svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+    .btn-topup:hover { background:var(--accent); transform:translateY(-1px); }
+
+    /* ════════════════════════════════════════════
+       SECTION CARDS
+    ════════════════════════════════════════════ */
+    .profile-content { display:flex; flex-direction:column; gap:12px; }
+
+    .section-card {
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow-xs);
+    }
+
+    .section-header {
+      display:flex; align-items:center; gap:10px;
+      padding:15px 20px;
+      border-bottom:1px solid var(--border);
+    }
+    .section-header-icon {
+      width:30px; height:30px; border-radius:var(--radius-xs);
+      background:var(--accent-dim); border:1px solid rgba(229,82,14,.14);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .section-header-icon svg { width:13px; height:13px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .section-title { font-size:.88rem; font-weight:700; letter-spacing:-.01em; color:var(--ink); }
+
+    /* Info rows */
+    .info-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:13px 20px; border-bottom:1px solid var(--border); gap:16px;
+    }
+    .info-row:last-child { border-bottom:none; }
+    .info-row-left { flex:1; min-width:0; }
+    .info-label {
+      font-size:.68rem; font-weight:600; text-transform:uppercase;
+      letter-spacing:.06em; color:var(--muted);
+    }
+    .info-sublabel { font-size:.75rem; color:var(--muted); margin-top:2px; }
+    .info-value {
+      font-size:.88rem; font-weight:600; color:var(--ink-3);
+      text-align:right; flex-shrink:0;
+    }
+    .info-value.large {
+      font-size:1.4rem; font-weight:700; color:var(--ink);
+    }
+
+    /* Status badge */
+    .badge-active {
+      font-size:.62rem; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; padding:4px 10px; border-radius:var(--radius-xs);
+      background:#f0fdf4; color:#166534; border:1px solid #bbf7d0;
+    }
+
+    /* Penalty row */
+    .penalty-row-val { text-align:right; }
+    .penalty-row-val strong { font-size:.9rem; font-weight:700; color:#c2410c; }
+    .penalty-row-val small { display:block; font-size:.68rem; color:var(--muted); margin-top:2px; }
+
+    /* Toggle switch */
+    .toggle-switch {
+      position:relative; width:44px; height:24px;
+      background:var(--border-2); border-radius:12px; cursor:pointer;
+      transition:background .2s; flex-shrink:0;
+    }
+    .toggle-switch.active { background:var(--accent); }
+    .toggle-switch::after {
+      content:''; position:absolute;
+      width:18px; height:18px; background:white;
+      border-radius:50%; top:3px; left:3px;
+      transition:transform .2s;
+      box-shadow:0 1px 3px rgba(0,0,0,.2);
+    }
+    .toggle-switch.active::after { transform:translateX(20px); }
+
+    /* Activity items */
+    .activity-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 20px; border-bottom:1px solid var(--border); gap:12px;
+    }
+    .activity-item:last-child { border-bottom:none; }
+    .activity-court { font-size:.88rem; font-weight:600; color:var(--ink); margin-bottom:2px; }
+    .activity-date  { font-size:.72rem; color:var(--muted); }
+    .activity-badge {
+      font-size:.6rem; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; padding:3px 8px; border-radius:var(--radius-xs); flex-shrink:0;
+    }
+    .ab-completed { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
+    .ab-booked    { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+    .ab-confirmed { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+    .ab-cancelled { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+    .ab-no_show   { background:#f5f3ff; color:#6b21a8; border:1px solid #ddd6fe; }
+
+    /* Action buttons */
+    .btn-action {
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:.78rem; font-weight:600;
+      padding:8px 16px; border-radius:var(--radius-xs); border:none; cursor:pointer;
+      transition:all .18s var(--ease); flex-shrink:0;
+    }
+    .btn-action svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .btn-neutral {
+      background:var(--bg); color:var(--mid); border:1px solid var(--border);
+    }
+    .btn-neutral:hover { background:var(--ink); color:#fff; border-color:var(--ink); }
+    .btn-danger-soft {
+      background:#fef2f2; color:#991b1b; border:1px solid #fecaca;
+    }
+    .btn-danger-soft:hover { background:#ef4444; color:#fff; border-color:#ef4444; }
+
+    /* Danger zone */
+    .danger-zone { border-color:#fecaca; }
+    .danger-zone .section-header { background:#fef2f2; border-bottom-color:#fecaca; }
+    .danger-zone .section-header-icon { background:#fee2e2; border-color:#fecaca; }
+    .danger-zone .section-header-icon svg { stroke:#ef4444; }
+    .danger-zone .section-title { color:#991b1b; }
+
+    /* ════════════════════════════════════════════
+       MODALS
+    ════════════════════════════════════════════ */
+    .modal-overlay {
+      position:fixed; inset:0; z-index:9999;
+      background:rgba(0,0,0,.5); backdrop-filter:blur(4px);
+      display:flex; align-items:center; justify-content:center;
+      padding:20px; opacity:0; pointer-events:none;
+      transition:opacity .25s ease;
+    }
+    .modal-overlay.show { opacity:1; pointer-events:all; }
+    .modal-box {
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); width:100%; max-width:420px;
+      box-shadow:var(--shadow-xl);
+      transform:scale(.93) translateY(12px);
+      transition:transform .3s var(--ease);
+    }
+    .modal-overlay.show .modal-box { transform:scale(1) translateY(0); }
+
+    .modal-head { padding:24px 24px 0; display:flex; justify-content:center; }
+    .modal-icon {
+      width:52px; height:52px; border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .modal-icon svg { width:22px; height:22px; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .modal-icon.danger  { background:#fef2f2; border:1px solid #fecaca; }
+    .modal-icon.danger svg { stroke:#ef4444; }
+    .modal-icon.neutral { background:var(--accent-dim); border:1px solid rgba(229,82,14,.2); }
+    .modal-icon.neutral svg { stroke:var(--accent); }
+
+    .modal-body { padding:16px 24px 24px; }
+    .modal-title {
+      font-size:1.15rem; font-weight:700; letter-spacing:-.01em;
+      text-align:center; margin-bottom:6px; color:var(--ink);
+    }
+    .modal-desc { font-size:.83rem; color:var(--muted); text-align:center; line-height:1.5; margin-bottom:16px; }
+
+    .warn-list {
+      background:#fef2f2; border:1px solid #fecaca;
+      border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:16px;
+    }
+    .warn-item {
+      display:flex; align-items:flex-start; gap:8px;
+      font-size:.8rem; color:#7f1d1d; margin-bottom:6px; line-height:1.4;
+    }
+    .warn-item:last-child { margin-bottom:0; }
+    .warn-item::before { content:'✗'; color:#ef4444; font-weight:700; flex-shrink:0; }
+
+    .modal-field { margin-bottom:14px; }
+    .modal-field label {
+      display:block; font-size:.68rem; font-weight:600;
+      text-transform:uppercase; letter-spacing:.06em; color:var(--mid); margin-bottom:6px;
+    }
+    .modal-input {
+      width:100%; padding:10px 40px 10px 12px;
+      border:1.5px solid var(--border); border-radius:var(--radius-sm);
+      font-family:'DM Sans', sans-serif; font-size:.9rem;
+      background:var(--bg); color:var(--ink); outline:none;
+      transition:border-color .15s, box-shadow .15s;
+    }
+    .modal-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-dim); background:var(--white); }
+    .modal-input-wrap { position:relative; }
+    .pw-toggle {
+      position:absolute; right:10px; top:50%; transform:translateY(-50%);
+      background:none; border:none; cursor:pointer; color:var(--muted);
+      display:flex; align-items:center; padding:2px; transition:color .15s;
+    }
+    .pw-toggle:hover { color:var(--ink); }
+    .pw-toggle svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+
+    .strength-wrap { margin-top:6px; }
+    .strength-bar-bg { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+    .strength-bar { height:100%; width:0%; border-radius:2px; transition:all .3s; }
+    .strength-label { font-size:.7rem; margin-top:3px; }
+
+    .modal-error   { font-size:.78rem; color:#991b1b; margin-bottom:10px; display:none; }
+    .modal-success { font-size:.78rem; color:#166534; margin-bottom:10px; display:none; }
+
+    .modal-actions { display:flex; gap:8px; }
+    .modal-actions button {
+      flex:1; padding:11px; border-radius:var(--radius-sm); border:none;
+      font-family:'DM Sans', sans-serif;
+      font-size:.82rem; font-weight:600;
+      cursor:pointer; transition:all .18s var(--ease);
+    }
+    .modal-btn-cancel { background:var(--bg); color:var(--mid); border:1px solid var(--border); }
+    .modal-btn-cancel:hover { background:var(--border); color:var(--ink); }
+    .modal-btn-danger { background:#ef4444; color:#fff; box-shadow:0 4px 12px rgba(239,68,68,.2); }
+    .modal-btn-danger:hover { background:#dc2626; }
+    .modal-btn-primary { background:var(--accent); color:#fff; box-shadow:0 4px 12px var(--accent-glow); }
+    .modal-btn-primary:hover { background:var(--accent-h); }
+
+    /* ════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════ */
+    @media (max-width:900px) {
+      .profile-grid { grid-template-columns:1fr; }
+      .profile-sidebar { position:relative; top:0; }
+    }
+    @media (max-width:768px) {
+      .nav-links { display:none; }
+      .nav-logout { display:none; }
+      .hamburger { display:flex; }
+    }
+    @media (max-width:480px) {
+      .alert-container { right:12px; max-width:calc(100vw - 24px); }
     }
   </style>
 </head>
 <body>
-  <!-- Alert Container -->
+
   <div class="alert-container" id="alertContainer"></div>
-  <nav class="navbar">
-    <div class="navbar-brand">SportCourt</div>
-    <div class="navbar-links">
+
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar" id="mainNav">
+    <a href="dashboard.html" class="nav-brand">
+      <div class="nav-brand-logo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M4 12a8 8 0 0 1 8-8M12 20a8 8 0 0 1-8-8M20 12a8 8 0 0 1-8 8M12 4a8 8 0 0 1 8 8"/></svg>
+      </div>
+      <span class="nav-brand-name">Sport<span>Court</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="nav-links">
       <a href="dashboard.html">Dashboard</a>
       <a href="courts.html">Book Courts</a>
       <a href="bookings.html">My Bookings</a>
-      <a href="favorites.html">Favorites</a>
-      <a href="profile.html">Profile</a>
-      <div class="notification-badge">
-        <button class="notif-btn" onclick="toggleNotifications(); return false;" aria-label="Notifications">
-          <svg class="notif-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span id="notifBadge" class="notif-count" style="display:none;">0</span>
-        </button>
-      </div>
-      <a href="#" onclick="logout()">Logout</a>
+      <a href="favorites.html">Favourites</a>
+      <a href="profile.html" class="active">Profile</a>
+    </div>
+
+    <!-- Right actions -->
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <a href="#" onclick="logout();return false;" class="nav-logout">Logout</a>
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
-  <div id="notificationPanel" class="notification-panel">
-    <div class="notification-header">
-      <h3>Notifications</h3>
-      <span class="close" onclick="toggleNotifications()">&times;</span>
-    </div>
-    <div id="notificationList"></div>
+  <!-- Mobile menu drawer -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="courts.html">Book Courts</a>
+    <a href="bookings.html">My Bookings</a>
+    <a href="favorites.html">Favourites</a>
+    <a href="profile.html" class="active">Profile</a>
+    <div class="mobile-menu-divider"></div>
+    <a href="#" onclick="logout();return false;">Logout</a>
   </div>
 
-  <div class="profile-container">
-    <div class="profile-header">
-      <h1>User Profile</h1>
-      <p>Manage your account settings and preferences</p>
+  <!-- ── NOTIFICATION PANEL ── -->
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notif-header">
+      <h3>Notifications</h3>
+      <button class="notif-close-btn" onclick="toggleNotifications()">&#x2715;</button>
+    </div>
+    <div id="notifSummaryBar" style="display:none" class="notif-summary-bar">
+      <span class="notif-summary-text" id="notifSummaryText"></span>
+      <button class="notif-mark-all-btn" onclick="markAllAsRead()">Mark all read</button>
+    </div>
+    <div id="notificationList">
+      <div class="notif-empty">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <p>No notifications yet</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE ── -->
+  <div class="page">
+
+    <!-- Header -->
+    <div class="a1">
+      <div class="page-header-title">My <em>Profile</em></div>
+      <div class="page-header-sub">Manage your account settings and preferences</div>
     </div>
 
     <div class="profile-grid">
-      <!-- Sidebar -->
-      <div class="profile-sidebar">
-        <div class="avatar-container">
-          <div class="avatar-letter" id="avatarLetter">U</div>
-        </div>
-        
-        <div class="profile-name" id="profileName">UNDEFINED</div>
-        <div class="profile-role">User</div>
-        <div class="profile-email" id="profileEmail">undefined</div>
 
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-value" id="favoritesCount">0</div>
-            <div class="stat-label">Favorites</div>
+      <!-- ── SIDEBAR ── -->
+      <div class="profile-sidebar a2">
+
+        <!-- Identity -->
+        <div class="identity-card">
+          <div class="avatar">
+            <div class="avatar-letter" id="avatarLetter">U</div>
           </div>
-          <div class="stat-item">
-            <div class="stat-value" id="totalBookingsCount">0</div>
-            <div class="stat-label">Bookings</div>
+          <div class="identity-name" id="profileName">Loading…</div>
+          <div class="identity-role">Member</div>
+          <div class="identity-email" id="profileEmail">—</div>
+          <div class="sidebar-stats">
+            <div class="sidebar-stat">
+              <div class="sidebar-stat-val" id="favoritesCount">0</div>
+              <div class="sidebar-stat-label">Favourites</div>
+            </div>
+            <div class="sidebar-stat">
+              <div class="sidebar-stat-val" id="totalBookingsCount">0</div>
+              <div class="sidebar-stat-label">Bookings</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Main Content -->
-      <div class="profile-content">
         <!-- Wallet -->
         <div class="wallet-card">
-          <div class="wallet-balance"><span id="coinBalance">0</span> coins</div>
-          <div class="wallet-label">Available balance</div>
-          <!-- Pending penalty warning — shown only when penalty > 0 -->
-          <div id="penaltyAlert" style="display:none; background:rgba(0,0,0,0.25); border:1px solid rgba(251,146,60,0.6); border-radius:10px; padding:14px 16px; margin:16px 0; text-align:left;">
-            <div style="display:flex; align-items:flex-start; gap:10px;">
-              <span style="font-size:1.3em; flex-shrink:0;">⚠️</span>
-              <div>
-                <div style="font-weight:700; color:#fed7aa; margin-bottom:3px; font-size:0.95em;">Pending Penalty Fee</div>
-                <div style="color:#fdba74; font-size:0.85em; line-height:1.5;">
-                  <strong id="penaltyAlertAmount">0</strong> coins will be added to your next booking
-                  (1-hour court rate from a late checkout or no-show).
-                </div>
-              </div>
-            </div>
+          <div class="wallet-card-top">
+            <div class="wallet-label">Coin Balance</div>
+            <div class="wallet-balance"><span id="coinBalance">0</span> <span>coins</span></div>
           </div>
-          <button class="btn btn-primary" onclick="location.href='dashboard.html'; showTopUpModal()">Top Up Coins</button>
+          <div class="wallet-card-body">
+            <div id="penaltyAlert" style="display:none;" class="penalty-alert">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <div class="penalty-alert-text"><strong><span id="penaltyAlertAmount">0</span> coins</strong> will be added to your next booking (penalty fee).</div>
+            </div>
+            <button class="btn-topup" onclick="location.href='dashboard.html'">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Top Up Coins
+            </button>
+          </div>
         </div>
 
+      </div>
+
+      <!-- ── MAIN CONTENT ── -->
+      <div class="profile-content">
+
         <!-- Account Information -->
-        <div class="info-card">
-          <div class="card-header">
-            <h2>Account Information</h2>
+        <div class="section-card a3">
+          <div class="section-header">
+            <div class="section-header-icon">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <span class="section-title">Account Information</span>
           </div>
-          <div class="card-body">
-            <div class="info-row">
-              <span class="info-label">Email Address</span>
-              <span class="info-value" id="userEmail">undefined</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Role</span>
-              <span class="info-value">User</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Account Status</span>
-              <span class="status-badge status-active">ACTIVE</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Member Since</span>
-              <span class="info-value" id="memberSince">Jan 2024</span>
-            </div>
+          <div class="info-row">
+            <span class="info-label">Email Address</span>
+            <span class="info-value" id="userEmail">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Role</span>
+            <span class="info-value">Member</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Account Status</span>
+            <span class="badge-active">Active</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Member Since</span>
+            <span class="info-value" id="memberSince">—</span>
           </div>
         </div>
 
         <!-- Statistics -->
-        <div class="info-card">
-          <div class="card-header">
-            <h2>Your Statistics</h2>
+        <div class="section-card a4">
+          <div class="section-header">
+            <div class="section-header-icon">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <span class="section-title">Your Statistics</span>
           </div>
-          <div class="card-body">
-            <div class="info-row">
-              <span class="info-label">Total Bookings</span>
-              <span class="info-value" id="totalBookings">0</span>
+          <div class="info-row">
+            <span class="info-label">Total Bookings</span>
+            <span class="info-value large" id="totalBookings">0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Completed Sessions</span>
+            <span class="info-value large" id="completedSessions">0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Cancelled Bookings</span>
+            <span class="info-value large" id="cancelledBookings">0</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Favourite Courts</span>
+            <span class="info-value large" id="favCount">0</span>
+          </div>
+          <div class="info-row" id="penaltyStatRow" style="display:none;">
+            <div class="info-row-left">
+              <div class="info-label" style="color:#c2410c;">⚠ Pending Penalty</div>
             </div>
-            <div class="info-row">
-              <span class="info-label">Completed Sessions</span>
-              <span class="info-value" id="completedSessions">0</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Cancelled Bookings</span>
-              <span class="info-value" id="cancelledBookings">0</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Favourite Courts</span>
-              <span class="info-value" id="favCount">0</span>
-            </div>
-            <div class="info-row" id="penaltyStatRow" style="display:none;">
-              <span class="info-label" style="color:#c2410c;">⚠️ Pending Penalty</span>
-              <span class="info-value" style="color:#c2410c; font-weight:700;">
-                <span id="penaltyStatAmount">0</span> coins
-                <small style="font-weight:400; color:#9ca3af; display:block; font-size:0.8em;">Charged on next booking</small>
-              </span>
+            <div class="penalty-row-val">
+              <strong><span id="penaltyStatAmount">0</span> coins</strong>
+              <small>Charged on next booking</small>
             </div>
           </div>
         </div>
 
         <!-- Notification Settings -->
-        <div class="info-card">
-          <div class="card-header">
-            <h2>Notification Settings</h2>
+        <div class="section-card a4">
+          <div class="section-header">
+            <div class="section-header-icon">
+              <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <span class="section-title">Notification Settings</span>
           </div>
-          <div class="card-body">
-            <div class="info-row">
-              <div>
-                <div class="info-label" style="margin-bottom: 0.25rem;">Email Notifications</div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">Receive email alerts for important updates</div>
-              </div>
-              <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+          <div class="info-row">
+            <div class="info-row-left">
+              <div class="info-label">Email Notifications</div>
+              <div class="info-sublabel">Receive email alerts for important updates</div>
             </div>
-            <div class="info-row">
-              <div>
-                <div class="info-label" style="margin-bottom: 0.25rem;">Booking Alerts</div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">Get notified when new bookings are made</div>
-              </div>
-              <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+          </div>
+          <div class="info-row">
+            <div class="info-row-left">
+              <div class="info-label">Booking Alerts</div>
+              <div class="info-sublabel">Get notified when new bookings are made</div>
             </div>
+            <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
           </div>
         </div>
 
         <!-- Recent Activity -->
-        <div class="info-card">
-          <div class="card-header">
-            <h2>Recent Activity</h2>
+        <div class="section-card a5">
+          <div class="section-header">
+            <div class="section-header-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="section-title">Recent Activity</span>
           </div>
-          <div class="card-body" id="recentActivity">
-            <p style="color: var(--text-secondary); text-align: center; padding: 2rem 0;">No recent activity</p>
+          <div id="recentActivity">
+            <div style="padding:32px 20px;text-align:center;color:var(--muted);font-size:.82rem;">No recent activity</div>
           </div>
         </div>
 
-        <!-- Account Actions -->
-        <div class="info-card">
-          <div class="card-body">
-            <button class="btn btn-secondary" onclick="changePassword()" style="width: 100%;">Change Password</button>
+        <!-- Security -->
+        <div class="section-card a5">
+          <div class="section-header">
+            <div class="section-header-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <span class="section-title">Security</span>
+          </div>
+          <div class="info-row">
+            <div class="info-row-left">
+              <div class="info-label">Password</div>
+              <div class="info-sublabel">Update your login password</div>
+            </div>
+            <button class="btn-action btn-neutral" onclick="changePassword()">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Change
+            </button>
           </div>
         </div>
 
         <!-- Danger Zone -->
-        <div class="info-card danger-zone">
-          <div class="card-header">
-            <h2>Danger Zone</h2>
+        <div class="section-card danger-zone a5">
+          <div class="section-header">
+            <div class="section-header-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
+            <span class="section-title">Danger Zone</span>
           </div>
-          <div class="card-body">
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Once you delete your account, there is no going back. Please be certain.</p>
-            <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+          <div class="info-row">
+            <div class="info-row-left">
+              <div class="info-label" style="color:#991b1b;">Delete Account</div>
+              <div class="info-sublabel">Permanently remove your account and all data. This cannot be undone.</div>
+            </div>
+            <button class="btn-action btn-danger-soft" onclick="deleteAccount()">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+              Delete
+            </button>
           </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE ACCOUNT MODAL -->
+  <div id="deleteAccountModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div class="modal-icon danger">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-title">Delete Account?</div>
+        <p class="modal-desc">This action is <strong>permanent and cannot be undone.</strong> All your data will be deleted.</p>
+        <div class="warn-list">
+          <div class="warn-item">Your account and profile will be permanently removed</div>
+          <div class="warn-item">All active bookings will be cancelled (no refund)</div>
+          <div class="warn-item">Your coin balance will be forfeited</div>
+        </div>
+        <div class="modal-field">
+          <label>Enter your password to confirm</label>
+          <div class="modal-input-wrap">
+            <input type="password" id="deletePasswordInput" class="modal-input" placeholder="Your current password">
+            <button class="pw-toggle" onclick="togglePwVis('deletePasswordInput','eyeIcon1')" id="eyeIcon1">
+              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div id="deletePasswordError" class="modal-error"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+          <button class="modal-btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteAccount()">Delete My Account</button>
         </div>
       </div>
     </div>
   </div>
 
-    <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <!-- Brand Section -->
-      <div class="footer-section footer-brand">
-        <div class="footer-logo">
-          <div class="footer-logo-mark"></div>
-          <div class="footer-logo-text">SportCourt</div>
-        </div>
-        <p class="footer-description">
-          Your premier destination for booking sports courts. Play anytime, anywhere with our seamless booking system.
-        </p>
-        <span class="footer-tagline">
-          <span class="dot-live"></span>
-          Book Smart, Play Hard
-        </span>
-      </div>
-
-      <!-- Quick Links -->
-      <div class="footer-section">
-        <h3>Quick Links</h3>
-        <div class="footer-links">
-          <a href="dashboard.html" class="footer-link">Dashboard</a>
-          <a href="courts.html" class="footer-link">Browse Courts</a>
-          <a href="bookings.html" class="footer-link">My Bookings</a>
-          <a href="favorites.html" class="footer-link">Favorites</a>
-          <a href="profile.html" class="footer-link">Profile</a>
+  <!-- CHANGE PASSWORD MODAL -->
+  <div id="changePasswordModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div class="modal-icon neutral">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
       </div>
-
-      <!-- Resources -->
-      <div class="footer-section">
-        <h3>Resources</h3>
-        <div class="footer-links">
-          <a href="#" class="footer-link">FAQs</a>
-          <a href="#" class="footer-link">How It Works</a>
-          <a href="#" class="footer-link">Pricing</a>
-          <a href="#" class="footer-link">Safety Guidelines</a>
-          <a href="#" class="footer-link">Court Rules</a>
+      <div class="modal-body">
+        <div class="modal-title">Change Password</div>
+        <p class="modal-desc">Enter your current password, then choose a new one.</p>
+        <div class="modal-field">
+          <label>Current Password</label>
+          <input type="password" id="currentPasswordInput" class="modal-input" placeholder="Current password">
         </div>
-      </div>
-
-      <!-- Contact Information -->
-      <div class="footer-section">
-        <h3>Contact Us</h3>
-        <div class="footer-contact-info">
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Email</span>
-              <span class="contact-value">
-                <a href="/cdn-cgi/l/email-protection#97fdf8fff9d7e3f2e4e3b9f4f8fa"><span class="__cf_email__" data-cfemail="751f1a1d1b35011006015b161a18">[email&#160;protected]</span></a>
-              </span>
-            </div>
-          </div>
-          
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Phone</span>
-              <span class="contact-value">
-                <a href="tel:+91234565">+91234565</a>
-              </span>
-            </div>
-          </div>
-          
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Support</span>
-              <span class="contact-value">Customer Service</span>
-            </div>
+        <div class="modal-field">
+          <label>New Password</label>
+          <input type="password" id="newPasswordInput" class="modal-input" placeholder="Minimum 6 characters" oninput="checkPasswordStrength(this.value)">
+          <div class="strength-wrap">
+            <div class="strength-bar-bg"><div id="strengthBar" class="strength-bar"></div></div>
+            <div id="strengthLabel" class="strength-label"></div>
           </div>
         </div>
-
-        <!-- Social Media Links -->
-        <div class="footer-social">
-          <a href="#" class="social-link" title="Facebook"></a>
-          <a href="#" class="social-link" title="Twitter"></a>
-          <a href="#" class="social-link" title="Instagram"></a>
-          <a href="#" class="social-link" title="LinkedIn"></a>
+        <div class="modal-field">
+          <label>Confirm New Password</label>
+          <input type="password" id="confirmPasswordInput" class="modal-input" placeholder="Repeat new password">
         </div>
-      </div>
-    </div>
-
-    <!-- Footer Bottom -->
-    <div class="footer-bottom">
-      <div class="footer-copyright">
-        © 2026 SportCourt. All rights reserved. Made with <span class="heart"></span>
-      </div>
-      <div class="footer-legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Refund Policy</a>
-        <a href="#">Accessibility</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ===== DELETE ACCOUNT MODAL ===== -->
-  <div id="deleteAccountModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:16px;padding:2.5rem;width:100%;max-width:460px;margin:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalSlideIn 0.25s ease-out;">
-      <div style="text-align:center;margin-bottom:1.5rem;">
-        <div style="width:64px;height:64px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:2rem;">⚠️</div>
-        <h2 style="font-family:'Oswald',sans-serif;font-size:1.6rem;color:#ef4444;margin:0 0 0.5rem;text-transform:uppercase;letter-spacing:1px;">Delete Account</h2>
-        <p style="color:#6b7280;font-size:0.95rem;margin:0;line-height:1.5;">This action is <strong>permanent and cannot be undone.</strong><br>All your bookings and data will be deleted.</p>
-      </div>
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
-        <div style="display:flex;gap:0.6rem;margin-bottom:0.5rem;"><span style="color:#ef4444;">✗</span><span style="font-size:0.88rem;color:#7f1d1d;">Your account and profile will be permanently removed</span></div>
-        <div style="display:flex;gap:0.6rem;margin-bottom:0.5rem;"><span style="color:#ef4444;">✗</span><span style="font-size:0.88rem;color:#7f1d1d;">All active bookings will be cancelled (no refund)</span></div>
-        <div style="display:flex;gap:0.6rem;"><span style="color:#ef4444;">✗</span><span style="font-size:0.88rem;color:#7f1d1d;">Your coin balance will be forfeited</span></div>
-      </div>
-      <div style="margin-bottom:1.5rem;">
-        <label style="display:block;font-size:0.85rem;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.5rem;">Enter your password to confirm</label>
-        <div style="position:relative;">
-          <input type="password" id="deletePasswordInput" placeholder="Your current password"
-            style="width:100%;padding:0.875rem 3rem 0.875rem 1rem;border:2px solid #e5e7eb;border-radius:8px;font-size:1rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
-            onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#e5e7eb'">
-          <span onclick="togglePwVis('deletePasswordInput','eyeIcon1')" id="eyeIcon1"
-            style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#9ca3af;display:flex;align-items:center;">
-            <svg id="eyeIcon1Svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </span>
+        <div id="changePasswordError" class="modal-error"></div>
+        <div id="changePasswordSuccess" class="modal-success"></div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeChangePasswordModal()">Cancel</button>
+          <button class="modal-btn-primary" id="changePasswordBtn" onclick="submitChangePassword()">Update Password</button>
         </div>
-        <div id="deletePasswordError" style="color:#ef4444;font-size:0.83rem;margin-top:0.4rem;display:none;"></div>
-      </div>
-      <div style="display:flex;gap:0.75rem;">
-        <button onclick="closeDeleteModal()"
-          style="flex:1;padding:0.875rem;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-weight:600;font-size:0.95rem;cursor:pointer;"
-          onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
-        <button onclick="confirmDeleteAccount()" id="confirmDeleteBtn"
-          style="flex:1;padding:0.875rem;background:#ef4444;color:white;border:none;border-radius:8px;font-weight:600;font-size:0.95rem;cursor:pointer;"
-          onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">Delete My Account</button>
       </div>
     </div>
   </div>
 
-  <!-- ===== CHANGE PASSWORD MODAL ===== -->
-  <div id="changePasswordModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:16px;padding:2.5rem;width:100%;max-width:440px;margin:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalSlideIn 0.25s ease-out;">
-      <div style="text-align:center;margin-bottom:1.75rem;">
-        <div style="width:64px;height:64px;background:#d1fae5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:2rem;">🔒</div>
-        <h2 style="font-family:'Oswald',sans-serif;font-size:1.6rem;color:#10b981;margin:0 0 0.4rem;text-transform:uppercase;letter-spacing:1px;">Change Password</h2>
-        <p style="color:#6b7280;font-size:0.9rem;margin:0;">Enter your current password, then choose a new one.</p>
+  <!-- GOODBYE OVERLAY -->
+  <div id="goodbyeOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0f1117;align-items:center;justify-content:center;flex-direction:column;">
+    <div style="text-align:center;padding:2rem;">
+      <div id="goodbyeIcon" style="width:60px;height:60px;border-radius:50%;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 2rem;opacity:0;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+        </svg>
       </div>
-      <div style="margin-bottom:1rem;">
-        <label style="display:block;font-size:0.82rem;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;">Current Password</label>
-        <input type="password" id="currentPasswordInput" placeholder="Current password"
-          style="width:100%;padding:0.875rem 1rem;border:2px solid #e5e7eb;border-radius:8px;font-size:1rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
-          onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='#e5e7eb'">
-      </div>
-      <div style="margin-bottom:1rem;">
-        <label style="display:block;font-size:0.82rem;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;">New Password</label>
-        <input type="password" id="newPasswordInput" placeholder="Minimum 6 characters"
-          style="width:100%;padding:0.875rem 1rem;border:2px solid #e5e7eb;border-radius:8px;font-size:1rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
-          onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='#e5e7eb'"
-          oninput="checkPasswordStrength(this.value)">
-        <div style="margin-top:0.5rem;">
-          <div style="height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;"><div id="strengthBar" style="height:100%;width:0%;border-radius:2px;transition:all 0.3s;"></div></div>
-          <span id="strengthLabel" style="font-size:0.78rem;color:#9ca3af;"></span>
-        </div>
-      </div>
-      <div style="margin-bottom:1.5rem;">
-        <label style="display:block;font-size:0.82rem;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;">Confirm New Password</label>
-        <input type="password" id="confirmPasswordInput" placeholder="Repeat new password"
-          style="width:100%;padding:0.875rem 1rem;border:2px solid #e5e7eb;border-radius:8px;font-size:1rem;outline:none;box-sizing:border-box;transition:border-color 0.2s;"
-          onfocus="this.style.borderColor='#10b981'" onblur="this.style.borderColor='#e5e7eb'">
-      </div>
-      <div id="changePasswordError" style="color:#ef4444;font-size:0.85rem;margin-bottom:1rem;display:none;"></div>
-      <div id="changePasswordSuccess" style="color:#10b981;font-size:0.85rem;margin-bottom:1rem;display:none;"></div>
-      <div style="display:flex;gap:0.75rem;">
-        <button onclick="closeChangePasswordModal()"
-          style="flex:1;padding:0.875rem;background:#f3f4f6;color:#374151;border:none;border-radius:8px;font-weight:600;font-size:0.95rem;cursor:pointer;"
-          onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">Cancel</button>
-        <button onclick="submitChangePassword()" id="changePasswordBtn"
-          style="flex:1;padding:0.875rem;background:#10b981;color:white;border:none;border-radius:8px;font-weight:600;font-size:0.95rem;cursor:pointer;"
-          onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">Update Password</button>
+      <h1 id="goodbyeTitle" style="font-family:'DM Sans',sans-serif;font-size:1.8rem;font-weight:700;color:#f5f5f5;margin:0 0 .5rem;letter-spacing:-.02em;opacity:0;">Account Deleted</h1>
+      <p id="goodbyeSubtitle" style="color:rgba(255,255,255,.35);font-size:.9rem;margin:0 0 3rem;opacity:0;">Your data has been permanently removed.</p>
+      <div style="width:200px;height:2px;background:rgba(255,255,255,.07);margin:0 auto;border-radius:2px;overflow:hidden;">
+        <div id="goodbyeBar" style="width:0%;height:100%;background:#ef4444;transition:width 2.5s cubic-bezier(.4,0,.2,1);"></div>
       </div>
     </div>
   </div>
-
-  <style>
-    @keyframes modalSlideIn {
-      from { opacity:0; transform:translateY(-20px) scale(0.97); }
-      to   { opacity:1; transform:translateY(0) scale(1); }
-    }
-  </style>
 
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script src="../js/notifications.js"></script>
   <script src="../js/topup.js"></script>
   <script>
+    /* ── Navbar scroll shadow ── */
+    window.addEventListener('scroll', () => {
+      document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 4);
+    });
+
+    /* ── Hamburger / mobile menu ── */
+    function toggleMobileMenu() {
+      const btn  = document.getElementById('hamburger');
+      const menu = document.getElementById('mobileMenu');
+      const open = menu.classList.toggle('open');
+      btn.classList.toggle('open', open);
+    }
+    document.addEventListener('click', e => {
+      const menu = document.getElementById('mobileMenu');
+      const btn  = document.getElementById('hamburger');
+      if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove('open');
+        btn.classList.remove('open');
+      }
+    });
+
+    /* ── Notifications ── */
+    function toggleNotifications() {
+      const panel = document.getElementById('notificationPanel');
+      const isOpen = panel.classList.toggle('open');
+      if (isOpen && typeof loadNotifications === 'function') loadNotifications();
+    }
+    window.toggleNotifications = toggleNotifications;
+
+    /* ── Auth ── */
     checkAuth();
 
-    function toggleSetting(el) { el.classList.toggle('active'); }
-
-    const eyeOpen   = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-    const eyeClosed = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-
+    /* ── Eye icons ── */
+    const eyeOpen   = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    const eyeClosed = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
     function togglePwVis(inputId, iconId) {
       const input = document.getElementById(inputId);
       const icon  = document.getElementById(iconId);
@@ -857,6 +1037,7 @@
       icon.innerHTML = input.type === 'password' ? eyeOpen : eyeClosed;
     }
 
+    /* ── Password strength ── */
     function checkPasswordStrength(pw) {
       const bar = document.getElementById('strengthBar');
       const lbl = document.getElementById('strengthLabel');
@@ -874,25 +1055,27 @@
         { w:'100%',c:'#15803d', t:'Very strong' },
       ];
       const lvl = levels[Math.max(0, score - 1)] || levels[0];
-      bar.style.width = pw.length ? lvl.w : '0%';
+      bar.style.width      = pw.length ? lvl.w : '0%';
       bar.style.background = lvl.c;
-      lbl.textContent = pw.length ? lvl.t : '';
-      lbl.style.color = lvl.c;
+      lbl.textContent      = pw.length ? lvl.t : '';
+      lbl.style.color      = lvl.c;
     }
 
+    /* ── Load profile ── */
     async function loadProfile() {
       try {
         const user = await apiFetch('/users/me', { headers: authHeader() });
         const email = user.email || '';
-        document.getElementById('userEmail').textContent = email;
+        document.getElementById('userEmail').textContent    = email;
         document.getElementById('profileEmail').textContent = email;
-        document.getElementById('coinBalance').textContent = user.coin_balance || 0;
-        document.getElementById('avatarLetter').textContent = email.charAt(0).toUpperCase();
-        document.getElementById('profileName').textContent = email.split('@')[0].toUpperCase();
+        document.getElementById('coinBalance').textContent  = (user.coin_balance || 0).toLocaleString();
 
-        // Show penalty warning in wallet card if user has a pending penalty
+        const name = user.name || email.split('@')[0];
+        document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+        document.getElementById('profileName').textContent  = name;
+
         if (user.penalty && user.penalty > 0) {
-          document.getElementById('penaltyAlert').style.display = 'block';
+          document.getElementById('penaltyAlert').style.display = 'flex';
           document.getElementById('penaltyAlertAmount').textContent = user.penalty;
         } else {
           document.getElementById('penaltyAlert').style.display = 'none';
@@ -902,16 +1085,17 @@
           document.getElementById('memberSince').textContent =
             new Date(user.created_at).toLocaleDateString('en-US', { year:'numeric', month:'long' });
         }
+
         const bookings = await apiFetch('/bookings/my-bookings', { headers: authHeader() });
-        document.getElementById('totalBookings').textContent = bookings.length;
-        document.getElementById('totalBookingsCount').textContent = bookings.length;
-        document.getElementById('completedSessions').textContent = bookings.filter(b => b.status === 'completed').length;
-        document.getElementById('cancelledBookings').textContent = bookings.filter(b => b.status === 'cancelled').length;
+        document.getElementById('totalBookings').textContent      = bookings.length;
+        document.getElementById('totalBookingsCount').textContent  = bookings.length;
+        document.getElementById('completedSessions').textContent   = bookings.filter(b => b.status === 'completed').length;
+        document.getElementById('cancelledBookings').textContent   = bookings.filter(b => b.status === 'cancelled').length;
+
         const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-        document.getElementById('favCount').textContent = favs.length;
+        document.getElementById('favCount').textContent       = favs.length;
         document.getElementById('favoritesCount').textContent = favs.length;
 
-        // Show penalty in stats if applicable
         if (user.penalty && user.penalty > 0) {
           document.getElementById('penaltyStatRow').style.display = 'flex';
           document.getElementById('penaltyStatAmount').textContent = user.penalty;
@@ -924,22 +1108,25 @@
       }
     }
 
+    /* ── Recent activity ── */
     function displayRecentActivity(bookings) {
       const c = document.getElementById('recentActivity');
       if (!bookings.length) {
-        c.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:2rem 0;">No recent activity</p>';
+        c.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--muted);font-size:.82rem;">No recent activity</div>';
         return;
       }
+      const badgeClass = {
+        completed: 'ab-completed', booked: 'ab-booked', confirmed: 'ab-confirmed',
+        cancelled: 'ab-cancelled', no_show: 'ab-no_show',
+      };
       c.innerHTML = bookings.map(b => `
         <div class="activity-item">
           <div>
-            <div class="activity-title">${b.court_name || 'Court ' + b.court_id}</div>
-            <div class="activity-meta">${formatDate(b.date)}</div>
+            <div class="activity-court">${b.court_name || 'Court ' + b.court_id}</div>
+            <div class="activity-date">${formatDate(b.date)}</div>
           </div>
-          <span class="status-badge ${b.status === 'completed' ? 'status-active' : ''}"
-                style="${b.status !== 'completed' ? 'background:#fef3c7;color:#92400e;' : ''}">${b.status.toUpperCase()}</span>
-        </div>
-      `).join('');
+          <span class="activity-badge ${badgeClass[b.status] || 'ab-booked'}">${b.status.replace('_',' ').toUpperCase()}</span>
+        </div>`).join('');
     }
 
     function formatDate(d) {
@@ -947,17 +1134,17 @@
       return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
     }
 
-    /* ── CHANGE PASSWORD ── */
+    /* ── Change password ── */
     function changePassword() {
       ['currentPasswordInput','newPasswordInput','confirmPasswordInput'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('changePasswordError').style.display = 'none';
+      document.getElementById('changePasswordError').style.display   = 'none';
       document.getElementById('changePasswordSuccess').style.display = 'none';
-      document.getElementById('strengthBar').style.width = '0%';
+      document.getElementById('strengthBar').style.width   = '0%';
       document.getElementById('strengthLabel').textContent = '';
-      document.getElementById('changePasswordModal').style.display = 'flex';
+      document.getElementById('changePasswordModal').classList.add('show');
     }
     function closeChangePasswordModal() {
-      document.getElementById('changePasswordModal').style.display = 'none';
+      document.getElementById('changePasswordModal').classList.remove('show');
     }
     async function submitChangePassword() {
       const current = document.getElementById('currentPasswordInput').value.trim();
@@ -970,7 +1157,7 @@
       if (!current || !newPw || !confirm) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
       if (newPw.length < 6) { errEl.textContent = 'New password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
       if (newPw !== confirm) { errEl.textContent = 'New passwords do not match.'; errEl.style.display = 'block'; return; }
-      btn.disabled = true; btn.textContent = 'Updating...';
+      btn.disabled = true; btn.textContent = 'Updating…';
       try {
         await apiFetch('/users/me/password', {
           method: 'PUT', headers: authHeader(),
@@ -985,71 +1172,37 @@
       }
     }
 
-    /* ── DELETE ACCOUNT ── */
+    /* ── Delete account ── */
     function deleteAccount() {
       document.getElementById('deletePasswordInput').value = '';
       document.getElementById('deletePasswordError').style.display = 'none';
-      document.getElementById('confirmDeleteBtn').disabled = false;
+      document.getElementById('confirmDeleteBtn').disabled    = false;
       document.getElementById('confirmDeleteBtn').textContent = 'Delete My Account';
-      document.getElementById('deleteAccountModal').style.display = 'flex';
-      setTimeout(() => document.getElementById('deletePasswordInput').focus(), 100);
+      document.getElementById('deleteAccountModal').classList.add('show');
+      setTimeout(() => document.getElementById('deletePasswordInput').focus(), 150);
     }
     function closeDeleteModal() {
-      document.getElementById('deleteAccountModal').style.display = 'none';
+      document.getElementById('deleteAccountModal').classList.remove('show');
     }
-
     function showGoodbyeAnimation() {
-      document.getElementById('deleteAccountModal').style.display = 'none';
-
-      const overlay  = document.getElementById('goodbyeOverlay');
-      const icon     = document.getElementById('goodbyeIcon');
-      const title    = document.getElementById('goodbyeTitle');
-      const subtitle = document.getElementById('goodbyeSubtitle');
-      const bar      = document.getElementById('goodbyeBar');
-
+      document.getElementById('deleteAccountModal').classList.remove('show');
+      const overlay = document.getElementById('goodbyeOverlay');
       overlay.style.display = 'flex';
-
-      // Icon fades in
-      setTimeout(() => {
-        icon.style.transition = 'opacity 0.6s ease';
-        icon.style.opacity = '1';
-      }, 150);
-
-      // Title fades in
-      setTimeout(() => {
-        title.style.transition = 'opacity 0.5s ease';
-        title.style.opacity = '1';
-      }, 450);
-
-      // Subtitle fades in
-      setTimeout(() => {
-        subtitle.style.transition = 'opacity 0.5s ease';
-        subtitle.style.opacity = '1';
-      }, 650);
-
-      // Progress bar fills
-      setTimeout(() => {
-        bar.style.width = '100%';
-      }, 800);
-
-      // Redirect
-      setTimeout(() => {
-        location.href = '../index.html';
-      }, 3500);
+      setTimeout(() => { document.getElementById('goodbyeIcon').style.transition='opacity .6s'; document.getElementById('goodbyeIcon').style.opacity='1'; }, 150);
+      setTimeout(() => { document.getElementById('goodbyeTitle').style.transition='opacity .5s'; document.getElementById('goodbyeTitle').style.opacity='1'; }, 450);
+      setTimeout(() => { document.getElementById('goodbyeSubtitle').style.transition='opacity .5s'; document.getElementById('goodbyeSubtitle').style.opacity='1'; }, 650);
+      setTimeout(() => { document.getElementById('goodbyeBar').style.width='100%'; }, 800);
+      setTimeout(() => { location.href = '../index.html'; }, 3500);
     }
-
     async function confirmDeleteAccount() {
       const password = document.getElementById('deletePasswordInput').value;
       const errEl    = document.getElementById('deletePasswordError');
       const btn      = document.getElementById('confirmDeleteBtn');
       errEl.style.display = 'none';
       if (!password) { errEl.textContent = 'Please enter your password.'; errEl.style.display = 'block'; return; }
-      btn.disabled = true; btn.textContent = 'Deleting...';
+      btn.disabled = true; btn.textContent = 'Deleting…';
       try {
-        await apiFetch('/users/me', {
-          method: 'DELETE', headers: authHeader(),
-          body: JSON.stringify({ password })
-        });
+        await apiFetch('/users/me', { method: 'DELETE', headers: authHeader(), body: JSON.stringify({ password }) });
         localStorage.clear();
         showGoodbyeAnimation();
       } catch (err) {
@@ -1059,41 +1212,25 @@
       }
     }
 
-    // Close modals on backdrop click
-    document.getElementById('deleteAccountModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeDeleteModal(); });
-    document.getElementById('changePasswordModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeChangePasswordModal(); });
+    /* ── Close on backdrop click ── */
+    document.getElementById('deleteAccountModal').addEventListener('click',    e => { if (e.target === e.currentTarget) closeDeleteModal(); });
+    document.getElementById('changePasswordModal').addEventListener('click',   e => { if (e.target === e.currentTarget) closeChangePasswordModal(); });
 
-    loadProfile();
+    /* ── Alert ── */
     function showAlert(message, type = 'info') {
-      const container = document.getElementById("alertContainer");
-      const alert = document.createElement('div');
-      alert.className = `alert alert-${type}`;
-      alert.textContent = message;
-      container.appendChild(alert);
+      const container = document.getElementById('alertContainer');
+      const el = document.createElement('div');
+      el.className = `alert alert-${type}`;
+      el.textContent = message;
+      container.appendChild(el);
       setTimeout(() => {
-        alert.style.animation = "slideOut 0.3s ease-out";
-        setTimeout(() => alert.remove(), 300);
+        el.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => el.remove(), 300);
       }, 4000);
     }
+    window.showAlert = showAlert;
 
-    loadNotifications();
+    loadProfile();
   </script>
-
-  <!-- ===== GOODBYE ANIMATION OVERLAY ===== -->
-  <div id="goodbyeOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0a0a0a;align-items:center;justify-content:center;flex-direction:column;">
-    <div style="text-align:center;padding:2rem;">
-      <div id="goodbyeIcon" style="width:64px;height:64px;border-radius:50%;background:rgba(229,57,53,0.08);border:1px solid rgba(229,57,53,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 2rem;opacity:0;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
-        </svg>
-      </div>
-      <h1 id="goodbyeTitle" style="font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:700;color:#f5f5f7;margin:0 0 0.5rem;letter-spacing:1px;text-transform:uppercase;opacity:0;">Account Deleted</h1>
-      <p id="goodbyeSubtitle" style="color:#6b6b6d;font-size:0.95rem;margin:0 0 3rem;font-weight:400;opacity:0;">Your data has been permanently removed.</p>
-      <div style="width:200px;height:1px;background:#1c1c1e;margin:0 auto;border-radius:1px;overflow:hidden;">
-        <div id="goodbyeBar" style="width:0%;height:100%;background:#e53935;transition:width 2.5s cubic-bezier(0.4,0,0.2,1);"></div>
-      </div>
-    </div>
-  </div>
-
 </body>
 </html>

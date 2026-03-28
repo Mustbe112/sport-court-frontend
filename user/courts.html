@@ -1,653 +1,746 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Browse Courts - Sport Court Booking</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/alerts.css">
+  <title>Browse Courts — SportCourt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
+    /* ════════════════════════════════════════════
+       DESIGN TOKENS — matches dashboard.html
+    ════════════════════════════════════════════ */
+    :root {
+      --ink:          #0f1117;
+      --ink-2:        #1c1f2b;
+      --ink-3:        #2d3142;
+      --mid:          #5c6070;
+      --muted:        #8b909f;
+      --border:       #e9eaf0;
+      --border-2:     #d8dae4;
+      --bg:           #f4f5f9;
+      --bg-2:         #ecedf3;
+      --white:        #ffffff;
+      --accent:       #e5520e;
+      --accent-h:     #d14509;
+      --accent-dim:   rgba(229,82,14,.07);
+      --accent-glow:  rgba(229,82,14,.22);
+      --green:        #12b981;
+      --green-dim:    rgba(18,185,129,.09);
+      --blue:         #3b6ef8;
+      --blue-dim:     rgba(59,110,248,.08);
+      --amber:        #f59e0b;
+      --amber-dim:    rgba(245,158,11,.09);
+      --radius:       16px;
+      --radius-sm:    10px;
+      --radius-xs:    7px;
+      --shadow-xs:    0 1px 2px rgba(0,0,0,.04);
+      --shadow-sm:    0 2px 8px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+      --shadow:       0 4px 20px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
+      --shadow-lg:    0 16px 48px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.04);
+      --shadow-xl:    0 28px 72px rgba(0,0,0,.15);
+      --ease:         cubic-bezier(.22,1,.36,1);
+      --ease-spring:  cubic-bezier(.34,1.56,.64,1);
+      --nav-h:        60px;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'DM Sans', sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
+    }
+
+    /* ════════════════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════════════════ */
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+    @keyframes scaleIn  { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+    @keyframes slideDown{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin     { to{transform:rotate(360deg)} }
+    @keyframes alertSlide { from{transform:translateX(110%);opacity:0;} to{transform:translateX(0);opacity:1;} }
+    @keyframes scFadeUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes cmPop    { from{opacity:0;transform:scale(.95) translateY(16px);} to{opacity:1;transform:scale(1) translateY(0);} }
+
+    .a1{animation:fadeUp .55s var(--ease) both}
+    .a2{animation:fadeUp .55s .07s var(--ease) both}
+    .a3{animation:fadeUp .55s .14s var(--ease) both}
+
+    /* ════════════════════════════════════════════
+       NAVBAR — identical to dashboard.html
+    ════════════════════════════════════════════ */
+    .navbar {
+      position:sticky; top:0; z-index:200;
+      height:var(--nav-h);
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center;
+      padding:0 clamp(16px,4vw,44px);
+      gap:16px;
+      transition:box-shadow .25s;
+    }
+    .navbar.scrolled { box-shadow:var(--shadow-sm); }
+
+    /* Brand */
+    .nav-brand {
+      display:flex; align-items:center; gap:9px;
+      text-decoration:none; flex-shrink:0;
+    }
+    .nav-brand-logo {
+      width:32px; height:32px; border-radius:9px;
+      background:var(--ink);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .nav-brand-logo svg { width:16px; height:16px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .nav-brand-name {
+      font-size:.92rem; font-weight:700; letter-spacing:-.01em;
+      color:var(--ink);
+    }
+    .nav-brand-name span { color:var(--accent); }
+
+    /* Desktop nav links */
+    .nav-links {
+      display:flex; align-items:center; gap:2px;
+      margin:0 auto;
+    }
+    .nav-links a {
+      font-size:.82rem; font-weight:500; color:var(--mid);
+      text-decoration:none; padding:7px 13px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
+      white-space:nowrap;
+    }
+    .nav-links a:hover { color:var(--ink); background:var(--bg); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
+
+    /* Right side actions */
+    .nav-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+
+    .nav-icon-btn {
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      color:var(--mid); display:flex; align-items:center; justify-content:center;
+      position:relative; transition:background .18s, color .18s;
+    }
+    .nav-icon-btn:hover { background:var(--bg); color:var(--ink); }
+    .nav-icon-btn svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    .notif-badge {
+      position:absolute; top:4px; right:4px;
+      min-width:15px; height:15px; border-radius:999px;
+      background:var(--accent); color:#fff;
+      font-size:.5rem; font-weight:800;
+      display:none; align-items:center; justify-content:center; padding:0 3px;
+      border:2px solid var(--white);
+    }
+    .notif-badge.visible { display:flex; }
+
+    .nav-logout {
+      font-size:.8rem; font-weight:600; color:var(--muted);
+      text-decoration:none; padding:7px 12px; border-radius:var(--radius-xs);
+      transition:color .18s, background .18s;
+    }
+    .nav-logout:hover { color:var(--ink); background:var(--bg); }
+
+    /* Hamburger (mobile only) */
+    .hamburger {
+      display:none;
+      width:36px; height:36px; border-radius:var(--radius-xs);
+      background:none; border:none; cursor:pointer;
+      align-items:center; justify-content:center; flex-direction:column;
+      gap:5px; padding:8px;
+    }
+    .hamburger span {
+      display:block; width:100%; height:1.5px;
+      background:var(--ink); border-radius:999px;
+      transition:transform .25s var(--ease), opacity .2s;
+    }
+    .hamburger.open span:nth-child(1) { transform:translateY(6.5px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
+
+    /* Mobile menu drawer */
+    .mobile-menu {
+      position:fixed; top:var(--nav-h); left:0; right:0;
+      background:var(--white); border-bottom:1px solid var(--border);
+      box-shadow:var(--shadow-lg);
+      z-index:190;
+      padding:12px 16px 16px;
+      transform:translateY(-8px);
+      opacity:0; pointer-events:none;
+      transition:transform .28s var(--ease), opacity .22s;
+    }
+    .mobile-menu.open { transform:translateY(0); opacity:1; pointer-events:all; }
+    .mobile-menu a {
+      display:block; padding:12px 14px;
+      font-size:.9rem; font-weight:500; color:var(--mid);
+      text-decoration:none; border-radius:var(--radius-xs);
+      transition:background .15s, color .15s;
+    }
+    .mobile-menu a.active { color:var(--accent); font-weight:600; background:var(--accent-dim); }
+    .mobile-menu a:hover { color:var(--ink); background:var(--bg); }
+    .mobile-menu-divider { height:1px; background:var(--border); margin:8px 0; }
+
+    /* ════════════════════════════════════════════
+       NOTIFICATION PANEL
+    ════════════════════════════════════════════ */
+    .notification-panel {
+      position:fixed; top:var(--nav-h); right:0;
+      width:min(380px, 100vw);
+      background:var(--white);
+      border-left:1px solid var(--border);
+      box-shadow:var(--shadow-xl);
+      z-index:300;
+      transform:translateX(110%);
+      transition:transform .32s var(--ease);
+      max-height:calc(100vh - var(--nav-h));
+      display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .notification-panel.open { transform:translateX(0); }
+
+    .notif-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px 14px;
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+    }
+    .notif-header h3 { font-size:.92rem; font-weight:700; letter-spacing:-.01em; }
+    .notif-close-btn {
+      width:28px; height:28px; border-radius:var(--radius-xs);
+      background:var(--bg); border:1px solid var(--border);
+      color:var(--mid); cursor:pointer; font-size:15px;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .15s;
+    }
+    .notif-close-btn:hover { color:var(--ink); background:var(--bg-2); }
+
+    .notif-summary-bar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 20px; background:var(--bg);
+      border-bottom:1px solid var(--border); flex-shrink:0;
+    }
+    .notif-summary-text { font-size:.72rem; color:var(--muted); font-weight:500; }
+    .notif-mark-all-btn {
+      font-size:.68rem; font-weight:700; letter-spacing:.04em;
+      color:var(--accent); background:none; border:none; cursor:pointer;
+      transition:color .15s;
+    }
+    .notif-mark-all-btn:hover { color:var(--accent-h); }
+
+    #notificationList { overflow-y:auto; flex:1; }
+    #notificationList::-webkit-scrollbar { width:3px; }
+    #notificationList::-webkit-scrollbar-thumb { background:var(--border-2); border-radius:3px; }
+
+    .notif-item {
+      display:flex; align-items:flex-start; gap:12px;
+      padding:14px 20px; border-bottom:1px solid var(--border);
+      cursor:pointer; transition:background .15s; position:relative;
+    }
+    .notif-item:last-child { border-bottom:none; }
+    .notif-item:hover { background:var(--bg); }
+    .notif-item.unread { background:rgba(229,82,14,.022); }
+    .notif-item.unread:hover { background:rgba(229,82,14,.048); }
+
+    .notif-icon-wrap {
+      width:35px; height:35px; border-radius:10px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--bg); border:1px solid var(--border);
+    }
+    .notif-icon-wrap svg { width:14px; height:14px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .notif-item.unread .notif-icon-wrap { background:var(--accent-dim); border-color:rgba(229,82,14,.18); }
+    .notif-item.unread .notif-icon-wrap svg { stroke:var(--accent); }
+
+    .notif-body { flex:1; min-width:0; }
+    .notif-msg { font-size:.8rem; line-height:1.45; color:var(--mid); word-break:break-word; }
+    .notif-item.unread .notif-msg { color:var(--ink); font-weight:500; }
+    .notif-time { font-size:.66rem; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:3px; }
+    .notif-time svg { width:10px; height:10px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; }
+    .notif-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:7px; }
+    .notif-item.read .notif-dot { visibility:hidden; }
+    .notif-empty { padding:48px 20px; text-align:center; color:var(--muted); }
+    .notif-empty svg { width:36px; height:36px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 12px; }
+    .notif-empty p { font-size:.82rem; }
+
+    /* ════════════════════════════════════════════
+       ALERTS
+    ════════════════════════════════════════════ */
     .alert-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-width: 400px;
+      position:fixed; top:calc(var(--nav-h) + 12px); right:20px;
+      z-index:9999; display:flex; flex-direction:column; gap:8px;
+      max-width:300px;
+    }
+    .alert {
+      padding:12px 15px; border-radius:var(--radius-sm);
+      font-size:.8rem; font-weight:500;
+      box-shadow:var(--shadow-lg);
+      animation:alertSlide .35s var(--ease-spring) both;
+      display:flex; align-items:center; gap:9px;
+    }
+    .alert-success { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+    .alert-error   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+    .alert-info    { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+
+    /* ════════════════════════════════════════════
+       PAGE LAYOUT
+    ════════════════════════════════════════════ */
+    .page {
+      max-width:1120px; margin:0 auto;
+      padding:clamp(24px,3vw,40px) clamp(16px,3.5vw,40px);
+      display:flex; flex-direction:column; gap:20px;
     }
 
-    @keyframes slideOut {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
+    /* ════════════════════════════════════════════
+       PAGE HEADER
+    ════════════════════════════════════════════ */
+    .page-header {
+      display:flex; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap; gap:14px;
+    }
+    .page-header-title {
+      font-size:clamp(1.5rem,3.8vw,2rem); font-weight:700;
+      letter-spacing:-.025em; line-height:1.15;
+    }
+    .page-header-title em { color:var(--accent); font-style:normal; }
+    .page-header-sub { font-size:.84rem; color:var(--muted); margin-top:4px; font-weight:400; }
 
-      to {
-        transform: translateX(100%);
-        opacity: 0;
-      }
+    /* ════════════════════════════════════════════
+       FILTER CARD — styled as dashboard section card
+    ════════════════════════════════════════════ */
+    .filter-card {
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow-xs);
+      overflow:hidden;
+    }
+    .filter-head {
+      padding:16px 22px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:8px;
+    }
+    .filter-head svg { width:15px; height:15px; stroke:var(--accent); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .filter-head-title {
+      font-size:.82rem; font-weight:700; letter-spacing:.02em;
+      color:var(--ink);
+    }
+    .filter-body {
+      padding:16px 22px;
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center;
     }
 
-    /* ═══════════════ COURT CARDS ═══════════════ */
+    /* Inputs */
+    .filter-select, .filter-input {
+      padding:9px 13px;
+      background:var(--bg); border:1.5px solid var(--border);
+      border-radius:var(--radius-xs); color:var(--ink);
+      font-family:'DM Sans',sans-serif; font-size:.83rem;
+      outline:none; transition:border-color .18s, box-shadow .18s;
+      appearance:none; -webkit-appearance:none;
+    }
+    .filter-select {
+      cursor:pointer; padding-right:32px;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b909f' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 10px center;
+    }
+    .filter-select:focus, .filter-input:focus {
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px var(--accent-dim);
+    }
+    .filter-input { flex:1; min-width:180px; }
+    .filter-input::placeholder { color:var(--muted); }
+
+    .filter-chip-count {
+      font-size:.72rem; font-weight:600; color:var(--muted);
+      background:var(--bg); border:1px solid var(--border);
+      padding:5px 12px; border-radius:var(--radius-xs);
+      white-space:nowrap;
+    }
+
+    /* ════════════════════════════════════════════
+       COURTS GRID
+    ════════════════════════════════════════════ */
     .courts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-      gap: 18px;
-      margin-top: 20px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(min(100%,268px),1fr));
+      gap:14px;
     }
 
+    /* Section headers */
+    .sc-section-header {
+      grid-column:1/-1;
+      display:flex; align-items:center; gap:10px;
+      padding:4px 0; margin-top:4px;
+    }
+    .sc-section-icon { width:20px; height:20px; flex-shrink:0; }
+    .sc-section-icon svg { width:100%; height:100%; }
+    .sc-section-title {
+      font-size:.78rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    }
+    .sc-section-count {
+      font-size:.68rem; font-weight:600; color:var(--muted);
+      background:var(--white); border:1px solid var(--border);
+      padding:2px 9px; border-radius:20px;
+    }
+    .sc-section-line { flex:1; height:1px; background:var(--border); }
+
+    /* Court card */
     .sc-card {
-      background: #fff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-      border: 1px solid #f1f5f9;
-      transition: transform .22s cubic-bezier(.4, 0, .2, 1), box-shadow .22s cubic-bezier(.4, 0, .2, 1);
-      animation: scFadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      overflow:hidden;
+      transition:border-color .2s, box-shadow .25s var(--ease), transform .25s var(--ease);
+      animation:scFadeUp .4s var(--ease) backwards;
+      position:relative;
     }
-
     .sc-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.13);
+      border-color:var(--border-2);
+      box-shadow:var(--shadow);
+      transform:translateY(-3px);
     }
+    .sc-card--maint { opacity:.8; }
 
-    @keyframes scFadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
-      }
+    /* Top accent strip */
+    .sc-strip { height:3px; width:100%; }
 
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
+    /* Sport icon band */
     .sc-band {
-      height: 80px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f8fafc;
-      border-bottom: 1px solid #f1f5f9;
+      height:76px; position:relative;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--bg); border-bottom:1px solid var(--border);
     }
+    .sc-band-icon { width:46px; height:46px; position:relative; z-index:1; }
+    .sc-band-icon svg { width:100%; height:100%; }
 
-    .sc-band-icon {
-      width: 48px;
-      height: 48px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .sc-band-icon svg {
-      width: 100%;
-      height: 100%;
-    }
-
+    /* Favourite button */
     .sc-fav {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: white;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 50%;
-      min-width: 30px;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      padding: 0;
-      margin: 0;
-      z-index: 2;
-      transition: border-color .18s, transform .18s;
+      position:absolute; top:10px; right:10px;
+      width:28px; height:28px; border-radius:50%;
+      background:var(--white); border:1.5px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; padding:0; margin:0; z-index:2;
+      transition:border-color .15s, transform .15s;
+    }
+    .sc-fav svg { width:12px; height:12px; fill:none; stroke:#94a3b8; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .sc-fav--on svg { fill:#fbbf24; stroke:#fbbf24; }
+    .sc-fav:hover { border-color:#fbbf24; transform:scale(1.1); }
+
+    /* Maintenance badge */
+    .sc-maint-badge {
+      position:absolute; bottom:7px; left:50%; transform:translateX(-50%);
+      background:#fffbeb; color:#92400e; border:1px solid #fde68a;
+      font-size:.6rem; font-weight:700; padding:2px 8px; border-radius:20px;
+      white-space:nowrap; letter-spacing:.04em;
+      display:flex; align-items:center; gap:4px;
+    }
+    .sc-maint-badge svg { width:10px; height:10px; stroke:#92400e; fill:none; stroke-width:2; stroke-linecap:round; }
+    .sc-maint-tag {
+      font-size:.66rem; color:#d97706; font-weight:600;
+      background:#fffbeb; border:1px solid #fde68a; padding:2px 7px; border-radius:var(--radius-xs);
     }
 
-    .sc-fav svg {
-      width: 13px;
-      height: 13px;
-      fill: none;
-      stroke: #94a3b8;
+    /* Card body */
+    .sc-body { padding:14px 16px 16px; }
+    .sc-badges { display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+    .sc-tier-badge {
+      font-size:.6rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      padding:2px 8px; border-radius:var(--radius-xs);
     }
-
-    .sc-fav--on svg {
-      fill: #fbbf24;
-      stroke: #fbbf24;
-    }
-
-    .sc-fav:hover {
-      border-color: #fbbf24;
-      transform: scale(1.1);
-      box-shadow: none;
-    }
-
-    .sc-body {
-      padding: 16px 18px 18px;
-    }
-
     .sc-sport-tag {
-      display: inline-block;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 3px 9px;
-      border-radius: 20px;
-      margin-bottom: 8px;
+      font-size:.6rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      padding:2px 8px; border-radius:var(--radius-xs);
+      background:var(--bg); color:var(--muted); border:1px solid var(--border);
     }
-
     .sc-name {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      color: #0f172a;
-      margin: 0 0 5px;
-      line-height: 1.15;
+      font-size:1rem; font-weight:700;
+      letter-spacing:-.01em; color:var(--ink); margin:0 0 4px; line-height:1.2;
     }
-
+    .sc-card--maint .sc-name { color:var(--muted); }
     .sc-desc {
-      font-size: 0.78rem;
-      color: #64748b;
-      line-height: 1.55;
-      margin: 0 0 12px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      font-size:.76rem; color:var(--muted); line-height:1.5; margin:0 0 10px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
     }
-
     .sc-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
     }
-
     .sc-capacity {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.75rem;
-      color: #94a3b8;
-      font-weight: 500;
+      display:flex; align-items:center; gap:4px;
+      font-size:.72rem; color:var(--muted); font-weight:500;
     }
-
+    .sc-capacity svg { width:12px; height:12px; stroke:var(--muted); fill:none; stroke-width:1.8; stroke-linecap:round; }
     .sc-price {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 800;
+      font-size:1.15rem; font-weight:700; letter-spacing:-.02em;
     }
+    .sc-price-unit { font-size:.68rem; font-weight:500; color:var(--muted); }
 
-    .sc-price-unit {
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: #94a3b8;
-    }
-
-    .sc-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
+    /* Action buttons */
+    .sc-actions { display:flex; gap:8px; align-items:center; }
     .sc-book-btn {
-      flex: 1;
-      color: white;
-      border: none;
-      padding: 10px 0;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: .02em;
-      cursor: pointer;
-      transition: opacity .18s, transform .15s, box-shadow .18s;
+      flex:1; color:#fff; border:none; padding:9px 0;
+      border-radius:var(--radius-xs);
+      font-family:'DM Sans',sans-serif;
+      font-size:.8rem; font-weight:700;
+      cursor:pointer; transition:opacity .15s, transform .18s var(--ease), box-shadow .18s;
     }
-
-    .sc-book-btn:hover {
-      opacity: .88;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-    }
+    .sc-book-btn:hover { opacity:.88; transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,.18); }
+    .sc-book-btn--disabled { background:#e9eaf0!important; color:var(--muted)!important; cursor:not-allowed!important; }
+    .sc-book-btn--disabled:hover { opacity:1; transform:none; box-shadow:none; }
 
     .sc-detail-btn {
-      min-width: 38px;
-      width: 38px;
-      height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      cursor: pointer;
-      color: #64748b;
-      padding: 0;
-      margin: 0;
-      transition: all .18s;
+      width:36px; height:36px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--bg); border:1.5px solid var(--border);
+      border-radius:var(--radius-xs); cursor:pointer; color:var(--mid);
+      padding:0; margin:0; transition:all .18s;
+    }
+    .sc-detail-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; }
+    .sc-detail-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
+
+    /* Loading / empty states */
+    .courts-loading {
+      grid-column:1/-1; padding:56px 20px; text-align:center; color:var(--muted);
+    }
+    .courts-spinner {
+      width:32px; height:32px; margin:0 auto 14px;
+      border:2.5px solid var(--border); border-top-color:var(--accent);
+      border-radius:50%; animation:spin .85s linear infinite;
+    }
+    .courts-empty {
+      grid-column:1/-1; padding:56px 20px; text-align:center; color:var(--muted);
+    }
+    .courts-empty svg { width:40px; height:40px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 14px; }
+    .courts-empty p { font-size:.84rem; }
+    .courts-error { grid-column:1/-1; padding:20px; }
+    .courts-error-box {
+      padding:16px 18px; border-radius:var(--radius-sm);
+      background:#fef2f2; color:#991b1b; border:1px solid #fecaca;
+      font-size:.84rem; font-weight:500;
     }
 
-    .sc-detail-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .sc-detail-btn:hover {
-      background: #0f172a;
-      border-color: #0f172a;
-      color: white;
-      box-shadow: none;
-      transform: none;
-    }
-
-    .sc-card--maint {
-      opacity: 0.82;
-    }
-
-    .sc-card--maint .sc-band {
-      background: #f8fafc;
-    }
-
-    .sc-maint-badge {
-      position: absolute;
-      bottom: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fef3c7;
-      color: #92400e;
-      border: 1px solid #fde68a;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-      white-space: nowrap;
-      letter-spacing: .04em;
-    }
-
-    .sc-maint-tag {
-      font-size: 0.68rem;
-      color: #d97706;
-      font-weight: 600;
-      background: #fef3c7;
-      padding: 2px 7px;
-      border-radius: 10px;
-    }
-
-    .sc-tier-badge {
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 20px;
-    }
-
-    /* ── Section headers ── */
-    .sc-section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 0 4px;
-      margin-top: 8px;
-    }
-
-    .sc-section-icon {
-      width: 24px;
-      height: 24px;
-      flex-shrink: 0;
-    }
-
-    .sc-section-icon svg {
-      width: 100%;
-      height: 100%;
-    }
-
-    .sc-section-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-    }
-
-    .sc-section-count {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #94a3b8;
-      background: #f1f5f9;
-      padding: 2px 8px;
-      border-radius: 20px;
-    }
-
-    .sc-section-line {
-      flex: 1;
-      height: 1.5px;
-      border-radius: 2px;
-      opacity: 0.2;
-    }
-
-    /* ═══════════════ MODAL ═══════════════ */
+    /* ════════════════════════════════════════════
+       COURT DETAIL MODAL
+    ════════════════════════════════════════════ */
     .cm-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(8px);
-      z-index: 9000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      display:none; position:fixed; inset:0;
+      background:rgba(15,17,23,.55); backdrop-filter:blur(6px);
+      z-index:9000; align-items:center; justify-content:center; padding:20px;
     }
-
     .cm-panel {
-      background: #fff;
-      border-radius: 20px;
-      max-width: 460px;
-      width: 100%;
-      overflow: hidden;
-      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.25);
-      animation: cmPop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      background:var(--white); border:1px solid var(--border);
+      border-radius:var(--radius); max-width:460px; width:100%;
+      overflow:hidden; box-shadow:var(--shadow-xl);
+      animation:cmPop .3s var(--ease) forwards;
     }
 
-    @keyframes cmPop {
-      from {
-        opacity: 0;
-        transform: scale(0.93) translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-
+    /* Modal hero */
     .cm-hero {
-      height: 150px;
-      position: relative;
-      display: flex;
-      align-items: flex-end;
-      padding: 18px 22px;
-      overflow: hidden;
+      height:140px; position:relative;
+      display:flex; align-items:flex-end; padding:18px 22px; overflow:hidden;
     }
-
-    .cm-hero-bg {
-      position: absolute;
-      inset: 0;
-    }
-
+    .cm-hero-bg { position:absolute; inset:0; }
     .cm-hero-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(circle, rgba(255, 255, 255, .12) 1px, transparent 1px);
-      background-size: 16px 16px;
+      content:''; position:absolute; inset:0;
+      background-image:radial-gradient(circle,rgba(255,255,255,.1) 1px,transparent 1px);
+      background-size:16px 16px;
     }
-
     .cm-hero-icon {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-52%) rotate(-8deg);
-      width: 100px;
-      height: 100px;
-      opacity: 0.18;
-      color: white;
+      position:absolute; right:16px; top:50%; transform:translateY(-50%) rotate(-8deg);
+      width:90px; height:90px; opacity:.16; color:#fff;
     }
-
-    .cm-hero-icon svg {
-      width: 100%;
-      height: 100%;
-    }
-
-    .cm-hero-content {
-      position: relative;
-      z-index: 1;
-    }
-
+    .cm-hero-icon svg { width:100%; height:100%; }
+    .cm-hero-content { position:relative; z-index:1; }
     .cm-badge {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      color: white;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 20px;
-      margin-bottom: 6px;
+      display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.35);
+      color:#fff; font-size:.62rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+      padding:3px 10px; border-radius:var(--radius-xs); margin-bottom:6px;
     }
-
     .cm-title {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.6rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      color: white;
-      margin: 0;
-      line-height: 1.1;
-      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+      font-size:1.4rem; font-weight:700; letter-spacing:-.02em;
+      color:#fff; margin:0; line-height:1.1;
     }
-
     .cm-close {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(255, 255, 255, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      border-radius: 50%;
-      cursor: pointer;
-      min-width: 30px;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      margin: 0;
-      transition: background .18s;
+      position:absolute; top:12px; right:12px;
+      background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.3);
+      color:#fff; border-radius:var(--radius-xs); cursor:pointer;
+      width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+      padding:0; margin:0; transition:background .15s;
     }
+    .cm-close svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; }
+    .cm-close:hover { background:rgba(255,255,255,.32); }
 
-    .cm-close svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    .cm-close:hover {
-      background: rgba(255, 255, 255, 0.32);
-      box-shadow: none;
-      transform: none;
-    }
-
+    /* Modal stats */
     .cm-stats {
-      display: flex;
-      padding: 14px 22px;
-      border-bottom: 1px solid #f1f5f9;
+      display:flex; padding:14px 22px; border-bottom:1px solid var(--border);
     }
+    .cm-stat { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; }
+    .cm-stat-icon { width:15px; height:15px; stroke:var(--muted); fill:none; stroke-width:2; stroke-linecap:round; margin-bottom:1px; }
+    .cm-stat-label { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    .cm-stat-val { font-size:1rem; font-weight:700; color:var(--ink); letter-spacing:-.01em; }
+    .cm-stat-divider { width:1px; background:var(--border); flex-shrink:0; align-self:center; height:30px; }
 
-    .cm-stat {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .cm-stat-icon {
-      width: 16px;
-      height: 16px;
-      color: #94a3b8;
-      margin-bottom: 1px;
-    }
-
-    .cm-stat-label {
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: #94a3b8;
-    }
-
-    .cm-stat-val {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1rem;
-      font-weight: 800;
-      color: #1e293b;
-    }
-
-    .cm-stat-divider {
-      width: 1px;
-      height: 32px;
-      background: #e2e8f0;
-      flex-shrink: 0;
-      align-self: center;
-    }
-
-    .cm-body {
-      padding: 16px 22px 22px;
-    }
-
+    /* Modal body */
+    .cm-body { padding:16px 22px 20px; }
     .cm-section-label {
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: #94a3b8;
-      margin-bottom: 5px;
+      font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em;
+      color:var(--muted); margin-bottom:6px;
     }
-
-    .cm-desc {
-      font-size: 0.86rem;
-      color: #475569;
-      line-height: 1.65;
-      margin: 0;
-    }
-
-    .cm-features {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-top: 4px;
-    }
-
+    .cm-desc { font-size:.84rem; color:var(--mid); line-height:1.65; margin:0; }
+    .cm-features { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
     .cm-feature-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      border: 1px solid;
-      border-radius: 8px;
-      font-size: 0.74rem;
-      font-weight: 600;
-      padding: 5px 10px;
+      display:inline-flex; align-items:center; gap:5px;
+      border:1px solid var(--border); border-radius:var(--radius-xs);
+      font-size:.72rem; font-weight:600; padding:4px 9px;
+      color:var(--mid); background:var(--bg);
     }
-
-    .cm-feature-tag svg {
-      width: 11px;
-      height: 11px;
-    }
-
+    .cm-feature-tag svg { width:11px; height:11px; }
     .cm-book-btn {
-      margin-top: 18px;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: white;
-      border: none;
-      padding: 13px;
-      border-radius: 12px;
-      font-size: 0.92rem;
-      font-weight: 700;
-      letter-spacing: .02em;
-      cursor: pointer;
-      transition: opacity .18s, transform .15s, box-shadow .18s;
+      margin-top:16px; width:100%;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      color:#fff; border:none; padding:12px;
+      border-radius:var(--radius-xs);
+      font-family:'DM Sans',sans-serif;
+      font-size:.86rem; font-weight:700;
+      cursor:pointer; transition:opacity .15s, transform .18s var(--ease), box-shadow .18s;
+    }
+    .cm-book-btn:hover { opacity:.88; transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.18); }
+    .cm-book-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; flex-shrink:0; }
+
+    /* ════════════════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════════════════ */
+    @media (max-width:768px) {
+      .nav-links, .nav-logout { display:none; }
+      .hamburger { display:flex; }
+      .filter-body { flex-direction:column; }
+      .filter-select, .filter-input { width:100%; }
     }
 
-    .cm-book-btn:hover {
-      opacity: .88;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    }
-
-    .cm-book-btn svg {
-      width: 17px;
-      height: 17px;
-      flex-shrink: 0;
+    @media (max-width:480px) {
+      .courts-grid { grid-template-columns:1fr; }
+      .alert-container { right:12px; max-width:calc(100vw - 24px); }
     }
   </style>
 </head>
-
 <body>
+
   <div class="alert-container" id="alertContainer"></div>
 
-  <nav class="navbar">
-    <div class="navbar-brand">SportCourt</div>
-    <div class="navbar-links">
-      <a href="dashboard.html">Dashboard</a>
-      <a href="courts.html">Book Courts</a>
-      <a href="bookings.html">My Bookings</a>
-      <a href="favorites.html">Favorites</a>
-      <a href="profile.html">Profile</a>
-      <div class="notification-badge">
-        <button class="notif-btn" onclick="toggleNotifications(); return false;" aria-label="Notifications">
-          <svg class="notif-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-          <span id="notifBadge" class="notif-count" style="display:none;">0</span>
-        </button>
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar" id="mainNav">
+    <a href="dashboard.html" class="nav-brand">
+      <div class="nav-brand-logo">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M4 12a8 8 0 0 1 8-8M12 20a8 8 0 0 1-8-8M20 12a8 8 0 0 1-8 8M12 4a8 8 0 0 1 8 8"/></svg>
       </div>
-      <a href="#" onclick="logout()">Logout</a>
+      <span class="nav-brand-name">Sport<span>Court</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="courts.html" class="active">Book Courts</a>
+      <a href="bookings.html">My Bookings</a>
+      <a href="favorites.html">Favourites</a>
+      <a href="profile.html">Profile</a>
+    </div>
+
+    <!-- Right actions -->
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-badge" id="notifBadge">0</span>
+      </button>
+      <a href="#" onclick="logout();return false;" class="nav-logout">Logout</a>
+
+      <!-- Hamburger (mobile) -->
+      <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
 
-  <div id="notificationPanel" class="notification-panel">
-    <div class="notification-header">
-      <h3>Notifications</h3>
-      <span class="close" onclick="toggleNotifications()">&times;</span>
-    </div>
-    <div id="notificationList"></div>
+  <!-- Mobile menu drawer -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="courts.html" class="active">Book Courts</a>
+    <a href="bookings.html">My Bookings</a>
+    <a href="favorites.html">Favourites</a>
+    <a href="profile.html">Profile</a>
+    <div class="mobile-menu-divider"></div>
+    <a href="#" onclick="logout();return false;">Logout</a>
   </div>
 
-  <div class="dashboard-container">
-    <div class="dashboard-header">
-      <h2>Browse Courts</h2>
-      <p>Select a court to book your session</p>
+  <!-- ── NOTIFICATION PANEL ── -->
+  <div id="notificationPanel" class="notification-panel">
+    <div class="notif-header">
+      <h3>Notifications</h3>
+      <button class="notif-close-btn" onclick="toggleNotifications()">&#x2715;</button>
     </div>
-    <div class="card">
-      <h3>Filter Courts</h3>
-      <div style="display:flex;gap:15px;flex-wrap:wrap;">
-        <select id="courtTypeFilter" onchange="filterCourts()">
+    <div id="notifSummaryBar" style="display:none" class="notif-summary-bar">
+      <span class="notif-summary-text" id="notifSummaryText"></span>
+      <button class="notif-mark-all-btn" onclick="markAllAsRead()">Mark all read</button>
+    </div>
+    <div id="notificationList">
+      <div class="notif-empty">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <p>No notifications yet</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE ── -->
+  <div class="page">
+
+    <!-- Page Header -->
+    <div class="page-header a1">
+      <div>
+        <div class="page-header-title">Browse <em>Courts</em></div>
+        <div class="page-header-sub">Select a court to book your session</div>
+      </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="filter-card a2">
+      <div class="filter-head">
+        <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <div class="filter-head-title">Filter Courts</div>
+      </div>
+      <div class="filter-body">
+        <select class="filter-select" id="courtTypeFilter" onchange="filterCourts()">
           <option value="all">All Courts</option>
           <option value="tennis">Tennis</option>
           <option value="basketball">Basketball</option>
           <option value="football">Football</option>
           <option value="futsal">Futsal</option>
         </select>
-        <input type="text" id="searchCourt" placeholder="Search courts..." onkeyup="filterCourts()" style="flex:1;">
-        <select id="sortBy" onchange="filterCourts()">
+        <input class="filter-input" type="text" id="searchCourt" placeholder="Search courts…" onkeyup="filterCourts()">
+        <select class="filter-select" id="sortBy" onchange="filterCourts()">
           <option value="name">Sort by Name</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
         </select>
+        <span class="filter-chip-count" id="courtCount">— courts</span>
       </div>
     </div>
-    <div id="courtsGrid" class="courts-grid">
-      <div class="spinner"></div>
-    </div>
-  </div>
 
-  <!-- Court Info Modal -->
+    <!-- Courts Grid -->
+    <div id="courtsGrid" class="courts-grid a3">
+      <div class="courts-loading">
+        <div class="courts-spinner"></div>
+        <div style="font-size:.82rem;">Loading courts…</div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+
+  <!-- COURT DETAIL MODAL -->
   <div id="courtInfoModal" class="cm-overlay">
     <div class="cm-panel">
       <div class="cm-hero">
@@ -658,41 +751,24 @@
           <h2 class="cm-title" id="modalName"></h2>
         </div>
         <button class="cm-close" onclick="closeCourtModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="cm-stats">
         <div class="cm-stat">
-          <svg class="cm-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
-          </svg>
+          <svg class="cm-stat-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v2m0 8v2"/><path d="M15 10a3 3 0 0 0-6 0c0 1.7 1.3 2.5 3 3s3 1.3 3 3a3 3 0 0 1-6 0"/></svg>
           <span class="cm-stat-label">Price</span>
           <span class="cm-stat-val" id="modalPrice"></span>
         </div>
         <div class="cm-stat-divider"></div>
         <div class="cm-stat">
-          <svg class="cm-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
+          <svg class="cm-stat-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span class="cm-stat-label">Capacity</span>
           <span class="cm-stat-val" id="modalCapacity"></span>
         </div>
         <div class="cm-stat-divider"></div>
         <div class="cm-stat">
-          <svg class="cm-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
+          <svg class="cm-stat-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           <span class="cm-stat-label">Status</span>
           <span class="cm-stat-val" id="modalStatus"></span>
         </div>
@@ -700,96 +776,15 @@
       <div class="cm-body">
         <div class="cm-section-label">About</div>
         <p class="cm-desc" id="modalDescription"></p>
-        <div class="cm-section-label" style="margin-top:16px;">Features</div>
+        <div class="cm-section-label" style="margin-top:14px;">Features</div>
         <div class="cm-features" id="modalFeatures"></div>
         <button class="cm-book-btn" id="modalBookBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Book This Court
         </button>
       </div>
     </div>
   </div>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="footer-content">
-      <div class="footer-section footer-brand">
-        <div class="footer-logo">
-          <div class="footer-logo-mark"></div>
-          <div class="footer-logo-text">SportCourt</div>
-        </div>
-        <p class="footer-description">Your premier destination for booking sports courts. Play anytime, anywhere with
-          our seamless booking system.</p>
-        <span class="footer-tagline"><span class="dot-live"></span> Book Smart, Play Hard</span>
-      </div>
-      <div class="footer-section">
-        <h3>Quick Links</h3>
-        <div class="footer-links">
-          <a href="dashboard.html" class="footer-link">Dashboard</a>
-          <a href="courts.html" class="footer-link">Browse Courts</a>
-          <a href="bookings.html" class="footer-link">My Bookings</a>
-          <a href="favorites.html" class="footer-link">Favorites</a>
-          <a href="profile.html" class="footer-link">Profile</a>
-        </div>
-      </div>
-      <div class="footer-section">
-        <h3>Resources</h3>
-        <div class="footer-links">
-          <a href="#" class="footer-link">FAQs</a>
-          <a href="#" class="footer-link">How It Works</a>
-          <a href="#" class="footer-link">Pricing</a>
-          <a href="#" class="footer-link">Safety Guidelines</a>
-          <a href="#" class="footer-link">Court Rules</a>
-        </div>
-      </div>
-      <div class="footer-section">
-        <h3>Contact Us</h3>
-        <div class="footer-contact-info">
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Email</span>
-              <span class="contact-value"><a href="mailto:john@test.com">john@test.com</a></span>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Phone</span>
-              <span class="contact-value"><a href="tel:+91234565">+91234565</a></span>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-icon"></div>
-            <div class="contact-details">
-              <span class="contact-label">Support</span>
-              <span class="contact-value">Customer Service</span>
-            </div>
-          </div>
-        </div>
-        <div class="footer-social">
-          <a href="#" class="social-link" title="Facebook"></a>
-          <a href="#" class="social-link" title="Twitter"></a>
-          <a href="#" class="social-link" title="Instagram"></a>
-          <a href="#" class="social-link" title="LinkedIn"></a>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <div class="footer-copyright">© 2026 SportCourt. All rights reserved. Made with <span class="heart"></span></div>
-      <div class="footer-legal">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Refund Policy</a>
-        <a href="#">Accessibility</a>
-      </div>
-    </div>
-  </footer>
 
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
@@ -800,226 +795,202 @@
     let allCourts = [];
     let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 
-    // ── Sport-specific SVG icons ──────────────────────────────────────────────
+    /* ── Navbar scroll shadow ─────────────────────────────────────────────── */
+    window.addEventListener('scroll', () => {
+      document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 10);
+    });
+
+    /* ── Mobile menu toggle ───────────────────────────────────────────────── */
+    function toggleMobileMenu() {
+      const btn  = document.getElementById('hamburger');
+      const menu = document.getElementById('mobileMenu');
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+    }
+
+    /* ── Sport SVG icons ───────────────────────────────────────────────────── */
     const SPORT_ICONS = {
-      // Tennis racket with strings
-      tennis: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <ellipse cx="20" cy="17" rx="13" ry="14"/>
-        <line x1="11" y1="10" x2="29" y2="10"/><line x1="9" y1="14" x2="31" y2="14"/>
-        <line x1="8" y1="18" x2="32" y2="18"/><line x1="9" y1="22" x2="31" y2="22"/>
-        <line x1="11" y1="26" x2="29" y2="26"/>
-        <line x1="14" y1="7" x2="14" y2="29"/><line x1="18" y1="5" x2="18" y2="31"/>
-        <line x1="22" y1="5" x2="22" y2="31"/><line x1="26" y1="7" x2="26" y2="29"/>
-        <line x1="20" y1="31" x2="28" y2="44"/>
-      </svg>`,
-      // Basketball with seams
-      basketball: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <circle cx="24" cy="24" r="20"/>
-        <path d="M24 4 C13 13 13 35 24 44" fill="none"/>
-        <path d="M24 4 C35 13 35 35 24 44" fill="none"/>
-        <line x1="4" y1="24" x2="44" y2="24"/>
-      </svg>`,
-      // Football pitch top-down (same as futsal but full pitch proportions)
-      football: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <rect x="4" y="8" width="40" height="32" rx="2"/>
-        <line x1="24" y1="8" x2="24" y2="40"/>
-        <circle cx="24" cy="24" r="6"/>
-        <circle cx="24" cy="24" r="1.2" fill="currentColor" stroke="none"/>
-        <rect x="4" y="16" width="8" height="16" rx="1"/>
-        <rect x="36" y="16" width="8" height="16" rx="1"/>
-        <rect x="4" y="20" width="4" height="8" rx="1"/>
-        <rect x="40" y="20" width="4" height="8" rx="1"/>
-      </svg>`,
-      // Futsal pitch top-down (smaller, indoor proportions)
-      futsal: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-        <rect x="5" y="10" width="38" height="28" rx="2"/>
-        <line x1="24" y1="10" x2="24" y2="38"/>
-        <circle cx="24" cy="24" r="5"/>
-        <circle cx="24" cy="24" r="1.2" fill="currentColor" stroke="none"/>
-        <rect x="5" y="17" width="7" height="14" rx="1"/>
-        <rect x="36" y="17" width="7" height="14" rx="1"/>
-      </svg>`,
+      tennis: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="20" cy="17" rx="13" ry="14"/><line x1="11" y1="10" x2="29" y2="10"/><line x1="9" y1="14" x2="31" y2="14"/><line x1="8" y1="18" x2="32" y2="18"/><line x1="9" y1="22" x2="31" y2="22"/><line x1="11" y1="26" x2="29" y2="26"/><line x1="14" y1="7" x2="14" y2="29"/><line x1="18" y1="5" x2="18" y2="31"/><line x1="22" y1="5" x2="22" y2="31"/><line x1="26" y1="7" x2="26" y2="29"/><line x1="20" y1="31" x2="28" y2="44"/></svg>`,
+      basketball: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="24" cy="24" r="20"/><path d="M24 4 C13 13 13 35 24 44" fill="none"/><path d="M24 4 C35 13 35 35 24 44" fill="none"/><line x1="4" y1="24" x2="44" y2="24"/></svg>`,
+      football: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="8" width="40" height="32" rx="2"/><line x1="24" y1="8" x2="24" y2="40"/><circle cx="24" cy="24" r="6"/><rect x="4" y="16" width="8" height="16" rx="1"/><rect x="36" y="16" width="8" height="16" rx="1"/></svg>`,
+      futsal: `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="10" width="38" height="28" rx="2"/><line x1="24" y1="10" x2="24" y2="38"/><circle cx="24" cy="24" r="5"/><rect x="5" y="17" width="7" height="14" rx="1"/><rect x="36" y="17" width="7" height="14" rx="1"/></svg>`,
     };
 
-    // ── Theme per sport ───────────────────────────────────────────────────────
+    /* ── Sport themes ──────────────────────────────────────────────────────── */
     const SPORT_THEME = {
-      tennis: { grad: ['#22c55e', '#16a34a'], accent: '#16a34a', tint: '#f0fdf4', label: 'Tennis' },
-      basketball: { grad: ['#f97316', '#ea580c'], accent: '#ea580c', tint: '#fff7ed', label: 'Basketball' },
-      football: { grad: ['#3b82f6', '#2563eb'], accent: '#2563eb', tint: '#eff6ff', label: 'Football' },
-      futsal: { grad: ['#a855f7', '#9333ea'], accent: '#9333ea', tint: '#faf5ff', label: 'Futsal' },
+      tennis:     { grad:['#22c55e','#16a34a'], accent:'#16a34a', tint:'#f0fdf4', label:'Tennis' },
+      basketball: { grad:['#f97316','#ea580c'], accent:'#ea580c', tint:'#fff7ed', label:'Basketball' },
+      football:   { grad:['#3b82f6','#2563eb'], accent:'#2563eb', tint:'#eff6ff', label:'Football' },
+      futsal:     { grad:['#a855f7','#9333ea'], accent:'#9333ea', tint:'#faf5ff', label:'Futsal' },
     };
 
-    // ── Court info per type ───────────────────────────────────────────────────
-    // Base info per sport type
+    /* ── Court info ────────────────────────────────────────────────────────── */
     const SPORT_BASE = {
-      tennis: { desc: 'Professional hard-court surface for singles & doubles.', capacity: '2 – 4 players' },
-      basketball: { desc: 'Regulation floor with professional hoops. Great for training or league play.', capacity: '5 – 10 players' },
-      football: { desc: 'Full-size pitch with goal posts and corner flags. Perfect for 11-a-side matches.', capacity: '11 – 22 players' },
-      futsal: { desc: 'Indoor small-sided court with smooth resin floor. Fast-paced and controlled.', capacity: '5 – 10 players' },
+      tennis:     { desc:'Professional hard-court surface for singles & doubles.', capacity:'2 – 4 players' },
+      basketball: { desc:'Regulation floor with professional hoops. Great for training or league play.', capacity:'5 – 10 players' },
+      football:   { desc:'Full-size pitch with goal posts and corner flags. Perfect for 11-a-side matches.', capacity:'11 – 22 players' },
+      futsal:     { desc:'Indoor small-sided court with smooth resin floor. Fast-paced and controlled.', capacity:'5 – 10 players' },
     };
 
-    // Tier thresholds and feature sets (price per hour)
     function getTier(price) {
       if (price >= 1000) return 'premium';
-      if (price >= 400) return 'standard';
+      if (price >= 400)  return 'standard';
       return 'basic';
     }
 
     const TIER_META = {
-      basic: { label: 'Basic', color: '#64748b', bg: '#f8fafc' },
-      standard: { label: 'Standard', color: '#2563eb', bg: '#eff6ff' },
-      premium: { label: 'Premium', color: '#d97706', bg: '#fffbeb' },
+      basic:    { label:'Basic',    color:'#64748b', bg:'#f1f5f9' },
+      standard: { label:'Standard', color:'#2563eb', bg:'#eff6ff' },
+      premium:  { label:'Premium',  color:'#d97706', bg:'#fffbeb' },
     };
+
+    const SPORT_ORDER = ['tennis','basketball','football','futsal'];
 
     const TIER_FEATURES = {
       tennis: {
-        basic: [['Net & posts', 'net'], ['Line markings', 'ruler'], ['Hard surface', 'layers']],
-        standard: [['Net & posts', 'net'], ['Line markings', 'ruler'], ['Hard surface', 'layers'], ['Floodlights', 'zap'], ['Ball rental', 'box']],
-        premium: [['Net & posts', 'net'], ['Line markings', 'ruler'], ['Hard surface', 'layers'], ['Floodlights', 'zap'], ['Ball rental', 'box'], ['Coaching available', 'target'], ['Locker room', 'home'], ['Towel service', 'wind']],
+        basic:    [['Net & posts','net'],['Line markings','ruler'],['Hard surface','layers']],
+        standard: [['Net & posts','net'],['Line markings','ruler'],['Hard surface','layers'],['Floodlights','zap'],['Ball rental','box']],
+        premium:  [['Net & posts','net'],['Line markings','ruler'],['Hard surface','layers'],['Floodlights','zap'],['Ball rental','box'],['Coaching','target'],['Locker room','home'],['Towel service','wind']],
       },
       basketball: {
-        basic: [['Regulation hoops', 'target'], ['Marked lanes', 'pin'], ['Hardwood floor', 'grid']],
-        standard: [['Regulation hoops', 'target'], ['Marked lanes', 'pin'], ['Hardwood floor', 'grid'], ['Scoreboard', 'monitor'], ['Ball rental', 'box']],
-        premium: [['Regulation hoops', 'target'], ['Marked lanes', 'pin'], ['Hardwood floor', 'grid'], ['Scoreboard', 'monitor'], ['Ball rental', 'box'], ['Video replay', 'monitor'], ['Locker room', 'home'], ['Coaching available', 'target']],
+        basic:    [['Regulation hoops','target'],['Marked lanes','pin'],['Hardwood floor','grid']],
+        standard: [['Regulation hoops','target'],['Marked lanes','pin'],['Hardwood floor','grid'],['Scoreboard','monitor'],['Ball rental','box']],
+        premium:  [['Regulation hoops','target'],['Marked lanes','pin'],['Hardwood floor','grid'],['Scoreboard','monitor'],['Ball rental','box'],['Video replay','monitor'],['Locker room','home'],['Coaching','target']],
       },
       football: {
-        basic: [['Goal posts', 'flag'], ['Corner flags', 'triangle'], ['Natural grass', 'leaf']],
-        standard: [['Goal posts', 'flag'], ['Corner flags', 'triangle'], ['Natural grass', 'leaf'], ['Changing rooms', 'home'], ['Ball rental', 'box']],
-        premium: [['Goal posts', 'flag'], ['Corner flags', 'triangle'], ['Natural grass', 'leaf'], ['Changing rooms', 'home'], ['Ball rental', 'box'], ['Floodlights', 'zap'], ['Referee service', 'shield'], ['Video analysis', 'monitor']],
+        basic:    [['Goal posts','flag'],['Corner flags','triangle'],['Natural grass','leaf']],
+        standard: [['Goal posts','flag'],['Corner flags','triangle'],['Natural grass','leaf'],['Changing rooms','home'],['Ball rental','box']],
+        premium:  [['Goal posts','flag'],['Corner flags','triangle'],['Natural grass','leaf'],['Changing rooms','home'],['Ball rental','box'],['Floodlights','zap'],['Referee service','shield'],['Video analysis','monitor']],
       },
       futsal: {
-        basic: [['Indoor', 'shield'], ['Hard surface', 'layers'], ['Small goals', 'box']],
-        standard: [['Indoor', 'shield'], ['Hard surface', 'layers'], ['Small goals', 'box'], ['Air-con', 'wind'], ['Ball rental', 'box']],
-        premium: [['Indoor', 'shield'], ['Hard surface', 'layers'], ['Small goals', 'box'], ['Air-con', 'wind'], ['Ball rental', 'box'], ['Scoreboard', 'monitor'], ['Locker room', 'home'], ['Coaching available', 'target']],
+        basic:    [['Indoor','shield'],['Hard surface','layers'],['Small goals','box']],
+        standard: [['Indoor','shield'],['Hard surface','layers'],['Small goals','box'],['Air-con','wind'],['Ball rental','box']],
+        premium:  [['Indoor','shield'],['Hard surface','layers'],['Small goals','box'],['Air-con','wind'],['Ball rental','box'],['Scoreboard','monitor'],['Locker room','home'],['Coaching','target']],
       },
     };
 
     function getCourtInfo(court) {
-      const base = SPORT_BASE[court.type] || SPORT_BASE.football;
-      const tier = getTier(court.price_per_hour);
-      const feats = (TIER_FEATURES[court.type] || TIER_FEATURES.football)[tier];
+      const base  = SPORT_BASE[court.type]  || SPORT_BASE.football;
+      const tier  = getTier(court.price_per_hour);
+      const feats = (TIER_FEATURES[court.type]  || TIER_FEATURES.football)[tier] || [];
       return { ...base, tier, features: feats };
     }
 
-    // ── Tiny 16px SVG icons for feature tags ─────────────────────────────────
     const FEAT_ICONS = {
-      net: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12M4 2v12M8 2v12M12 2v12"/></svg>`,
-      ruler: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="5" width="14" height="6" rx="1"/><line x1="4" y1="5" x2="4" y2="8"/><line x1="7" y1="5" x2="7" y2="7"/><line x1="10" y1="5" x2="10" y2="8"/><line x1="13" y1="5" x2="13" y2="7"/></svg>`,
-      zap: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="9 1 5 9 9 9 7 15 11 7 7 7 9 1"/></svg>`,
-      layers: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="8 1 15 5 8 9 1 5 8 1"/><polyline points="1 9 8 13 15 9"/></svg>`,
-      target: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><circle cx="8" cy="8" r="3"/></svg>`,
-      pin: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 14s-5-4.686-5-8a5 5 0 1 1 10 0c0 3.314-5 8-5 8z"/><circle cx="8" cy="6" r="1.5"/></svg>`,
-      monitor: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="2" width="14" height="10" rx="1"/><line x1="5" y1="15" x2="11" y2="15"/><line x1="8" y1="12" x2="8" y2="15"/></svg>`,
-      grid: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="1" width="6" height="6" rx="0.5"/><rect x="9" y="1" width="6" height="6" rx="0.5"/><rect x="1" y="9" width="6" height="6" rx="0.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg>`,
-      leaf: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2S8 2 4 6c-2.5 2.5-3 7-3 7s4.5-.5 7-3c4-4 4-8 4-8z"/><line x1="2" y1="14" x2="6" y2="10"/></svg>`,
-      flag: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="1" x2="3" y2="15"/><path d="M3 3l9 3-9 3"/></svg>`,
-      triangle: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="8 2 14 13 2 13"/></svg>`,
-      home: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 7L8 1l7 6v7a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z"/><rect x="5" y="9" width="6" height="6"/></svg>`,
-      shield: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 1l6 2.5v4C14 11 11 14 8 15 5 14 2 11 2 7.5v-4L8 1z"/></svg>`,
-      wind: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 5a2 2 0 1 1 2 2H1"/><path d="M11 11a2 2 0 1 0 2-2H1"/><line x1="1" y1="8" x2="8" y2="8"/></svg>`,
-      box: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="12" height="10" rx="1"/><polyline points="5 4 5 2 11 2 11 4"/></svg>`,
+      net: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="7" y1="3" x2="7" y2="17"/><line x1="12" y1="3" x2="12" y2="17"/><line x1="17" y1="3" x2="17" y2="17"/></svg>`,
+      ruler: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12l15-9 3 5-15 9z"/><line x1="9" y1="9" x2="11" y2="13"/><line x1="13" y1="6" x2="15" y2="10"/></svg>`,
+      layers: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+      zap: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`,
+      target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+      home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+      wind: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>`,
+      monitor: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+      pin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+      grid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
+      flag: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>`,
+      triangle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>`,
+      leaf: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 8C8 10 5.9 16.17 3.82 19.23L5.71 21 6 20.23C6.5 19 7 18 8 17c1 1 2 2 3.5 2 3 0 5-2 5.5-5 2 .5 3 2 3 4 .5-3.5-.5-7.5-3-8z"/></svg>`,
+      shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
     };
 
-    const heartSVG = `<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
-    const infoSVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="6" x2="8" y2="10.5"/><circle cx="8" cy="4.5" r="0.5" fill="currentColor"/></svg>`;
-    const peopleSVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10.5 14v-1a3 3 0 0 0-3-3h-3a3 3 0 0 0-3 3v1"/><circle cx="5.5" cy="6" r="2.5"/><path d="M14 14v-1a3 3 0 0 0-2.25-2.9"/><path d="M11 3.13a2.5 2.5 0 0 1 0 4.84"/></svg>`;
+    const infoSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
 
-    // ── Render cards grouped by sport ────────────────────────────────────────
-    const SPORT_ORDER = ['basketball', 'football', 'futsal', 'tennis'];
-
-    function renderCard(court, i) {
-      const isFav = favorites.includes(court.id);
-      const info = getCourtInfo(court);
-      const theme = SPORT_THEME[court.type] || SPORT_THEME.football;
-      const icon = SPORT_ICONS[court.type] || SPORT_ICONS.football;
-      const tmeta = TIER_META[info.tier];
+    /* ── Render card ───────────────────────────────────────────────────────── */
+    function renderCard(court, idx) {
       const isMaint = court.under_maintenance || 0;
-
-      const maintEndFmt = isMaint && court.maintenance_end
-        ? new Date(court.maintenance_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-        : '';
+      const theme   = SPORT_THEME[court.type] || SPORT_THEME.football;
+      const icon    = SPORT_ICONS[court.type]  || SPORT_ICONS.football;
+      const info    = getCourtInfo(court);
+      const tmeta   = TIER_META[info.tier];
+      const isFav   = favorites.includes(court.id);
 
       return `
-        <div class="sc-card ${isMaint ? 'sc-card--maint' : ''}" style="animation-delay:${i * 0.06}s">
-          <div class="sc-band" style="border-top:3px solid ${isMaint ? '#94a3b8' : theme.accent};">
-            <div class="sc-band-icon" style="color:${isMaint ? '#94a3b8' : theme.accent};">${icon}</div>
-            ${isMaint ? `<div class="sc-maint-badge">🔧 Maintenance</div>` : ''}
-            ${!isMaint ? `<button class="sc-fav ${isFav ? 'sc-fav--on' : ''}" onclick="toggleFavorite(${court.id})" title="Favourite">${heartSVG}</button>` : ''}
+        <div class="sc-card${isMaint?' sc-card--maint':''}" style="animation-delay:${idx*0.04}s">
+          <div class="sc-strip" style="background:linear-gradient(90deg,${theme.grad[0]},${theme.grad[1]})"></div>
+          <div class="sc-band">
+            <div class="sc-band-icon" style="color:${theme.accent}">${icon}</div>
+            ${isMaint ? `
+              <div class="sc-maint-badge">
+                <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Maintenance
+              </div>` : ''}
+            <button class="sc-fav${isFav?' sc-fav--on':''}" onclick="toggleFavorite(${court.id})" title="${isFav?'Remove from favourites':'Add to favourites'}">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
           </div>
           <div class="sc-body">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
-              <span class="sc-tier-badge" style="color:${tmeta.color};background:${tmeta.bg};">${tmeta.label}</span>
-              ${isMaint ? `<span class="sc-maint-tag">Until ${maintEndFmt}</span>` : ''}
+            <div class="sc-badges">
+              <span class="sc-tier-badge" style="color:${tmeta.color};background:${tmeta.bg}">${tmeta.label}</span>
+              ${isMaint ? `<span class="sc-maint-tag">Unavailable</span>` : `<span class="sc-sport-tag">${theme.label}</span>`}
             </div>
-            <h3 class="sc-name" style="color:${isMaint ? '#94a3b8' : '#0f172a'};">${court.name}</h3>
-            <p class="sc-desc">${info.desc}</p>
+            <div class="sc-name">${court.name}</div>
+            <div class="sc-desc">${info.desc}</div>
             <div class="sc-meta">
-              <span class="sc-capacity">
-                ${peopleSVG.replace('viewBox', 'style="width:12px;height:12px;" viewBox')} ${info.capacity}
+              <div class="sc-capacity">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                ${info.capacity}
+              </div>
+              <span class="sc-price" style="color:${theme.accent}">
+                ${court.price_per_hour}<span class="sc-price-unit"> coins/hr</span>
               </span>
-              <span class="sc-price" style="color:${isMaint ? '#94a3b8' : theme.accent};">${court.price_per_hour}<span class="sc-price-unit"> coins/hr</span></span>
             </div>
             <div class="sc-actions">
               ${isMaint
-          ? `<button class="sc-book-btn sc-book-btn--disabled" disabled style="background:#e2e8f0;color:#94a3b8;cursor:not-allowed;flex:1;">Under Maintenance</button>`
-          : `<button class="sc-book-btn" onclick="bookCourt(${court.id})" style="background:linear-gradient(135deg,${theme.grad[0]},${theme.grad[1]})">Book Now</button>
+                ? `<button class="sc-book-btn sc-book-btn--disabled" disabled>Under Maintenance</button>`
+                : `<button class="sc-book-btn" onclick="bookCourt(${court.id})" style="background:linear-gradient(135deg,${theme.grad[0]},${theme.grad[1]})">Book Now</button>
                    <button class="sc-detail-btn" onclick="openCourtModal(${court.id})" title="Details">${infoSVG}</button>`
-        }
+              }
             </div>
           </div>
         </div>`;
     }
 
+    /* ── Display courts ────────────────────────────────────────────────────── */
     function displayCourts(courts) {
       const container = document.getElementById('courtsGrid');
+      document.getElementById('courtCount').textContent = courts.length + ' court' + (courts.length !== 1 ? 's' : '');
+
       if (!courts.length) {
-        container.innerHTML = '<p style="color:#64748b;padding:20px;">No courts found.</p>';
+        container.innerHTML = `<div class="courts-empty">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7m-3.5-3.5v7"/></svg>
+          <p>No courts found matching your search.</p>
+        </div>`;
         return;
       }
 
-      // Check if we're showing all types (no filter active) — if so, group by sport
       const typeFilter = document.getElementById('courtTypeFilter').value;
-      const isGrouped = typeFilter === 'all' && !document.getElementById('searchCourt').value;
+      const isGrouped  = typeFilter === 'all' && !document.getElementById('searchCourt').value.trim();
 
       if (isGrouped) {
-        // Group courts by type
         const groups = {};
-        courts.forEach(c => {
-          if (!groups[c.type]) groups[c.type] = [];
-          groups[c.type].push(c);
-        });
-
-        let html = '';
-        let cardIdx = 0;
-        const order = SPORT_ORDER.filter(t => groups[t]);
-        order.forEach(type => {
+        courts.forEach(c => { if (!groups[c.type]) groups[c.type] = []; groups[c.type].push(c); });
+        let html = '', cardIdx = 0;
+        SPORT_ORDER.filter(t => groups[t]).forEach(type => {
           const theme = SPORT_THEME[type] || SPORT_THEME.football;
-          const icon = SPORT_ICONS[type] || SPORT_ICONS.football;
+          const icon  = SPORT_ICONS[type]  || SPORT_ICONS.football;
           html += `
-            <div class="sc-section-header" style="grid-column:1/-1;">
+            <div class="sc-section-header">
               <span class="sc-section-icon" style="color:${theme.accent};">${icon}</span>
               <span class="sc-section-title" style="color:${theme.accent};">${theme.label}</span>
-              <span class="sc-section-count">${groups[type].length} court${groups[type].length > 1 ? 's' : ''}</span>
-              <div class="sc-section-line" style="background:${theme.accent};"></div>
+              <span class="sc-section-count">${groups[type].length} court${groups[type].length>1?'s':''}</span>
+              <div class="sc-section-line"></div>
             </div>`;
-          groups[type].forEach(court => {
-            html += renderCard(court, cardIdx++);
-          });
+          groups[type].forEach(court => { html += renderCard(court, cardIdx++); });
         });
         container.innerHTML = html;
       } else {
-        // Flat list when filtered/searched
-        container.innerHTML = courts.map((c, i) => renderCard(c, i)).join('');
+        container.innerHTML = courts.map((c,i) => renderCard(c,i)).join('');
       }
     }
 
-    // ── Modal ─────────────────────────────────────────────────────────────────
+    /* ── Modal ─────────────────────────────────────────────────────────────── */
     function openCourtModal(courtId) {
       const court = allCourts.find(c => c.id === courtId);
       if (!court) return;
-      const info = getCourtInfo(court);
+      const info  = getCourtInfo(court);
       const theme = SPORT_THEME[court.type] || SPORT_THEME.football;
-      const icon = SPORT_ICONS[court.type] || SPORT_ICONS.football;
+      const icon  = SPORT_ICONS[court.type]  || SPORT_ICONS.football;
       const tmeta = TIER_META[info.tier];
 
       document.getElementById('modalHeroBg').style.background = `linear-gradient(135deg,${theme.grad[0]},${theme.grad[1]})`;
@@ -1028,38 +999,29 @@
       document.getElementById('modalName').textContent = court.name;
       document.getElementById('modalPrice').textContent = court.price_per_hour + ' coins/hr';
       document.getElementById('modalCapacity').textContent = info.capacity;
+
       const statusEl = document.getElementById('modalStatus');
-      if (court.under_maintenance || 0) {
-        statusEl.textContent = 'Maintenance';
-        statusEl.style.color = '#d97706';
-      } else {
-        statusEl.textContent = 'Open';
-        statusEl.style.color = '#16a34a';
-      }
+      if (court.under_maintenance || 0) { statusEl.textContent = 'Maintenance'; statusEl.style.color = '#d97706'; }
+      else { statusEl.textContent = 'Open'; statusEl.style.color = '#12b981'; }
 
-      // Tier badge in modal
       document.getElementById('modalDescription').innerHTML =
-        `<span style="display:inline-block;font-size:0.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:12px;margin-bottom:8px;color:${tmeta.color};background:${tmeta.bg};">${tmeta.label} Tier</span><br>${info.desc}`;
+        `<span style="display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:${getComputedStyle(document.documentElement).getPropertyValue('--radius-xs')};margin-bottom:8px;color:${tmeta.color};background:${tmeta.bg};">${tmeta.label} Tier</span><br>${info.desc}`;
 
-      document.getElementById('modalFeatures').innerHTML = info.features.map(([label, key]) =>
-        `<span class="cm-feature-tag" style="border-color:${tmeta.bg};background:${tmeta.bg};color:#334155;">
-          <span style="color:${tmeta.color};display:flex;">${FEAT_ICONS[key] || ''}</span>${label}
+      document.getElementById('modalFeatures').innerHTML = info.features.map(([label,key]) =>
+        `<span class="cm-feature-tag" style="border-color:${tmeta.bg};background:${tmeta.bg};">
+          <span style="color:${tmeta.color};display:flex;">${FEAT_ICONS[key]||''}</span>${label}
         </span>`
       ).join('');
 
       const bookBtn = document.getElementById('modalBookBtn');
       if (court.under_maintenance || 0) {
-        bookBtn.style.background = '#e2e8f0';
-        bookBtn.style.color = '#94a3b8';
-        bookBtn.disabled = true;
-        bookBtn.textContent = 'Under Maintenance';
-        bookBtn.onclick = null;
+        bookBtn.style.background = 'var(--bg)'; bookBtn.style.color = 'var(--muted)';
+        bookBtn.disabled = true; bookBtn.textContent = 'Under Maintenance'; bookBtn.onclick = null;
       } else {
         bookBtn.style.background = `linear-gradient(135deg,${theme.grad[0]},${theme.grad[1]})`;
-        bookBtn.style.color = 'white';
-        bookBtn.disabled = false;
-        bookBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:17px;height:17px;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Book This Court`;
-        bookBtn.onclick          = () => { closeCourtModal(); bookCourt(courtId); };
+        bookBtn.style.color = 'white'; bookBtn.disabled = false;
+        bookBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Book This Court`;
+        bookBtn.onclick = () => { closeCourtModal(); bookCourt(courtId); };
       }
       document.getElementById('courtInfoModal').style.display = 'flex';
     }
@@ -1071,13 +1033,13 @@
       if (e.target === this) closeCourtModal();
     });
 
-    // ── Filter & sort ─────────────────────────────────────────────────────────
+    /* ── Filter & sort ─────────────────────────────────────────────────────── */
     async function loadCourts() {
       try {
         allCourts = await apiFetch('/courts');
         filterCourts();
       } catch(err) {
-        document.getElementById('courtsGrid').innerHTML = '<p style="color:#ef4444;padding:20px;">Error loading courts. Please refresh.</p>';
+        document.getElementById('courtsGrid').innerHTML = `<div class="courts-error"><div class="courts-error-box">Error loading courts. Please refresh the page.</div></div>`;
       }
     }
 
@@ -1085,9 +1047,7 @@
       const type   = document.getElementById('courtTypeFilter').value;
       const search = document.getElementById('searchCourt').value.toLowerCase();
       const sort   = document.getElementById('sortBy').value;
-      let filtered = allCourts.filter(c =>
-        (type === 'all' || c.type === type) && c.name.toLowerCase().includes(search)
-      );
+      let filtered = allCourts.filter(c => (type === 'all' || c.type === type) && c.name.toLowerCase().includes(search));
       if (sort === 'name')       filtered.sort((a,b) => a.name.localeCompare(b.name));
       if (sort === 'price_asc')  filtered.sort((a,b) => a.price_per_hour - b.price_per_hour);
       if (sort === 'price_desc') filtered.sort((a,b) => b.price_per_hour - a.price_per_hour);
@@ -1098,10 +1058,10 @@
       favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
       if (favorites.includes(courtId)) {
         favorites = favorites.filter(id => id !== courtId);
-        showAlert('Removed from favorites', 'info');
+        showAlert('Removed from favourites', 'info');
       } else {
         favorites.push(courtId);
-        showAlert('Added to favorites', 'success');
+        showAlert('Added to favourites', 'success');
       }
       localStorage.setItem('favorites', JSON.stringify(favorites));
       filterCourts();
@@ -1112,21 +1072,26 @@
       location.href = 'booking.html';
     }
 
+    /* ── Alerts ────────────────────────────────────────────────────────────── */
     function showAlert(message, type = 'info') {
       const container = document.getElementById('alertContainer');
       const el = document.createElement('div');
       el.className = 'alert alert-' + type;
       el.textContent = message;
       container.appendChild(el);
-      setTimeout(() => {
-        el.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => el.remove(), 300);
-      }, 4000);
+      setTimeout(() => el.remove(), 4000);
     }
+    window.showAlert = showAlert;
+
+    /* ── Notifications ─────────────────────────────────────────────────────── */
+    function toggleNotifications() {
+      const panel = document.getElementById('notificationPanel');
+      const isOpen = panel.classList.toggle('open');
+      if (isOpen && typeof loadNotifications === 'function') loadNotifications();
+    }
+    window.toggleNotifications = toggleNotifications;
 
     loadCourts();
-    loadNotifications();
   </script>
 </body>
-
 </html>
