@@ -1346,8 +1346,8 @@
     const TIERS = [
       {min:0,    next:1000,  name:'Bronze',   cls:'tier-bronze',   color:'#e8a96a'},
       {min:1000, next:5000,  name:'Silver',   cls:'tier-silver',   color:'#c8d7eb'},
-      {min:5000, next:20000, name:'Gold',     cls:'tier-gold',     color:'#ffd700'},
-      {min:20000,next:null,  name:'Platinum', cls:'tier-platinum', color:'#7dd3fc'},
+      {min:5000, next:50000, name:'Gold',     cls:'tier-gold',     color:'#ffd700'},
+      {min:50000,next:null,  name:'Platinum', cls:'tier-platinum', color:'#7dd3fc'},
     ];
     function getTier(s) { return [...TIERS].reverse().find(t=>s>=t.min)||TIERS[0]; }
 
@@ -1457,9 +1457,9 @@
         }) : [];
         const completed = Array.isArray(bookings) ? bookings.filter(b=>b.status==='completed') : [];
 
-        // totalSpent: sum total_price across all bookings (DB column: total_price)
+        // totalSpent: sum total_price for confirmed + completed bookings only (matches admin)
         const totalSpent = Array.isArray(bookings)
-          ? bookings.reduce((s,b)=>s+(b.total_price||0),0)
+          ? bookings.filter(b=>['confirmed','completed'].includes(b.status)).reduce((s,b)=>s+(b.total_price||0),0)
           : 0;
 
         // Counts derived from bookings list

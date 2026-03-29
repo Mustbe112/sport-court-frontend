@@ -90,6 +90,10 @@
       <button class="tab-btn" onclick="switchTab('lookup')">
         User Lookup
       </button>
+      <button class="tab-btn" onclick="switchTab('reports')">
+        Report Requests
+        <span class="tab-badge" id="tabBadgeReports" style="display:none;"></span>
+      </button>
     </div>
 
     <!-- ══════════════════════════════════════
@@ -243,6 +247,43 @@
       @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
     </style>
 
+    <!-- ══════════════════════════════════════
+         TAB 4 — REPORT REQUESTS
+    ══════════════════════════════════════ -->
+    <div id="panel-reports" class="tab-panel">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div>
+            <h3 style="margin:0 0 4px;">User Report Requests</h3>
+            <p style="margin:0; font-size:13px; color:#64748b;">Users who clicked "Request My Report" on their profile. Click <strong>Send Report</strong> to notify them — they can then download their PDF directly from their profile.</p>
+          </div>
+          <button onclick="loadReportRequests()" style="padding:8px 16px; width:auto; background:#f1f5f9; color:#374151; border:1.5px solid #e2e8f0; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px; white-space:nowrap;">
+            ↺ Refresh
+          </button>
+        </div>
+
+        <!-- Pending -->
+        <div style="margin-bottom:24px;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; padding-bottom:10px; border-bottom:1.5px solid #e2e8f0;">
+            <span style="width:10px; height:10px; border-radius:50%; background:#f59e0b; display:inline-block;"></span>
+            <strong style="font-size:14px;">Pending Requests</strong>
+            <span id="reportPendingCount" style="background:#fef3c7; color:#92400e; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:700;">0</span>
+          </div>
+          <div id="reportPendingList"><p style="color:#64748b; font-size:14px;">Loading…</p></div>
+        </div>
+
+        <!-- Sent -->
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; padding-bottom:10px; border-bottom:1.5px solid #e2e8f0;">
+            <span style="width:10px; height:10px; border-radius:50%; background:#22c55e; display:inline-block;"></span>
+            <strong style="font-size:14px;">Already Sent</strong>
+            <span id="reportSentCount" style="background:#d1fae5; color:#065f46; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:700;">0</span>
+          </div>
+          <div id="reportSentList"><p style="color:#64748b; font-size:14px;">Loading…</p></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ══ MODALS ══ -->
@@ -344,11 +385,13 @@
 
     // ── TAB SWITCHING ──
     function switchTab(name) {
+      const tabs = ['suspensions','passwords','lookup','reports'];
       document.querySelectorAll('.tab-btn').forEach((b, i) => {
-        b.classList.toggle('active', ['suspensions','passwords','lookup'][i] === name);
+        b.classList.toggle('active', tabs[i] === name);
       });
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       document.getElementById(`panel-${name}`).classList.add('active');
+      if (name === 'reports') loadReportRequests();
     }
 
     // ══════════════════════════════════════
@@ -764,8 +807,8 @@
         // ── Tier from totalSpent ──────────────────────────────
         const TIERS = [
           { name:'Platinum', min:50000, color:'#7dd3fc', bg:'rgba(125,211,252,.12)', border:'rgba(125,211,252,.4)' },
-          { name:'Gold',     min:20000, color:'#ffd700', bg:'rgba(255,215,0,.12)',   border:'rgba(255,215,0,.5)'   },
-          { name:'Silver',   min:5000,  color:'#94a3b8', bg:'rgba(148,163,184,.12)', border:'rgba(148,163,184,.4)' },
+          { name:'Gold',     min:5000,  color:'#ffd700', bg:'rgba(255,215,0,.12)',   border:'rgba(255,215,0,.5)'   },
+          { name:'Silver',   min:1000,  color:'#94a3b8', bg:'rgba(148,163,184,.12)', border:'rgba(148,163,184,.4)' },
           { name:'Bronze',   min:0,     color:'#cd7f32', bg:'rgba(205,127,50,.12)',  border:'rgba(205,127,50,.4)'  },
         ];
         const tier = TIERS.find(t => totalSpent >= t.min) || TIERS[TIERS.length - 1];
@@ -879,9 +922,10 @@
               ) : ''}
 
               <div style="margin-top:16px; padding-top:16px; border-top:1px solid #f1f5f9; display:flex; justify-content:flex-end;">
-                <button onclick="exportUserActivityCSV(${u.id}, '${u.name.replace(/'/g,"\\'")}', '${u.email}')"
-                  style="padding:8px 18px; width:auto; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px;">
-                  Export User CSV
+                <button onclick="printUserActivityPDF(${u.id}, '${u.name.replace(/'/g,"\\'")}', '${u.email}')"
+                  style="padding:8px 18px; width:auto; background:#6366f1; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:7px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                  Print PDF Report
                 </button>
               </div>
             </div>
@@ -897,36 +941,374 @@
       renderUserActivity();
     }
 
-    function toCSV(headers, rows) {
-      const esc = v => { const s = String(v??'').replace(/"/g,'""'); return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s}"`:s; };
-      return [headers.join(','), ...rows.map(r => r.map(esc).join(','))].join('\n');
-    }
-
-    function downloadCSV(filename, content) {
-      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: filename });
-      a.click(); URL.revokeObjectURL(a.href);
-    }
-
-    function exportUserActivityCSV(userId, userName, email) {
+    function printUserActivityPDF(userId, userName, email) {
       if (!userActivityData) return;
       const { activities } = userActivityData;
+      // Always use ALL (unfiltered) bookings so report matches full lookup stats
       const uBookings  = activities.bookings.filter(b => b.user_id === userId);
       const uPenalties = activities.penalties.filter(p => p.user_id === userId);
       const uAppeals   = activities.appeals.filter(a => a.user_id === userId);
+      const uTopups    = (activities.topups || []).filter(t => t.user_id === userId);
+      const u          = userActivityData.users.find(u => u.id === userId);
 
-      let csv = `User Activity Report\n"${userName}","${email}"\n\nBOOKINGS\n`;
-      csv += toCSV(['Booking ID','Court','Type','Date','Start Time','End Time','Status','Amount (coins)'],
-        uBookings.map(b => [b.id, b.court_name, b.court_type, formatDate(b.date), formatTime(b.start_time), formatTime(b.end_time), b.status, b.total_price]));
-      csv += '\n\nPENALTIES\n';
-      csv += toCSV(['Type','Description','Amount (coins)','Court','Resolved','Date'],
-        uPenalties.map(p => [p.type, p.description||'', p.amount, p.court_name||'', p.resolved?'Yes':'No', formatDate(p.created_at)]));
-      csv += '\n\nAPPEALS\n';
-      csv += toCSV(['Message','Status','Admin Note','Submitted'],
-        uAppeals.map(a => [a.message, a.status, a.admin_note||'', formatDate(a.created_at)]));
+      // Tier thresholds — identical to lookup view & dashboard
+      const TIERS = [
+        { name:'Platinum', min:50000, color:'#7dd3fc', bg:'rgba(125,211,252,.15)', border:'rgba(125,211,252,.5)' },
+        { name:'Gold',     min:5000,  color:'#ffd700', bg:'rgba(255,215,0,.12)',   border:'rgba(255,215,0,.5)'   },
+        { name:'Silver',   min:1000,  color:'#94a3b8', bg:'rgba(148,163,184,.12)', border:'rgba(148,163,184,.4)' },
+        { name:'Bronze',   min:0,     color:'#cd7f32', bg:'rgba(205,127,50,.12)',  border:'rgba(205,127,50,.4)'  },
+      ];
+      // Total spent = confirmed + completed only (matches lookup view & dashboard)
+      const totalSpent = uBookings
+        .filter(b => ['confirmed','completed'].includes(b.status))
+        .reduce((s,b) => s + Number(b.total_price), 0);
+      const tier = TIERS.find(t => totalSpent >= t.min) || TIERS[TIERS.length-1];
 
-      downloadCSV(`user_activity_${userName.replace(/[^a-z0-9]/gi,'_').toLowerCase()}.csv`, csv);
-      showAlert(`Exported activity for ${userName}`, 'success');
+      const isSuspended = u && u.suspended_until && new Date(u.suspended_until) > new Date();
+      const isPermanent = isSuspended && new Date(u.suspended_until).getFullYear() >= 2099;
+      const statusLabel = isPermanent ? 'Permanently Banned' : isSuspended ? 'Suspended' : 'Active';
+      const statusColor = (isPermanent || isSuspended) ? '#dc2626' : '#16a34a';
+      const statusBg    = (isPermanent || isSuspended) ? '#fef2f2' : '#f0fdf4';
+      const memberId    = 'SC-' + String(userId).padStart(7, '0');
+
+      const sc  = { confirmed:'#16a34a', completed:'#2563eb', cancelled:'#dc2626', booked:'#f59e0b', no_show:'#7c3aed' };
+      const asc = { pending:'#d97706', approved:'#16a34a', rejected:'#dc2626' };
+
+      const totalBookings  = uBookings.length;
+      const cancellations  = uBookings.filter(b => b.status === 'cancelled').length;
+      const noShows        = uBookings.filter(b => b.status === 'no_show').length;
+      const coinBalance    = u?.coin_balance || 0;
+      const pendingPenalty = u?.penalty || 0;
+
+      function fmtDate(d) {
+        if (!d) return '—';
+        return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+      }
+      function fmtTime(t) {
+        if (!t) return '—';
+        const [h,m] = t.split(':').map(Number);
+        return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+      }
+      function tblHTML(headers, rows, emptyMsg) {
+        if (!rows || !rows.length) return `<p class="empty-note">${emptyMsg}</p>`;
+        return `<table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+      }
+
+      const bookingRows = uBookings.map((b,i) => `<tr class="${i%2?'alt':''}">
+        <td class="mono">#${b.id}</td>
+        <td><strong>${b.court_name}</strong> <span class="dim">(${b.court_type})</span></td>
+        <td>${fmtDate(b.date)}</td>
+        <td class="mono-sm">${fmtTime(b.start_time)} – ${fmtTime(b.end_time)}</td>
+        <td><span class="pill" style="color:${sc[b.status]||'#64748b'};background:${sc[b.status]||'#64748b'}18;">${b.status.replace('_',' ')}</span></td>
+        <td class="amount">${Number(b.total_price).toLocaleString()} <span class="dim">coins</span></td>
+      </tr>`);
+
+      const penaltyRows = uPenalties.map((p,i) => `<tr class="${i%2?'alt':''}">
+        <td><strong>${p.type.replace('_',' ')}</strong></td>
+        <td class="dim">${p.description||'—'}</td>
+        <td class="amount red">${Number(p.amount).toLocaleString()} <span class="dim">coins</span></td>
+        <td>${p.court_name||'—'}</td>
+        <td><span class="pill" style="color:${p.resolved?'#16a34a':'#dc2626'};background:${p.resolved?'#f0fdf4':'#fef2f2'};">${p.resolved?'Resolved':'Pending'}</span></td>
+        <td class="dim">${fmtDate(p.created_at)}</td>
+      </tr>`);
+
+      const appealRows = uAppeals.map((a,i) => `<tr class="${i%2?'alt':''}">
+        <td style="max-width:200px;font-size:11px;">${a.message}</td>
+        <td><span class="pill" style="color:${asc[a.status]||'#64748b'};background:${asc[a.status]||'#64748b'}18;">${a.status}</span></td>
+        <td class="dim" style="font-size:11px;">${a.admin_note||'—'}</td>
+        <td class="dim">${fmtDate(a.created_at)}</td>
+      </tr>`);
+
+      const topupRows = uTopups.map((t,i) => `<tr class="${i%2?'alt':''}">
+        <td class="amount green">+${Number(t.amount).toLocaleString()} <span class="dim">coins</span></td>
+        <td class="dim">${fmtDate(t.created_at)}</td>
+      </tr>`);
+
+      const printDate = new Date().toLocaleString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User Report — ${userName}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:#1e293b;font-size:13px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+@page{margin:14mm 14mm;size:A4;}
+@media print{.no-print{display:none!important;}}
+.page{max-width:900px;margin:0 auto;padding:0 0 40px;}
+/* Header */
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 28px;background:linear-gradient(120deg,#0f172a 0%,#1e293b 60%,#0c2a4a 100%);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-icon{width:34px;height:34px;border-radius:8px;background:#22c55e;display:flex;align-items:center;justify-content:center;}
+.brand-name{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.02em;}
+.brand-name b{color:#22c55e;}
+.brand-sub{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-top:1px;}
+.hdr-right{text-align:right;}
+.rpt-label{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
+.rpt-date{font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;font-family:'JetBrains Mono',monospace;}
+/* Profile */
+.profile{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 28px;gap:20px;flex-wrap:wrap;border-bottom:1.5px solid #f1f5f9;}
+.p-left{display:flex;align-items:center;gap:16px;}
+.avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.3);flex-shrink:0;}
+.p-name{font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.02em;}
+.p-email{font-size:12px;color:#64748b;margin-top:2px;}
+.p-since{font-size:11px;color:#94a3b8;margin-top:2px;}
+.p-id{font-size:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace;margin-top:3px;}
+.badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+.badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:20px;border:1.5px solid;white-space:nowrap;}
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(7,1fr);border-top:1.5px solid #f1f5f9;border-bottom:1.5px solid #f1f5f9;}
+.stat{padding:14px 8px;text-align:center;border-right:1px solid #f1f5f9;}
+.stat:last-child{border-right:none;}
+.sv{font-size:18px;font-weight:800;line-height:1;}
+.sl{font-size:9px;color:#94a3b8;margin-top:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+/* Sections */
+.section{padding:20px 28px 0;}
+.sec-head{display:flex;align-items:center;gap:8px;padding-bottom:8px;margin-bottom:12px;border-bottom:1.5px solid #f1f5f9;}
+.sec-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sec-title{font-size:12px;font-weight:800;color:#0f172a;letter-spacing:-.01em;}
+.sec-count{margin-left:auto;font-size:10px;font-weight:600;color:#94a3b8;background:#f8fafc;padding:2px 9px;border-radius:20px;border:1px solid #e2e8f0;}
+/* Tables */
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:7px 10px;background:#f8fafc;color:#64748b;font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-bottom:1.5px solid #e2e8f0;}
+td{padding:7px 10px;border-bottom:1px solid #f8fafc;vertical-align:middle;}
+tr.alt td{background:#fafafa;}
+tr:last-child td{border-bottom:none;}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px;color:#64748b;}
+.mono-sm{font-family:'JetBrains Mono',monospace;font-size:11px;}
+.dim{color:#94a3b8;font-size:11px;}
+.amount{font-weight:700;color:#1e293b;}
+.amount.red{color:#dc2626;}
+.amount.green{color:#16a34a;}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:capitalize;}
+.empty-note{color:#94a3b8;font-size:12px;font-style:italic;padding:6px 0;}
+/* Footer */
+.footer{margin:28px 28px 0;padding:12px 18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#94a3b8;}
+.footer strong{color:#64748b;font-weight:700;}
+/* Print btn */
+.print-btn{position:fixed;bottom:24px;right:24px;padding:11px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 6px 20px rgba(99,102,241,.4);font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px;transition:background .15s;}
+.print-btn:hover{background:#4f46e5;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="hdr">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">Sport<b>Court</b></div>
+      <div class="brand-sub">Admin Portal</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="rpt-label">User Activity Report</div>
+    <div class="rpt-date">${printDate}</div>
+  </div>
+</div>
+
+<div class="profile">
+  <div class="p-left">
+    <div class="avatar">${userName.charAt(0).toUpperCase()}</div>
+    <div>
+      <div class="p-name">${userName}</div>
+      <div class="p-email">${email}</div>
+      <div class="p-since">Member since ${u ? fmtDate(u.created_at) : '—'}</div>
+      <div class="p-id">${memberId}</div>
+      <div class="badges">
+        <span class="badge" style="color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe;">${u?.role||'User'}</span>
+        <span class="badge" style="color:${statusColor};background:${statusBg};border-color:${statusColor}44;">${statusLabel}</span>
+        <span class="badge" style="color:${tier.color};background:${tier.bg};border-color:${tier.border};">${tier.name} Tier</span>
+        ${pendingPenalty>0?`<span class="badge" style="color:#c2410c;background:#fff7ed;border-color:#fed7aa;">Penalty: ${pendingPenalty} coins</span>`:''}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="sv" style="color:#6366f1;">${coinBalance.toLocaleString()}</div><div class="sl">Coin Balance</div></div>
+  <div class="stat"><div class="sv" style="color:#16a34a;">${totalSpent.toLocaleString()}</div><div class="sl">Total Spent</div></div>
+  <div class="stat"><div class="sv" style="color:#2563eb;">${totalBookings}</div><div class="sl">Bookings</div></div>
+  <div class="stat"><div class="sv" style="color:#dc2626;">${cancellations}</div><div class="sl">Cancellations</div></div>
+  <div class="stat"><div class="sv" style="color:#7c3aed;">${noShows}</div><div class="sl">No Shows</div></div>
+  <div class="stat"><div class="sv" style="color:#ea580c;">${uPenalties.length}</div><div class="sl">Penalties</div></div>
+  <div class="stat"><div class="sv" style="color:#64748b;">${uAppeals.length}</div><div class="sl">Appeals</div></div>
+</div>
+
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-dot" style="background:#2563eb;"></span>
+    <span class="sec-title">Booking History</span>
+    <span class="sec-count">${totalBookings} records</span>
+  </div>
+  ${tblHTML(['ID','Court','Date','Time','Status','Amount'],bookingRows,'No bookings found.')}
+</div>
+
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-dot" style="background:#ea580c;"></span>
+    <span class="sec-title">Penalties</span>
+    <span class="sec-count">${uPenalties.length} records</span>
+  </div>
+  ${tblHTML(['Type','Description','Amount','Court','Status','Date'],penaltyRows,'No penalties recorded.')}
+</div>
+
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-dot" style="background:#7c3aed;"></span>
+    <span class="sec-title">Appeals</span>
+    <span class="sec-count">${uAppeals.length} records</span>
+  </div>
+  ${tblHTML(['Message','Status','Admin Note','Submitted'],appealRows,'No appeals submitted.')}
+</div>
+
+${uTopups.length?`
+<div class="section">
+  <div class="sec-head">
+    <span class="sec-dot" style="background:#16a34a;"></span>
+    <span class="sec-title">Coin Top-ups</span>
+    <span class="sec-count">${uTopups.length} records</span>
+  </div>
+  ${tblHTML(['Amount','Date'],topupRows,'')}
+</div>`:''}
+
+<div class="footer">
+  <strong>SportCourt Admin</strong>
+  <span>Generated: ${printDate}</span>
+  <span>Confidential — Admin Use Only</span>
+</div>
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+  Print / Save PDF
+</button>
+</body>
+</html>`;
+
+      const win = window.open('', '_blank');
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      showAlert(`PDF report opened for ${userName}`, 'success');
+    }
+
+
+    // ══════════════════════════════════════
+    // TAB 4 — REPORT REQUESTS
+    // ══════════════════════════════════════
+
+    async function loadReportRequests(silent = false) {
+      try {
+        const rows = await apiFetch('/admin/report-requests', { headers: authHeader() });
+
+        const pending = rows.filter(r => r.status === 'pending');
+        const sent    = rows.filter(r => r.status === 'sent');
+
+        // Update counts
+        const pendEl = document.getElementById('reportPendingCount');
+        const sentEl = document.getElementById('reportSentCount');
+        pendEl.textContent = pending.length;
+        sentEl.textContent = sent.length;
+
+        // Tab badge
+        const badge = document.getElementById('tabBadgeReports');
+        if (pending.length > 0) { badge.textContent = pending.length; badge.style.display = 'inline-block'; }
+        else { badge.style.display = 'none'; }
+
+        // Render pending
+        const pendList = document.getElementById('reportPendingList');
+        if (!pending.length) {
+          pendList.innerHTML = '<p style="color:#64748b; font-size:14px;">No pending report requests.</p>';
+        } else {
+          pendList.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Member Since</th>
+                  <th>Coin Balance</th>
+                  <th>Requested At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${pending.map(r => `
+                  <tr style="background:#fffbeb;">
+                    <td>
+                      <strong>${r.name}</strong><br>
+                      <small style="color:#64748b;">${r.email}</small>
+                    </td>
+                    <td style="font-size:13px; color:#64748b;">
+                      ${r.member_since ? new Date(r.member_since).toLocaleDateString('en-US',{year:'numeric',month:'short'}) : 'N/A'}
+                    </td>
+                    <td>
+                      <span style="background:#eff6ff; color:#1d4ed8; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:700;">
+                        ${(r.coin_balance || 0).toLocaleString()} coins
+                      </span>
+                    </td>
+                    <td style="font-size:13px; color:#64748b;">${formatDate(r.requested_at)}</td>
+                    <td>
+                      <button onclick="sendReport(${r.id}, '${r.name.replace(/'/g,"\\'")}')"
+                        style="background:#22c55e; color:white; border:none; padding:7px 16px; border-radius:7px; cursor:pointer; font-weight:700; font-size:13px; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        Send Report
+                      </button>
+                    </td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>`;
+        }
+
+        // Render sent
+        const sentList = document.getElementById('reportSentList');
+        if (!sent.length) {
+          sentList.innerHTML = '<p style="color:#64748b; font-size:14px;">No reports sent yet.</p>';
+        } else {
+          sentList.innerHTML = `
+            <table>
+              <thead>
+                <tr><th>User</th><th>Requested At</th><th>Sent At</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                ${sent.map(r => `
+                  <tr>
+                    <td>
+                      <strong>${r.name}</strong><br>
+                      <small style="color:#64748b;">${r.email}</small>
+                    </td>
+                    <td style="font-size:13px; color:#64748b;">${formatDate(r.requested_at)}</td>
+                    <td style="font-size:13px; color:#64748b;">${formatDate(r.sent_at)}</td>
+                    <td>
+                      <span style="background:#d1fae5; color:#065f46; padding:3px 12px; border-radius:12px; font-size:12px; font-weight:600;">
+                        ✓ Sent
+                      </span>
+                    </td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>`;
+        }
+      } catch(err) {
+        if (!silent) console.error('Failed to load report requests:', err);
+      }
+    }
+
+    async function sendReport(requestId, userName) {
+      if (!confirm(`Send report notification to ${userName}? They will be able to download their PDF from their profile.`)) return;
+      try {
+        await apiFetch(`/admin/report-requests/${requestId}/send`, {
+          method: 'POST',
+          headers: authHeader()
+        });
+        showAlert(`✓ Report notification sent to ${userName}`, 'success');
+        loadReportRequests();
+      } catch(err) {
+        showAlert(err.message || 'Failed to send report', 'error');
+      }
     }
 
     // ══════════════════════════════════════
@@ -1047,8 +1429,9 @@
     loadSuspensions();
     loadPendingResets();
     loadAllUsers();
+    loadReportRequests();
 
-    // Poll suspensions every 15s, password resets every 10s
+    // Poll suspensions every 15s, password resets every 10s, report requests every 20s
     setInterval(loadSuspensions, 15000);
     setInterval(async () => {
       const prev = document.getElementById('pendingCount').textContent;
@@ -1057,6 +1440,14 @@
         showAlert('New password reset request received!', 'info');
       }
     }, 10000);
+    setInterval(async () => {
+      const prevCount = document.getElementById('reportPendingCount').textContent;
+      await loadReportRequests(true);
+      const newCount = document.getElementById('reportPendingCount').textContent;
+      if (prevCount !== '0' && prevCount !== newCount && parseInt(newCount) > parseInt(prevCount || 0)) {
+        showAlert('New report request received!', 'info');
+      }
+    }, 20000);
   </script>
 </body>
 </html>

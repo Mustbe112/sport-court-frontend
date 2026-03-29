@@ -59,6 +59,7 @@
     @keyframes popIn     { from{transform:scale(0)} to{transform:scale(1)} }
     @keyframes alertSlide{ from{transform:translateX(110%);opacity:0;} to{transform:translateX(0);opacity:1;} }
     @keyframes slideOut  { from{transform:translateX(0);opacity:1;} to{transform:translateX(100%);opacity:0;} }
+    @keyframes reportPulse { 0%,100%{box-shadow:0 4px 14px rgba(22,163,74,.35)} 50%{box-shadow:0 4px 22px rgba(22,163,74,.65)} }
 
     .a1{animation:fadeUp .55s var(--ease) both}
     .a2{animation:fadeUp .55s .07s var(--ease) both}
@@ -756,9 +757,32 @@
           </div>
         </div>
 
-      </div>
+        <!-- Report Button — state managed by JS: request / pending / download -->
+        <div id="reportBtnWrap" style="margin-top:12px;">
+          <!-- STATE A: Request button (default) -->
+          <button id="reportRequestBtn" onclick="requestMyReport()"
+            style="width:100%;background:var(--ink);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 16px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(15,17,23,.18);letter-spacing:.01em;transition:background .18s;"
+            onmouseover="this.style.background='var(--ink-2)'" onmouseout="this.style.background='var(--ink)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Request My Report
+          </button>
 
-      <!-- ── MAIN CONTENT ── -->
+          <!-- STATE B: Pending — locked, shows waiting state -->
+          <button id="reportPendingBtn" style="display:none;width:100%;background:#f4f5f9;color:var(--muted);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:not-allowed;display:none;align-items:center;justify-content:center;gap:8px;letter-spacing:.01em;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 2s linear infinite"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Waiting for Admin…
+          </button>
+
+          <!-- STATE C: Ready — download button -->
+          <button id="reportDownloadBtn" onclick="generateMyReport()" style="display:none;width:100%;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 16px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(22,163,74,.35);letter-spacing:.01em;transition:opacity .18s;animation:reportPulse 2s ease-in-out infinite;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Download My Report ✓
+          </button>
+
+          <div id="reportStatusNote" style="display:none;margin-top:7px;font-size:.7rem;color:var(--muted);text-align:center;line-height:1.4;"></div>
+        </div>
+
+      </div>
       <div class="profile-content">
 
         <!-- Account Information -->
@@ -1024,6 +1048,13 @@
     }
     window.toggleNotifications = toggleNotifications;
 
+    // Override notification load to also detect REPORT_READY notifications
+    const _origLoadNotifications = window.loadNotifications;
+    window.loadNotifications = async function() {
+      if (typeof _origLoadNotifications === 'function') await _origLoadNotifications();
+      checkReportStatus(); // re-check report state whenever notifications refresh
+    };
+
     /* ── Auth ── */
     checkAuth();
 
@@ -1230,7 +1261,511 @@
     }
     window.showAlert = showAlert;
 
+    /* ══════════════════════════════════════════
+       REPORT REQUEST SYSTEM
+    ══════════════════════════════════════════ */
+
+    // States: 'none' | 'pending' | 'ready'
+    // On load, check status; when notification comes in, re-check
+    function setReportBtnState(state, meta) {
+      const reqBtn  = document.getElementById('reportRequestBtn');
+      const pendBtn = document.getElementById('reportPendingBtn');
+      const dlBtn   = document.getElementById('reportDownloadBtn');
+      const note    = document.getElementById('reportStatusNote');
+
+      // Hide all first
+      reqBtn.style.display  = 'none';
+      pendBtn.style.display = 'none';
+      dlBtn.style.display   = 'none';
+      note.style.display    = 'none';
+
+      if (state === 'none') {
+        reqBtn.style.display = 'flex';
+      } else if (state === 'pending') {
+        pendBtn.style.display = 'flex';
+        note.style.display = 'block';
+        const dt = meta?.requested_at ? new Date(meta.requested_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+        note.textContent = `Requested${dt ? ' ' + dt : ''}. You'll get a notification when it's ready.`;
+      } else if (state === 'ready') {
+        dlBtn.style.display = 'flex';
+        note.style.display = 'block';
+        if (meta?.daysLeft !== undefined) {
+          const expStr = meta.expiresAt
+            ? new Date(meta.expiresAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})
+            : '';
+          note.textContent = meta.daysLeft <= 1
+            ? `⚠ Expires today — download before it resets`
+            : `Available for ${meta.daysLeft} more day${meta.daysLeft!==1?'s':''}${expStr?' (until '+expStr+')':''}`;
+          note.style.color = meta.daysLeft <= 2 ? '#d97706' : '#16a34a';
+        } else {
+          note.textContent = '✓ Your report is ready to download';
+          note.style.color = '#16a34a';
+        }
+      }
+    }
+
+    async function checkReportStatus() {
+      try {
+        const data = await apiFetch('/users/report-status', { headers: authHeader() });
+
+        if (data.status === 'sent' && data.sent_at) {
+          const sentAt   = new Date(data.sent_at);
+          const now      = new Date();
+          const msIn7Days = 7 * 24 * 60 * 60 * 1000;
+          const elapsed  = now - sentAt;
+
+          if (elapsed >= msIn7Days) {
+            // 7 days passed — reset back to allow a new request
+            setReportBtnState('none');
+          } else {
+            // Still within 7-day window — show download button with expiry note
+            const expiresAt  = new Date(sentAt.getTime() + msIn7Days);
+            const daysLeft   = Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000));
+            setReportBtnState('ready', { ...data, daysLeft, expiresAt });
+          }
+        } else {
+          setReportBtnState(data.status === 'sent' ? 'ready' : data.status, data);
+        }
+      } catch {
+        setReportBtnState('none');
+      }
+    }
+
+    async function requestMyReport() {
+      const btn = document.getElementById('reportRequestBtn');
+      btn.disabled = true;
+      btn.innerHTML = '…Submitting';
+      try {
+        await apiFetch('/users/report-request', { method: 'POST', headers: authHeader() });
+        showAlert('Report requested! You\'ll get a notification when it\'s ready.', 'success');
+        checkReportStatus();
+      } catch (err) {
+        showAlert(err.message || 'Failed to submit request.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Request My Report';
+      }
+    }
+
+    /* ══════════════════════════════════════════
+       DOWNLOAD MY REPORT — PDF (called when report is ready)
+    ══════════════════════════════════════════ */
+    async function generateMyReport() {
+      const btn = document.getElementById('reportDownloadBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Generating…';
+
+      try {
+        const [user, bookings] = await Promise.all([
+          apiFetch('/users/me',             { headers: authHeader() }),
+          apiFetch('/bookings/my-bookings', { headers: authHeader() }),
+        ]);
+
+        const name    = user.name || user.email.split('@')[0];
+        const email   = user.email;
+        const balance = (user.coin_balance || 0).toLocaleString();
+        const penalty = user.penalty || 0;
+        const since   = user.created_at
+          ? new Date(user.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long'})
+          : '—';
+        const printDate = new Date().toLocaleDateString('en-US',{
+          year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'
+        });
+
+        // ── FIX: Total spent = only completed + confirmed bookings (actual charges)
+        // Cancelled / no-show bookings are refunded, so they should not count toward "spent"
+        const totalSpent = bookings
+          .filter(b => b.status === 'completed' || b.status === 'confirmed')
+          .reduce((s, b) => s + Number(b.total_price || 0), 0);
+
+        const completed  = bookings.filter(b=>b.status==='completed').length;
+        const cancelled  = bookings.filter(b=>b.status==='cancelled').length;
+        const confirmed  = bookings.filter(b=>b.status==='confirmed').length;
+        const noShow     = bookings.filter(b=>b.status==='no_show').length;
+        const booked     = bookings.filter(b=>b.status==='booked').length;
+
+        // Tier thresholds
+        const TIERS = [
+          {name:'Platinum', min:50000, color:'#0ea5e9', bg:'#e0f2fe', border:'#7dd3fc'},
+          {name:'Gold',     min:20000, color:'#d97706', bg:'#fef3c7', border:'#fcd34d'},
+          {name:'Silver',   min:5000,  color:'#64748b', bg:'#f1f5f9', border:'#cbd5e1'},
+          {name:'Bronze',   min:0,     color:'#92400e', bg:'#fef3c7', border:'#fcd34d'},
+        ];
+        const tier = TIERS.find(t => totalSpent >= t.min) || TIERS[TIERS.length-1];
+
+        const fmtDate = d => d
+          ? new Date(d).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
+          : '—';
+        const fmtTime = t => {
+          if (!t) return '—';
+          const [h,m] = t.split(':');
+          const hr = parseInt(h);
+          return `${hr%12||12}:${m} ${hr>=12?'PM':'AM'}`;
+        };
+
+        const groups = {
+          completed: bookings.filter(b=>b.status==='completed'),
+          confirmed: bookings.filter(b=>b.status==='confirmed'),
+          booked:    bookings.filter(b=>b.status==='booked'),
+          cancelled: bookings.filter(b=>b.status==='cancelled'),
+          no_show:   bookings.filter(b=>b.status==='no_show'),
+        };
+
+        // SVG icons for each section (no emojis)
+        const ICONS = {
+          completed: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+          confirmed: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>`,
+          booked:    `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+          cancelled: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+          no_show:   `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`,
+        };
+
+        const buildRows = (list) => list.length
+          ? list.map((b,i) => `
+            <tr class="${i%2===0?'row-even':'row-odd'}">
+              <td class="td-mono">#${b.id}</td>
+              <td><span class="court-name">${b.court_name||'Court '+b.court_id}</span><br><span class="court-type">${(b.court_type||'').toLowerCase()}</span></td>
+              <td class="td-mid">${fmtDate(b.date)}</td>
+              <td class="td-mid">${fmtTime(b.start_time)} – ${fmtTime(b.end_time)}</td>
+              <td class="td-amount">${Number(b.total_price||0).toLocaleString()} <span class="coin-lbl">coins</span></td>
+            </tr>`).join('')
+          : `<tr><td colspan="5" class="td-empty">No records</td></tr>`;
+
+        const buildSection = (label, accentColor, iconKey, list) => `
+          <div class="section">
+            <div class="sec-hdr" style="border-left:3px solid ${accentColor};">
+              <span class="sec-icon" style="background:${accentColor}18;color:${accentColor};">${ICONS[iconKey]}</span>
+              <span class="sec-label">${label}</span>
+              <span class="sec-count">${list.length} record${list.length!==1?'s':''}</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:70px;">ID</th>
+                  <th>Court</th>
+                  <th style="width:110px;">Date</th>
+                  <th style="width:150px;">Time</th>
+                  <th style="width:90px;text-align:right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>${buildRows(list)}</tbody>
+            </table>
+          </div>`;
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Activity Report — ${name}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+@page { margin: 14mm 13mm; size: A4; }
+@media print { .no-print { display: none !important; } }
+
+/* ── PAGE WRAPPER ── */
+.page { max-width: 760px; margin: 0 auto; padding: 0 0 40px; }
+
+/* ── HEADER ── */
+.hdr {
+  background: #0f172a;
+  padding: 22px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 34px; height: 34px;
+  background: #e5520e;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-mark svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.brand-text-main { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -.02em; }
+.brand-text-main span { color: #e5520e; }
+.brand-text-sub { font-size: 9px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; margin-top: 1px; }
+.hdr-meta { text-align: right; }
+.hdr-meta-label { font-size: 8.5px; color: rgba(255,255,255,.3); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; }
+.hdr-meta-val { font-size: 10.5px; color: rgba(255,255,255,.6); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+
+/* ── DIVIDER LINE ── */
+.accent-line { height: 3px; background: linear-gradient(90deg, #e5520e, #f97316, #fbbf24); }
+
+/* ── MEMBER CARD ── */
+.member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.member-left { display: flex; align-items: center; gap: 14px; }
+.avatar {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: #e5520e;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+}
+.member-name { font-size: 15px; font-weight: 700; color: #0f172a; }
+.member-email { font-size: 11px; color: #64748b; margin-top: 2px; }
+.member-since { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+.badges { display: flex; gap: 6px; align-items: center; }
+.badge {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 3px 10px; border-radius: 999px;
+  border: 1px solid;
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-bottom: 1px solid #f1f5f9;
+}
+.stat-cell {
+  padding: 16px 10px;
+  text-align: center;
+  border-right: 1px solid #f1f5f9;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-val { font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.stat-lbl { font-size: 8px; color: #94a3b8; margin-top: 5px; text-transform: uppercase; letter-spacing: .07em; font-weight: 600; }
+
+/* ── SUMMARY BAND ── */
+.summary-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.summary-left {}
+.summary-lbl { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin-bottom: 4px; }
+.summary-spent { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -.03em; }
+.summary-spent span { font-size: 13px; font-weight: 500; color: #94a3b8; margin-left: 4px; }
+.summary-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.tier-lbl { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+.tier-pill {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  padding: 5px 14px; border-radius: 6px;
+  border: 1.5px solid;
+  display: inline-block;
+}
+
+/* ── PENALTY NOTICE ── */
+.penalty-notice {
+  margin: 16px 28px;
+  padding: 11px 16px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: #c2410c;
+}
+.penalty-notice svg { flex-shrink: 0; }
+
+/* ── SECTION ── */
+.section { margin: 20px 28px 0; page-break-inside: avoid; }
+.sec-hdr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+.sec-icon {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sec-label { font-size: 12px; font-weight: 700; color: #0f172a; flex: 1; }
+.sec-count {
+  font-size: 10px; font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ── TABLE ── */
+table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 0 0 8px 8px; overflow: hidden; }
+th {
+  text-align: left; padding: 8px 12px;
+  background: #1e293b; color: rgba(255,255,255,.8);
+  font-size: 8.5px; text-transform: uppercase;
+  letter-spacing: .07em; font-weight: 700;
+}
+th:last-child { text-align: right; }
+td { padding: 9px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+.row-even td { background: #ffffff; }
+.row-odd  td { background: #fafafa; }
+.td-mono { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #94a3b8; }
+.td-mid { font-size: 11.5px; color: #475569; }
+.td-amount { text-align: right; font-weight: 700; font-size: 12px; color: #0f172a; white-space: nowrap; }
+.coin-lbl { font-weight: 400; font-size: 10px; color: #94a3b8; }
+.court-name { font-weight: 600; font-size: 12px; }
+.court-type { font-size: 10px; color: #94a3b8; text-transform: capitalize; }
+.td-empty { text-align: center; color: #cbd5e1; font-size: 11px; padding: 18px; }
+
+/* ── FOOTER ── */
+.report-footer {
+  margin: 28px 28px 0;
+  padding: 12px 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9.5px;
+  color: #94a3b8;
+}
+.footer-brand { font-weight: 700; color: #475569; }
+
+/* ── PRINT BUTTON ── */
+.print-btn {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 11px 22px;
+  background: #e5520e;
+  color: #fff; border: none; border-radius: 8px;
+  font-weight: 700; font-size: 13px; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(229,82,14,.4);
+  font-family: 'Inter', sans-serif;
+  display: flex; align-items: center; gap: 7px;
+  letter-spacing: -.01em;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+      </div>
+      <div>
+        <div class="brand-text-main">Sport<span>Court</span></div>
+        <div class="brand-text-sub">Activity Report</div>
+      </div>
+    </div>
+    <div class="hdr-meta">
+      <div class="hdr-meta-label">Generated</div>
+      <div class="hdr-meta-val">${printDate}</div>
+    </div>
+  </div>
+  <div class="accent-line"></div>
+
+  <!-- MEMBER INFO -->
+  <div class="member-card">
+    <div class="member-left">
+      <div class="avatar">${name.charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="member-name">${name}</div>
+        <div class="member-email">${email}</div>
+        <div class="member-since">Member since ${since}</div>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa;">Member</span>
+      <span class="badge" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;">Active</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-cell"><div class="stat-val" style="color:#e5520e;">${balance}</div><div class="stat-lbl">Balance</div></div>
+    <div class="stat-cell"><div class="stat-val" style="color:#334155;">${bookings.length}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-cell"><div class="stat-val" style="color:#16a34a;">${completed}</div><div class="stat-lbl">Completed</div></div>
+    <div class="stat-cell"><div class="stat-val" style="color:#2563eb;">${confirmed}</div><div class="stat-lbl">Confirmed</div></div>
+    <div class="stat-cell"><div class="stat-val" style="color:#dc2626;">${cancelled}</div><div class="stat-lbl">Cancelled</div></div>
+    <div class="stat-cell"><div class="stat-val" style="color:#7c3aed;">${noShow}</div><div class="stat-lbl">No Shows</div></div>
+  </div>
+
+  <!-- SUMMARY BAND -->
+  <div class="summary-band">
+    <div class="summary-left">
+      <div class="summary-lbl">Total Coins Spent (completed + confirmed)</div>
+      <div class="summary-spent">${totalSpent.toLocaleString()} <span>coins</span></div>
+    </div>
+    <div class="summary-right">
+      <div class="tier-lbl">Membership Tier</div>
+      <span class="tier-pill" style="color:${tier.color};background:${tier.bg};border-color:${tier.border};">${tier.name}</span>
+    </div>
+  </div>
+
+  ${penalty > 0 ? `
+  <div class="penalty-notice">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div>Pending penalty of <strong>${penalty} coins</strong> — will be charged on your next booking.</div>
+  </div>` : ''}
+
+  ${buildSection('Completed Sessions',  '#16a34a', 'completed', groups.completed)}
+  ${buildSection('Confirmed Bookings',  '#2563eb', 'confirmed', groups.confirmed)}
+  ${groups.booked.length ? buildSection('Pending Bookings', '#d97706', 'booked', groups.booked) : ''}
+  ${buildSection('Cancelled Bookings',  '#dc2626', 'cancelled', groups.cancelled)}
+  ${buildSection('No Shows',            '#7c3aed', 'no_show',   groups.no_show)}
+
+  <!-- FOOTER -->
+  <div class="report-footer">
+    <span class="footer-brand">SportCourt</span>
+    <span>Generated: ${printDate}</span>
+    <span>Personal record — keep this safe</span>
+  </div>
+
+</div>
+
+<button class="print-btn no-print" onclick="window.print()">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+  Print / Save PDF
+</button>
+
+</body>
+</html>`;
+
+        const win = window.open('', '_blank');
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+
+      } catch(err) {
+        console.error('Report error:', err);
+        showAlert('Failed to generate report. Please try again.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Download My Report ✓';
+      }
+    }
+
     loadProfile();
+    checkReportStatus();
   </script>
 </body>
 </html>
