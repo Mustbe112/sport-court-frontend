@@ -173,6 +173,46 @@
     .hamburger.open span:nth-child(2) { opacity:0; }
     .hamburger.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
 
+    /* ── Mobile navbar: brand left, actions right ── */
+    @media (max-width: 768px) {
+      .navbar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        padding: 0 16px;
+      }
+
+      .nav-brand {
+        flex: 1;                  /* takes leftover space, keeps icons right */
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;        /* pushes to the far right */
+        flex-shrink: 0;
+      }
+
+      /* Make sure the hamburger is always visible and NOT re-ordered */
+      .hamburger {
+        display: flex;
+        order: 2;                 /* after the bell */
+      }
+
+      /* Bell stays first among the action icons */
+      .nav-icon-btn {
+        order: 1;
+      }
+
+      /* Logout link hidden on mobile (already in mobile menu) */
+      .nav-logout {
+        display: none;
+      }
+    }
+
     /* Mobile menu drawer */
     .mobile-menu {
       position:fixed; top:var(--nav-h); left:0; right:0;

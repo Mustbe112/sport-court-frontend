@@ -167,6 +167,43 @@
     .hamburger.open span:nth-child(2) { opacity:0; }
     .hamburger.open span:nth-child(3) { transform:translateY(-6.5px) rotate(-45deg); }
 
+    /* ── Mobile navbar: brand left, actions right ── */
+    @media (max-width: 768px) {
+      .navbar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        padding: 0 16px;
+      }
+
+      .nav-brand {
+        flex: 1;
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+
+      .hamburger {
+        display: flex;
+        order: 2;
+      }
+
+      .nav-icon-btn {
+        order: 1;
+      }
+
+      .nav-logout {
+        display: none;
+      }
+    }
+
     /* Mobile menu drawer */
     .mobile-menu {
       position:fixed; top:var(--nav-h); left:0; right:0;
