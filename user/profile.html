@@ -263,6 +263,7 @@
       display:flex; align-items:flex-start; gap:12px;
       padding:14px 20px; border-bottom:1px solid var(--border);
       cursor:pointer; transition:background .15s; position:relative;
+      background:#ffffff; color:var(--ink);
     }
     .notif-item:last-child { border-bottom:none; }
     .notif-item:hover { background:var(--bg); }
@@ -272,19 +273,34 @@
       width:35px; height:35px; border-radius:10px; flex-shrink:0;
       display:flex; align-items:center; justify-content:center;
       background:var(--bg); border:1px solid var(--border);
+      min-width:35px; min-height:35px; max-width:35px; max-height:35px;
+      overflow:hidden;
     }
-    .notif-icon-wrap svg { width:14px; height:14px; stroke:var(--mid); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .notif-icon-wrap svg {
+      width:14px; height:14px; stroke:var(--mid); fill:none;
+      stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+      flex-shrink:0;
+    }
     .notif-item.unread .notif-icon-wrap { background:var(--accent-dim); border-color:rgba(229,82,14,.18); }
     .notif-item.unread .notif-icon-wrap svg { stroke:var(--accent); }
-    .notif-body { flex:1; min-width:0; }
+    .notif-body { flex:1; min-width:0; overflow:hidden; }
     .notif-msg { font-size:.8rem; line-height:1.45; color:var(--mid); word-break:break-word; }
     .notif-item.unread .notif-msg { color:var(--ink); font-weight:500; }
-    .notif-time { font-size:.66rem; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:3px; }
+    .notif-time {
+      font-size:.66rem; color:var(--muted); margin-top:3px;
+      display:flex; align-items:center; gap:3px;
+    }
+    .notif-time svg { width:10px; height:10px; stroke:var(--muted); fill:none; stroke-width:2; flex-shrink:0; }
     .notif-dot { width:5px; height:5px; border-radius:50%; background:var(--accent); flex-shrink:0; margin-top:7px; }
     .notif-item.read .notif-dot { visibility:hidden; }
-    .notif-empty { padding:48px 20px; text-align:center; color:var(--muted); }
+    .notif-empty { padding:48px 20px; text-align:center; color:var(--muted); background:#ffffff; }
     .notif-empty svg { width:36px; height:36px; stroke:var(--border-2); fill:none; stroke-width:1.5; stroke-linecap:round; display:block; margin:0 auto 12px; }
     .notif-empty p { font-size:.82rem; }
+
+    /* Ensure notification panel is fully isolated from page dark themes */
+    #notificationPanel, #notificationPanel * { box-sizing:border-box; }
+    #notificationPanel { background:#ffffff !important; color:var(--ink); }
+    #notificationList { background:#ffffff; }
 
     /* ════════════════════════════════════════════
        ALERTS
